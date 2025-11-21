@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>ANALYZE</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="sql-alterview.html" title="ALTER VIEW" /><link rel="next" href="sql-begin.html" title="BEGIN" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">ANALYZE</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="sql-alterview.html" title="ALTER VIEW">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><th width="60%" align="center">SQL Commands</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 15.3 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="sql-begin.html" title="BEGIN">Next</a></td></tr></table><hr /></div><div class="refentry" id="SQL-ANALYZE"><div class="titlepage"></div><a id="id-1.9.3.46.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle">ANALYZE</span></h2><p>ANALYZE — collect statistics about a database</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><pre class="synopsis">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>ANALYZE</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="sql-alterview.html" title="ALTER VIEW" /><link rel="next" href="sql-begin.html" title="BEGIN" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">ANALYZE</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="sql-alterview.html" title="ALTER VIEW">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><th width="60%" align="center">SQL Commands</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 16.1 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="sql-begin.html" title="BEGIN">Next</a></td></tr></table><hr /></div><div class="refentry" id="SQL-ANALYZE"><div class="titlepage"></div><a id="id-1.9.3.46.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle">ANALYZE</span></h2><p>ANALYZE — collect statistics about a database</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><pre class="synopsis">
 ANALYZE [ ( <em class="replaceable"><code>option</code></em> [, ...] ) ] [ <em class="replaceable"><code>table_and_columns</code></em> [, ...] ]
 ANALYZE [ VERBOSE ] [ <em class="replaceable"><code>table_and_columns</code></em> [, ...] ]
 
@@ -7,6 +7,7 @@ ANALYZE [ VERBOSE ] [ <em class="replaceable"><code>table_and_columns</code></em
 
     VERBOSE [ <em class="replaceable"><code>boolean</code></em> ]
     SKIP_LOCKED [ <em class="replaceable"><code>boolean</code></em> ]
+    BUFFER_USAGE_LIMIT <em class="replaceable"><code>size</code></em>
 
 <span class="phrase">and <em class="replaceable"><code>table_and_columns</code></em> is:</span>
 
@@ -42,6 +43,19 @@ ANALYZE [ VERBOSE ] [ <em class="replaceable"><code>table_and_columns</code></em
       ordinarily processes all partitions of specified partitioned tables,
       this option will cause <code class="command">ANALYZE</code> to skip all
       partitions if there is a conflicting lock on the partitioned table.
+     </p></dd><dt><span class="term"><code class="literal">BUFFER_USAGE_LIMIT</code></span></dt><dd><p>
+      Specifies the
+      <a class="glossterm" href="glossary.html#GLOSSARY-BUFFER-ACCESS-STRATEGY"><em class="glossterm"><a class="glossterm" href="glossary.html#GLOSSARY-BUFFER-ACCESS-STRATEGY" title="Buffer Access Strategy">Buffer Access Strategy</a></em></a>
+      ring buffer size for <code class="command">ANALYZE</code>.  This size is used to
+      calculate the number of shared buffers which will be reused as part of
+      this strategy.  <code class="literal">0</code> disables use of a
+      <code class="literal">Buffer Access Strategy</code>.   When this option is not
+      specified, <code class="command">ANALYZE</code> uses the value from
+      <a class="xref" href="runtime-config-resource.html#GUC-VACUUM-BUFFER-USAGE-LIMIT">vacuum_buffer_usage_limit</a>.  Higher settings can
+      allow <code class="command">ANALYZE</code> to run more quickly, but having too
+      large a setting may cause too many other useful pages to be evicted from
+      shared buffers.  The minimum value is <code class="literal">128 kB</code> and the
+      maximum value is <code class="literal">16 GB</code>.
      </p></dd><dt><span class="term"><em class="replaceable"><code>boolean</code></em></span></dt><dd><p>
       Specifies whether the selected option should be turned on or off.
       You can write <code class="literal">TRUE</code>, <code class="literal">ON</code>, or
@@ -49,6 +63,12 @@ ANALYZE [ VERBOSE ] [ <em class="replaceable"><code>table_and_columns</code></em
       <code class="literal">OFF</code>, or <code class="literal">0</code> to disable it.  The
       <em class="replaceable"><code>boolean</code></em> value can also
       be omitted, in which case <code class="literal">TRUE</code> is assumed.
+     </p></dd><dt><span class="term"><em class="replaceable"><code>size</code></em></span></dt><dd><p>
+      Specifies an amount of memory in kilobytes.  Sizes may also be specified
+      as a string containing the numerical size followed by any one of the
+      following memory units: <code class="literal">B</code> (bytes),
+      <code class="literal">kB</code> (kilobytes), <code class="literal">MB</code> (megabytes),
+      <code class="literal">GB</code> (gigabytes), or <code class="literal">TB</code> (terabytes).
      </p></dd><dt><span class="term"><em class="replaceable"><code>table_name</code></em></span></dt><dd><p>
       The name (possibly schema-qualified) of a specific table to
       analyze.  If omitted, all regular tables, partitioned tables, and
@@ -184,4 +204,4 @@ ANALYZE [ VERBOSE ] [ <em class="replaceable"><code>table_and_columns</code></em
     <a class="xref" href="progress-reporting.html#ANALYZE-PROGRESS-REPORTING" title="28.4.1. ANALYZE Progress Reporting">Section 28.4.1</a> for details.
   </p></div><div class="refsect1" id="id-1.9.3.46.9"><h2>Compatibility</h2><p>
    There is no <code class="command">ANALYZE</code> statement in the SQL standard.
-  </p></div><div class="refsect1" id="id-1.9.3.46.10"><h2>See Also</h2><span class="simplelist"><a class="xref" href="sql-vacuum.html" title="VACUUM"><span class="refentrytitle">VACUUM</span></a>, <a class="xref" href="app-vacuumdb.html" title="vacuumdb"><span class="refentrytitle"><span class="application">vacuumdb</span></span></a>, <a class="xref" href="runtime-config-resource.html#RUNTIME-CONFIG-RESOURCE-VACUUM-COST" title="20.4.4. Cost-based Vacuum Delay">Section 20.4.4</a>, <a class="xref" href="routine-vacuuming.html#AUTOVACUUM" title="25.1.6. The Autovacuum Daemon">Section 25.1.6</a>, <a class="xref" href="progress-reporting.html#ANALYZE-PROGRESS-REPORTING" title="28.4.1. ANALYZE Progress Reporting">Section 28.4.1</a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="sql-alterview.html" title="ALTER VIEW">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="sql-begin.html" title="BEGIN">Next</a></td></tr><tr><td width="40%" align="left" valign="top">ALTER VIEW </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 15.3 Documentation">Home</a></td><td width="40%" align="right" valign="top"> BEGIN</td></tr></table></div></body></html>
+  </p></div><div class="refsect1" id="id-1.9.3.46.10"><h2>See Also</h2><span class="simplelist"><a class="xref" href="sql-vacuum.html" title="VACUUM"><span class="refentrytitle">VACUUM</span></a>, <a class="xref" href="app-vacuumdb.html" title="vacuumdb"><span class="refentrytitle"><span class="application">vacuumdb</span></span></a>, <a class="xref" href="runtime-config-resource.html#RUNTIME-CONFIG-RESOURCE-VACUUM-COST" title="20.4.4. Cost-based Vacuum Delay">Section 20.4.4</a>, <a class="xref" href="routine-vacuuming.html#AUTOVACUUM" title="25.1.6. The Autovacuum Daemon">Section 25.1.6</a>, <a class="xref" href="progress-reporting.html#ANALYZE-PROGRESS-REPORTING" title="28.4.1. ANALYZE Progress Reporting">Section 28.4.1</a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="sql-alterview.html" title="ALTER VIEW">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="sql-begin.html" title="BEGIN">Next</a></td></tr><tr><td width="40%" align="left" valign="top">ALTER VIEW </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 16.1 Documentation">Home</a></td><td width="40%" align="right" valign="top"> BEGIN</td></tr></table></div></body></html>

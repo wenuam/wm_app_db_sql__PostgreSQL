@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>13.2. Transaction Isolation</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="mvcc-intro.html" title="13.1. Introduction" /><link rel="next" href="explicit-locking.html" title="13.3. Explicit Locking" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">13.2. Transaction Isolation</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="mvcc-intro.html" title="13.1. Introduction">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="mvcc.html" title="Chapter 13. Concurrency Control">Up</a></td><th width="60%" align="center">Chapter 13. Concurrency Control</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 15.3 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="explicit-locking.html" title="13.3. Explicit Locking">Next</a></td></tr></table><hr /></div><div class="sect1" id="TRANSACTION-ISO"><div class="titlepage"><div><div><h2 class="title" style="clear: both">13.2. Transaction Isolation</h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="transaction-iso.html#XACT-READ-COMMITTED">13.2.1. Read Committed Isolation Level</a></span></dt><dt><span class="sect2"><a href="transaction-iso.html#XACT-REPEATABLE-READ">13.2.2. Repeatable Read Isolation Level</a></span></dt><dt><span class="sect2"><a href="transaction-iso.html#XACT-SERIALIZABLE">13.2.3. Serializable Isolation Level</a></span></dt></dl></div><a id="id-1.5.12.5.2" class="indexterm"></a><p>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>13.2. Transaction Isolation</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="mvcc-intro.html" title="13.1. Introduction" /><link rel="next" href="explicit-locking.html" title="13.3. Explicit Locking" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">13.2. Transaction Isolation</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="mvcc-intro.html" title="13.1. Introduction">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="mvcc.html" title="Chapter 13. Concurrency Control">Up</a></td><th width="60%" align="center">Chapter 13. Concurrency Control</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 16.1 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="explicit-locking.html" title="13.3. Explicit Locking">Next</a></td></tr></table><hr /></div><div class="sect1" id="TRANSACTION-ISO"><div class="titlepage"><div><div><h2 class="title" style="clear: both">13.2. Transaction Isolation <a href="#TRANSACTION-ISO" class="id_link">#</a></h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="transaction-iso.html#XACT-READ-COMMITTED">13.2.1. Read Committed Isolation Level</a></span></dt><dt><span class="sect2"><a href="transaction-iso.html#XACT-REPEATABLE-READ">13.2.2. Repeatable Read Isolation Level</a></span></dt><dt><span class="sect2"><a href="transaction-iso.html#XACT-SERIALIZABLE">13.2.3. Serializable Isolation Level</a></span></dt></dl></div><a id="id-1.5.12.5.2" class="indexterm"></a><p>
     The <acronym class="acronym">SQL</acronym> standard defines four levels of
     transaction isolation.  The most strict is Serializable,
     which is defined by the standard in a paragraph which says that any
@@ -122,14 +122,14 @@
        to all other transactions and are not rolled back if the transaction
        that made the changes aborts.  See <a class="xref" href="functions-sequence.html" title="9.17. Sequence Manipulation Functions">Section 9.17</a>
        and <a class="xref" href="datatype-numeric.html#DATATYPE-SERIAL" title="8.1.4. Serial Types">Section 8.1.4</a>.
-     </p></div><div class="sect2" id="XACT-READ-COMMITTED"><div class="titlepage"><div><div><h3 class="title">13.2.1. Read Committed Isolation Level</h3></div></div></div><a id="id-1.5.12.5.11.2" class="indexterm"></a><a id="id-1.5.12.5.11.3" class="indexterm"></a><p>
+     </p></div><div class="sect2" id="XACT-READ-COMMITTED"><div class="titlepage"><div><div><h3 class="title">13.2.1. Read Committed Isolation Level <a href="#XACT-READ-COMMITTED" class="id_link">#</a></h3></div></div></div><a id="id-1.5.12.5.11.2" class="indexterm"></a><a id="id-1.5.12.5.11.3" class="indexterm"></a><p>
     <em class="firstterm">Read Committed</em> is the default isolation
     level in <span class="productname">PostgreSQL</span>.  When a transaction
     uses this isolation level, a <code class="command">SELECT</code> query
     (without a <code class="literal">FOR UPDATE/SHARE</code> clause) sees only data
     committed before the query began; it never sees either uncommitted
-    data or changes committed during query execution by concurrent
-    transactions.  In effect, a <code class="command">SELECT</code> query sees
+    data or changes committed by concurrent transactions during the query's
+    execution.  In effect, a <code class="command">SELECT</code> query sees
     a snapshot of the database as of the instant the query begins to
     run.   However, <code class="command">SELECT</code> does see the effects
     of previous updates executed within its own transaction, even
@@ -262,11 +262,11 @@ COMMIT;
     to use;  however, it is not sufficient for all cases.  Applications
     that do complex queries and updates might require a more rigorously
     consistent view of the database than Read Committed mode provides.
-   </p></div><div class="sect2" id="XACT-REPEATABLE-READ"><div class="titlepage"><div><div><h3 class="title">13.2.2. Repeatable Read Isolation Level</h3></div></div></div><a id="id-1.5.12.5.12.2" class="indexterm"></a><a id="id-1.5.12.5.12.3" class="indexterm"></a><p>
+   </p></div><div class="sect2" id="XACT-REPEATABLE-READ"><div class="titlepage"><div><div><h3 class="title">13.2.2. Repeatable Read Isolation Level <a href="#XACT-REPEATABLE-READ" class="id_link">#</a></h3></div></div></div><a id="id-1.5.12.5.12.2" class="indexterm"></a><a id="id-1.5.12.5.12.3" class="indexterm"></a><p>
     The <em class="firstterm">Repeatable Read</em> isolation level only sees
     data committed before the transaction began; it never sees either
-    uncommitted data or changes committed during transaction execution
-    by concurrent transactions.  (However, the query does see the
+    uncommitted data or changes committed by concurrent transactions during
+    the transaction's execution.  (However, each query does see the
     effects of previous updates executed within its own transaction,
     even though they are not yet committed.)  This is a stronger
     guarantee than is required by the <acronym class="acronym">SQL</acronym> standard
@@ -349,7 +349,7 @@ ERROR:  could not serialize access due to concurrent update
      for the Serializable transaction isolation level provided exactly the
      same behavior described here.  To retain the legacy Serializable
      behavior, Repeatable Read should now be requested.
-    </p></div></div><div class="sect2" id="XACT-SERIALIZABLE"><div class="titlepage"><div><div><h3 class="title">13.2.3. Serializable Isolation Level</h3></div></div></div><a id="id-1.5.12.5.13.2" class="indexterm"></a><a id="id-1.5.12.5.13.3" class="indexterm"></a><a id="id-1.5.12.5.13.4" class="indexterm"></a><a id="id-1.5.12.5.13.5" class="indexterm"></a><p>
+    </p></div></div><div class="sect2" id="XACT-SERIALIZABLE"><div class="titlepage"><div><div><h3 class="title">13.2.3. Serializable Isolation Level <a href="#XACT-SERIALIZABLE" class="id_link">#</a></h3></div></div></div><a id="id-1.5.12.5.13.2" class="indexterm"></a><a id="id-1.5.12.5.13.3" class="indexterm"></a><a id="id-1.5.12.5.13.4" class="indexterm"></a><a id="id-1.5.12.5.13.5" class="indexterm"></a><p>
     The <em class="firstterm">Serializable</em> isolation level provides
     the strictest transaction isolation.  This level emulates serial
     transaction execution for all committed transactions;
@@ -537,4 +537,4 @@ ERROR:  could not serialize access due to read/write dependencies among transact
     Some differences in behavior and performance may be observed when compared
     with other systems that use a traditional locking technique.  Please see
     <a class="xref" href="biblio.html#PORTS12">[ports12]</a> for detailed information.
-   </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="mvcc-intro.html" title="13.1. Introduction">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="mvcc.html" title="Chapter 13. Concurrency Control">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="explicit-locking.html" title="13.3. Explicit Locking">Next</a></td></tr><tr><td width="40%" align="left" valign="top">13.1. Introduction </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 15.3 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 13.3. Explicit Locking</td></tr></table></div></body></html>
+   </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="mvcc-intro.html" title="13.1. Introduction">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="mvcc.html" title="Chapter 13. Concurrency Control">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="explicit-locking.html" title="13.3. Explicit Locking">Next</a></td></tr><tr><td width="40%" align="left" valign="top">13.1. Introduction </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 16.1 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 13.3. Explicit Locking</td></tr></table></div></body></html>

@@ -45,7 +45,7 @@ object-assign
  */
 
 /*!
- * Socket.IO v4.6.2
+ * Socket.IO v4.7.2
  * (c) 2014-2023 Guillermo Rauch
  * Released under the MIT License.
  */
@@ -55,12 +55,6 @@ object-assign
  *
  * @author   Feross Aboukhadijeh <https://feross.org>
  * @license  MIT
- */
-
-/*!
- * html2canvas 1.4.1 <https://html2canvas.hertzen.com>
- * Copyright (c) 2022 Niklas von Hertzen <https://hertzen.com>
- * Released under MIT License
  */
 
 /*!
@@ -89,31 +83,16 @@ object-assign
  * Copyright (c) 2011-2023 Jos de Jong, http://jsoneditoronline.org
  *
  * @author  Jos de Jong, <wjosdejong@gmail.com>
- * @version 9.10.2
- * @date    2023-05-15
+ * @version 9.10.3
+ * @date    2023-09-21
  */
 
 /*!
-* chartjs-plugin-zoom v1.3.0
+* chartjs-plugin-zoom v2.0.1
 * undefined
- * (c) 2016-2022 chartjs-plugin-zoom Contributors
+ * (c) 2016-2023 chartjs-plugin-zoom Contributors
  * Released under the MIT License
  */
-
-/*! *****************************************************************************
-    Copyright (c) Microsoft Corporation.
-
-    Permission to use, copy, modify, and/or distribute this software for any
-    purpose with or without fee is hereby granted.
-
-    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-    REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-    AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-    INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-    LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-    OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-    PERFORMANCE OF THIS SOFTWARE.
-    ***************************************************************************** */
 
 /*! @license
 ==========================================================================
@@ -152,8 +131,6 @@ For more information about SproutCore, visit http://www.sproutcore.com
  * Copyright (c) 2016 Jorik Tangelder;
  * Licensed under the MIT license */
 
-/*! Pickr 1.8.2 MIT | https://github.com/Simonwep/pickr */
-
 /*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
 
 /*! react */
@@ -190,7 +167,27 @@ For more information about SproutCore, visit http://www.sproutcore.com
  */
 
 /**
- * @remix-run/router v1.6.3
+ * @license React
+ * react-is.production.min.js
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+/**
+ * @license React
+ * use-sync-external-store-shim.production.min.js
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+/**
+ * @remix-run/router v1.11.0
  *
  * Copyright (c) Remix Software Inc.
  *
@@ -209,7 +206,7 @@ For more information about SproutCore, visit http://www.sproutcore.com
  */
 
 /**
- * React Router DOM v6.12.0
+ * React Router DOM v6.18.0
  *
  * Copyright (c) Remix Software Inc.
  *
@@ -220,7 +217,7 @@ For more information about SproutCore, visit http://www.sproutcore.com
  */
 
 /**
- * React Router v6.12.0
+ * React Router v6.18.0
  *
  * Copyright (c) Remix Software Inc.
  *
@@ -230,13 +227,7 @@ For more information about SproutCore, visit http://www.sproutcore.com
  * @license MIT
  */
 
-/** @license Material-UI v4.0.0-alpha.58
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
-/** @license Material-UI v4.11.0
+/** @license Material-UI v4.0.0-alpha.61
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -249,6 +240,12 @@ For more information about SproutCore, visit http://www.sproutcore.com
  */
 
 /** @license Material-UI v4.11.5
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+/** @license Material-UI v4.12.4
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.

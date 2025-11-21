@@ -18,16 +18,17 @@ from flask import current_app, flash, Response, request, url_for, \
     session, redirect, render_template
 from flask_babel import gettext
 from flask_security.views import _security, _ctx
-from flask_security.utils import get_post_logout_redirect, logout_user,\
-    config_value
+from flask_security.utils import logout_user, config_value
 
 from flask_login import current_user
 from flask_socketio import disconnect, ConnectionRefusedError
 
 
 from pgadmin.model import db, User
-from pgadmin.utils import PgAdminModule, get_safe_post_login_redirect
-from pgadmin.utils.constants import KERBEROS, INTERNAL, OAUTH2, LDAP
+from pgadmin.utils import PgAdminModule, get_safe_post_login_redirect, \
+    get_safe_post_logout_redirect
+from pgadmin.utils.constants import KERBEROS, INTERNAL, OAUTH2, LDAP,\
+    MessageType
 from pgadmin.authenticate.registry import AuthSourceRegistry
 
 MODULE_NAME = 'authenticate'
@@ -132,9 +133,9 @@ def _login():
         if user.login_attempts >= config.MAX_LOGIN_ATTEMPTS > 0:
             flash(gettext('Your account is locked. Please contact the '
                           'Administrator.'),
-                  'warning')
+                  MessageType.WARNING)
             logout_user()
-            return redirect(get_post_logout_redirect())
+            return redirect(get_safe_post_logout_redirect())
 
     # Validate the user
     if not auth_obj.validate():
@@ -158,9 +159,9 @@ def _login():
                 if flash_login_attempt_error:
                     error = error + flash_login_attempt_error
                     flash_login_attempt_error = None
-                flash(error, 'warning')
+                flash(error, MessageType.WARNING)
 
-        return redirect(get_post_logout_redirect())
+        return redirect(get_safe_post_logout_redirect())
 
     # Authenticate the user
     status, msg = auth_obj.authenticate()
@@ -175,8 +176,8 @@ def _login():
                 return redirect('{0}?next={1}'.format(url_for(
                     'authenticate.kerberos_login'), url_for('browser.index')))
 
-            flash(msg, 'danger')
-            return redirect(get_post_logout_redirect())
+            flash(msg, MessageType.ERROR)
+            return redirect(get_safe_post_logout_redirect())
 
         session['auth_source_manager'] = current_auth_obj
 
@@ -194,7 +195,7 @@ def _login():
         return msg
     if 'auth_obj' in session:
         session.pop('auth_obj')
-    flash(msg, 'danger')
+    flash(msg, MessageType.ERROR)
     form_class = _security.forms.get('login_form').cls
     form = form_class()
 
@@ -268,7 +269,7 @@ class AuthSourceManager:
             if status:
                 return True
         if err_msg:
-            flash(err_msg, 'warning')
+            flash(err_msg, MessageType.WARNING)
         return False
 
     def authenticate(self):

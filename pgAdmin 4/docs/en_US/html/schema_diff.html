@@ -2,18 +2,18 @@
 
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Schema Diff &#8212; pgAdmin 4 7.2 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/style.css" />
+    <title>Schema Diff &#8212; pgAdmin 4 7.8 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/style.css?v=7c9fe073" />
     
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/documentation_options.js?v=2eb9bb39"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     
     <script src="_static/sidebar.js"></script>
     
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="viewdata_filter.html" title="View/Edit Data Filter"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.8 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="developer_tools.html" accesskey="U">Developer Tools</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Schema Diff</a></li> 
       </ul>
@@ -46,7 +46,7 @@
           <div class="body" role="main">
             
   <section id="schema-diff">
-<span id="schema-diff-feature"></span><h1><span class="target" id="index-0"></span>Schema Diff<a class="headerlink" href="#schema-diff" title="Permalink to this heading">¶</a></h1>
+<span id="schema-diff-feature"></span><h1><span class="target" id="index-0"></span>Schema Diff<a class="headerlink" href="#schema-diff" title="Link to this heading">¶</a></h1>
 <p><strong>Schema Diff</strong> is a feature that allows you to compare objects between
 two databases or two schemas. Use the <em>Tools</em> menu to access Schema Diff.</p>
 <p>The Schema Diff feature allows you to:</p>
@@ -85,7 +85,7 @@ right-clicking and select the “Rename Panel” option.</p>
 <p>The <em>Schema Diff</em> panel is divided into two panels; an Object Comparison panel
 and a DDL Comparison panel.</p>
 <section id="the-schema-diff-object-comparison-panel">
-<h2>The Schema Diff Object Comparison Panel<a class="headerlink" href="#the-schema-diff-object-comparison-panel" title="Permalink to this heading">¶</a></h2>
+<h2>The Schema Diff Object Comparison Panel<a class="headerlink" href="#the-schema-diff-object-comparison-panel" title="Link to this heading">¶</a></h2>
 <p>In the object comparison panel, you can select the source and target servers
 of the same major version, and databases to be compared. You can
 select any server listed under the object explorer whether it is connected or
@@ -94,11 +94,13 @@ prompt you for the password before using the server.</p>
 <p>Next, select the databases that will be compared. The databases can be the
 same or different (and within the same server or from different servers).</p>
 <img alt="Schema diff compare button" class="align-center" src="_images/schema_diff_compare_button.png" />
-<p>Use the drop-down near to <em>Compare</em> button to ignore owner and ignore whitespace.</p>
+<p>Use the drop-down near to <em>Compare</em> button to ignore owner, whitespace, tablespace and grants.</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>Ignore owner – Select to ignores the owner while comparing the objects.</p></li>
-<li><p>Ignore whitespace – Select to ignores the whitespace while comparing the string objects. Whitespace includes space, tabs, and CRLF.</p></li>
+<li><p>Ignore Owner – Select to ignores the owner while comparing the objects.</p></li>
+<li><p>Ignore Whitespace – Select to ignores the whitespace while comparing the string objects. Whitespace includes space, tabs, and CRLF.</p></li>
+<li><p>Ignore Tablespace – Select to ignores the tablespace while comparing the objects.</p></li>
+<li><p>Ignore Grant/Revoke – Select to ignores the grant and revoke command while comparing the objects.</p></li>
 </ul>
 </div></blockquote>
 <p>After you select servers, and databases, click on the
@@ -122,7 +124,7 @@ display the DDL Statements of that object in the DDL Comparison panel.</p>
 <p>Click the <em>Help</em> icon to open Schema Diff documentation.</p>
 </section>
 <section id="schema-diff-ddl-comparison-panel">
-<h2>Schema Diff DDL Comparison Panel<a class="headerlink" href="#schema-diff-ddl-comparison-panel" title="Permalink to this heading">¶</a></h2>
+<h2>Schema Diff DDL Comparison Panel<a class="headerlink" href="#schema-diff-ddl-comparison-panel" title="Link to this heading">¶</a></h2>
 <p>The <em>DDL Comparison</em> panel displays three columns:</p>
 <ul class="simple">
 <li><p>The first column displays the DDL statement of the object from the source database.</p></li>
@@ -225,7 +227,7 @@ the <em>DDL Comparison</em> panel.</p>
         <li class="right" >
           <a href="viewdata_filter.html" title="View/Edit Data Filter"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.8 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="developer_tools.html" >Developer Tools</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Schema Diff</a></li> 
       </ul>

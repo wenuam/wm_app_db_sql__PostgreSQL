@@ -1,4 +1,8 @@
 /* src/interfaces/ecpg/include/ecpg_config.h.  Generated from src/interfaces/ecpg/include/ecpg_config.h.in by src/tools/msvc/Solution.pm.  */
+/* Define to 1 to build client libraries as thread-safe code.
+ *    (--enable-thread-safety) */
+#define ENABLE_THREAD_SAFETY 1
+
 /* Define to 1 if the system has the type `int64'. */
 /* #undef HAVE_INT64 */
 
@@ -13,7 +17,3 @@
 
 /* Define to 1 to use <stdbool.h> to define type bool. */
 #define PG_USE_STDBOOL 1
-
-/* Define to 1 to build client libraries as thread-safe code.
- *    (--enable-thread-safety) */
-#define ENABLE_THREAD_SAFETY 1

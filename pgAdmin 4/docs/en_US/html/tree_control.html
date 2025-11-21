@@ -2,18 +2,18 @@
 
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Tree Control &#8212; pgAdmin 4 7.2 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/style.css" />
+    <title>Tree Control &#8212; pgAdmin 4 7.8 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/style.css?v=7c9fe073" />
     
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/documentation_options.js?v=2eb9bb39"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     
     <script src="_static/sidebar.js"></script>
     
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="tabbed_browser.html" title="Tabbed Browser"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.8 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="getting_started.html" accesskey="U">Getting Started</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Tree Control</a></li> 
       </ul>
@@ -46,7 +46,7 @@
           <div class="body" role="main">
             
   <section id="tree-control">
-<span id="id1"></span><h1><span class="target" id="index-0"></span>Tree Control<a class="headerlink" href="#tree-control" title="Permalink to this heading">¶</a></h1>
+<span id="id1"></span><h1><span class="target" id="index-0"></span>Tree Control<a class="headerlink" href="#tree-control" title="Link to this heading">¶</a></h1>
 <p>The left pane of the main window displays a tree control (the <em>pgAdmin</em> tree
 control) that provides access to the objects that reside on a server.</p>
 <img alt="object explorer panel" class="align-center" src="_images/main_left_pane.png" />
@@ -98,8 +98,14 @@ Your selection opens a <em>Create</em> dialog for creating a new object.</p></td
 <tr class="row-odd"><td><p><em>Debugging</em></p></td>
 <td><p>Click through to open the <a class="reference internal" href="debugger.html#debugger"><span class="std std-ref">Debug</span></a> tool or to select <em>Set breakpoint</em> to stop or pause a script execution.</p></td>
 </tr>
-<tr class="row-even"><td><p><em>Delete/Drop</em></p></td>
+<tr class="row-even"><td><p><em>Delete</em></p></td>
 <td><p>Click to delete the currently selected object from the server.</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>Delete (Cascade)</em></p></td>
+<td><p>Click to delete the currently selected object and all dependent objects from the server.</p></td>
+</tr>
+<tr class="row-even"><td><p><em>Delete (Force)</em></p></td>
+<td><p>Click to delete the currently selected database with force option.</p></td>
 </tr>
 <tr class="row-odd"><td><p><em>Disconnect Database…</em></p></td>
 <td><p>Click to terminate a database connection.</p></td>
@@ -107,31 +113,28 @@ Your selection opens a <em>Create</em> dialog for creating a new object.</p></td
 <tr class="row-even"><td><p><em>Disconnect from server</em></p></td>
 <td><p>Click to disconnect from the currently selected server.</p></td>
 </tr>
-<tr class="row-odd"><td><p><em>Drop Cascade</em></p></td>
-<td><p>Click to delete the currently selected object and all dependent objects from the server.</p></td>
-</tr>
-<tr class="row-even"><td><p><em>Debugging</em></p></td>
+<tr class="row-odd"><td><p><em>Debugging</em></p></td>
 <td><p>Click to access the <a class="reference internal" href="debugger.html#debugger"><span class="std std-ref">Debugger</span></a> tool.</p></td>
 </tr>
-<tr class="row-odd"><td><p><em>Grant Wizard</em></p></td>
+<tr class="row-even"><td><p><em>Grant Wizard</em></p></td>
 <td><p>Click to access the <a class="reference internal" href="grant_wizard.html#grant-wizard"><span class="std std-ref">Grant Wizard</span></a> tool.</p></td>
 </tr>
-<tr class="row-even"><td><p><em>Maintenance…</em></p></td>
+<tr class="row-odd"><td><p><em>Maintenance…</em></p></td>
 <td><p>Click to open the <a class="reference internal" href="maintenance_dialog.html#maintenance-dialog"><span class="std std-ref">Maintenance…</span></a> dialog to VACUUM, ANALYZE, REINDEX, or CLUSTER.</p></td>
 </tr>
-<tr class="row-odd"><td><p><em>Properties…</em></p></td>
+<tr class="row-even"><td><p><em>Properties…</em></p></td>
 <td><p>Click to review or modify the currently selected object’s properties.</p></td>
 </tr>
-<tr class="row-even"><td><p><em>Refresh…</em></p></td>
+<tr class="row-odd"><td><p><em>Refresh…</em></p></td>
 <td><p>Click to refresh the currently selected object.</p></td>
 </tr>
-<tr class="row-odd"><td><p><em>Reload Configuration…</em></p></td>
+<tr class="row-even"><td><p><em>Reload Configuration…</em></p></td>
 <td><p>Click to update configuration files without restarting the server.</p></td>
 </tr>
-<tr class="row-even"><td><p><em>Restore…</em></p></td>
+<tr class="row-odd"><td><p><em>Restore…</em></p></td>
 <td><p>Click to access the <a class="reference internal" href="restore_dialog.html#restore-dialog"><span class="std std-ref">Restore</span></a> dialog to restore database files from a backup.</p></td>
 </tr>
-<tr class="row-odd"><td><p><em>View Data</em></p></td>
+<tr class="row-even"><td><p><em>View Data</em></p></td>
 <td><p>Use the <em>View Data</em> option to access the data stored in a selected table with the <em>Data Output</em> tab of the <em>Query Tool</em>.</p></td>
 </tr>
 </tbody>
@@ -186,7 +189,7 @@ Your selection opens a <em>Create</em> dialog for creating a new object.</p></td
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="getting_started.html">Getting Started</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="deployment.html">Deployment</a></li>
-<li class="toctree-l2"><a class="reference internal" href="login.html">Login Dialog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="login.html">Login Page</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mfa.html">Enabling two-factor authentication (2FA)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user_management.html">User Management Dialog</a></li>
 <li class="toctree-l2"><a class="reference internal" href="change_ownership.html">Change Ownership Dialog</a></li>
@@ -251,7 +254,7 @@ Your selection opens a <em>Create</em> dialog for creating a new object.</p></td
         <li class="right" >
           <a href="tabbed_browser.html" title="Tabbed Browser"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.8 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="getting_started.html" >Getting Started</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Tree Control</a></li> 
       </ul>

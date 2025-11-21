@@ -2,18 +2,18 @@
 
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Import/Export Servers &#8212; pgAdmin 4 7.2 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/style.css" />
+    <title>Import/Export Servers &#8212; pgAdmin 4 7.8 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/style.css?v=7c9fe073" />
     
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/documentation_options.js?v=2eb9bb39"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     
     <script src="_static/sidebar.js"></script>
     
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="connect_error.html" title="Connection Error"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.8 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="connecting.html" accesskey="U">Connecting To A Server</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Import/Export Servers</a></li> 
       </ul>
@@ -46,12 +46,12 @@
           <div class="body" role="main">
             
   <section id="import-export-servers">
-<span id="id1"></span><h1><span class="target" id="index-0"></span>Import/Export Servers<a class="headerlink" href="#import-export-servers" title="Permalink to this heading">¶</a></h1>
+<span id="id1"></span><h1><span class="target" id="index-0"></span>Import/Export Servers<a class="headerlink" href="#import-export-servers" title="Link to this heading">¶</a></h1>
 <p>Server definitions (and their groups) can be exported to a JSON file and
 re-imported to the same or a different system to enable easy pre-configuration
 of pgAdmin.</p>
 <section id="using-pgadmin-4-gui">
-<h2>Using pgAdmin 4 GUI<a class="headerlink" href="#using-pgadmin-4-gui" title="Permalink to this heading">¶</a></h2>
+<h2>Using pgAdmin 4 GUI<a class="headerlink" href="#using-pgadmin-4-gui" title="Link to this heading">¶</a></h2>
 <p>To launch the <em>Import/Export Servers…</em> tool, navigate through <em>Tools</em> on the
 menu bar to click on the <em>Import/Export Servers</em> option.</p>
 <img alt="Import/Export Servers step one page" class="align-center" src="_images/import_export_servers_step1.png" />
@@ -76,7 +76,7 @@ Summary page.</p>
 <p>Click the <em>Finish</em> button to close the wizard.</p>
 </section>
 <section id="using-setup-py-command-line-script">
-<h2>Using ‘setup.py’ command line script<a class="headerlink" href="#using-setup-py-command-line-script" title="Permalink to this heading">¶</a></h2>
+<h2>Using ‘setup.py’ command line script<a class="headerlink" href="#using-setup-py-command-line-script" title="Link to this heading">¶</a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>To export or import servers using <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> script, you must use
@@ -87,7 +87,7 @@ installation directory. When using platform-native packages, the system
 installation of Python may be the one used by pgAdmin.</p>
 </div>
 <section id="exporting-servers">
-<h3>Exporting Servers<a class="headerlink" href="#exporting-servers" title="Permalink to this heading">¶</a></h3>
+<h3>Exporting Servers<a class="headerlink" href="#exporting-servers" title="Link to this heading">¶</a></h3>
 <p>To export the servers defined in an installation, simply invoke <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> with
 the <code class="docutils literal notranslate"><span class="pre">--dump-servers</span></code> command line option, followed by the name (and if required,
 path) to the desired output file. By default, servers owned by the desktop mode
@@ -116,7 +116,7 @@ more server IDs. For example:</p>
 </div>
 </section>
 <section id="importing-servers">
-<h3>Importing Servers<a class="headerlink" href="#importing-servers" title="Permalink to this heading">¶</a></h3>
+<h3>Importing Servers<a class="headerlink" href="#importing-servers" title="Link to this heading">¶</a></h3>
 <p>To import the servers defined in a JSON file, simply invoke <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> with
 the <code class="docutils literal notranslate"><span class="pre">--load-servers</span></code> command line option, followed by the name (and if required,
 path) of the JSON file containing the server definitions. Servers will be owned
@@ -148,7 +148,7 @@ desktop mode. By default SQLITE_PATH setting in <code class="docutils literal no
 the configuration database, the required Group will be created.</p>
 </section>
 <section id="json-format">
-<h3>JSON format<a class="headerlink" href="#json-format" title="Permalink to this heading">¶</a></h3>
+<h3>JSON format<a class="headerlink" href="#json-format" title="Link to this heading">¶</a></h3>
 <p>The JSON file format used when importing or exporting servers is quite
 straightforward and simply contains a list of servers, with a number of
 attributes. The following attributes are required to be present in every server
@@ -194,7 +194,9 @@ HostAddr or Service.</p>
             <span class="s2">&quot;TunnelHost&quot;</span><span class="p">:</span> <span class="s2">&quot;192.168.1.253&quot;</span><span class="p">,</span>
             <span class="s2">&quot;TunnelPort&quot;</span><span class="p">:</span> <span class="mi">22</span><span class="p">,</span>
             <span class="s2">&quot;TunnelUsername&quot;</span><span class="p">:</span> <span class="s2">&quot;username&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;TunnelAuthentication&quot;</span><span class="p">:</span> <span class="mi">0</span>
+            <span class="s2">&quot;TunnelAuthentication&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;PasswordExecCommand&quot;</span><span class="p">:</span> <span class="s2">&quot;echo &#39;test&#39;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;PasswordExecExpiration&quot;</span><span class="p">:</span> <span class="mi">100</span>
         <span class="p">}</span>
     <span class="p">}</span>
 <span class="p">}</span>
@@ -284,7 +286,7 @@ HostAddr or Service.</p>
         <li class="right" >
           <a href="connect_error.html" title="Connection Error"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.8 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="connecting.html" >Connecting To A Server</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Import/Export Servers</a></li> 
       </ul>

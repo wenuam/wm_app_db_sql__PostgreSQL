@@ -202,15 +202,12 @@ export function showMasterPassword(isPWDPresent, errmsg, masterpass_callback_que
   const api = getApiInstance();
   let title =  keyring_name.length > 0 ? gettext('Migrate Saved Passwords') : isPWDPresent ? gettext('Unlock Saved Passwords') : gettext('Set Master Password');
 
-  mountDialog(title, (onClose, setNewSize)=> {
+  Notify.showModal(title, (onClose)=> {
     return <Theme>
       <MasterPasswordContent
         isPWDPresent= {isPWDPresent}
         data={{'errmsg': errmsg}}
         keyringName={keyring_name}
-        setHeight={(containerHeight) => {
-          setNewSize(pgAdmin.Browser.stdW.md, containerHeight);
-        }}
         closeModal={() => {
           onClose();
         }}
@@ -293,6 +290,54 @@ export function showChangeServerPassword() {
       />
     </Theme>;
   });
+}
+
+export function showChangeUserPassword(url) {
+  mountDialog(gettext('Change pgAdmin User Password'), (onClose)=> {
+    const api = getApiInstance();
+    return <Theme>
+      <ChangePasswordContent
+        getInitData={()=>{
+          return new Promise((resolve, reject)=>{
+            api.get(url)
+              .then((res)=>{
+                resolve(res.data);
+              })
+              .catch((err)=>{
+                reject(err);
+              });
+          });
+        }}
+        onClose={()=>{
+          onClose();
+        }}
+        onSave={(_isNew, data)=>{
+          return new Promise((resolve, reject)=>{
+            const formData =  {
+              'password': data.password,
+              'new_password': data.newPassword,
+              'new_password_confirm': data.confirmPassword,
+              'csrf_token': data.csrf_token
+            };
+
+            api({
+              method: 'POST',
+              url: url,
+              data: formData,
+            }).then((res)=>{
+              resolve(res.data.info);
+              onClose();
+              Notify.success(res.data.info);
+            }).catch((err)=>{
+              reject(err);
+            });
+          });
+        }}
+        hasCsrfToken={true}
+        showUser={false}
+      />
+    </Theme>;
+  }, undefined, undefined, pgAdmin.Browser.stdH.sm);
 }
 
 export function showNamedRestorePoint() {

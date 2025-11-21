@@ -2,18 +2,18 @@
 
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Code Overview &#8212; pgAdmin 4 7.2 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/style.css" />
+    <title>Code Overview &#8212; pgAdmin 4 7.8 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/style.css?v=7c9fe073" />
     
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/documentation_options.js?v=2eb9bb39"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     
     <script src="_static/sidebar.js"></script>
     
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="submitting_pull_requests.html" title="Submitting Pull Requests"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.8 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="contributions.html" accesskey="U">pgAdmin Project Contributions</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Code Overview</a></li> 
       </ul>
@@ -46,25 +46,25 @@
           <div class="body" role="main">
             
   <section id="code-overview">
-<span id="id1"></span><h1><span class="target" id="index-0"></span>Code Overview<a class="headerlink" href="#code-overview" title="Permalink to this heading">¶</a></h1>
+<span id="id1"></span><h1><span class="target" id="index-0"></span>Code Overview<a class="headerlink" href="#code-overview" title="Link to this heading">¶</a></h1>
 <p>The bulk of pgAdmin is a Python web application written using the Flask framework
 on the backend, and HTML5 with CSS3, Bootstrap and jQuery on the front end. A
 desktop runtime is also included for users that prefer a desktop application to
 a web application, which is written using NWjs (Node Webkit).</p>
 <section id="runtime">
-<h2>Runtime<a class="headerlink" href="#runtime" title="Permalink to this heading">¶</a></h2>
+<h2>Runtime<a class="headerlink" href="#runtime" title="Link to this heading">¶</a></h2>
 <p>The runtime is based on NWjs which integrates a browser and the Python server
 creating a standalone application. The source code can be found in the
 <strong>/runtime</strong> directory in the source tree.</p>
 </section>
 <section id="web-application">
-<h2>Web Application<a class="headerlink" href="#web-application" title="Permalink to this heading">¶</a></h2>
+<h2>Web Application<a class="headerlink" href="#web-application" title="Link to this heading">¶</a></h2>
 <p>The web application forms the bulk of pgAdmin and can be found in the <strong>/web</strong>
 directory in the source tree. The main file is <strong>pgAdmin4.py</strong> which can be used
 to run the built-in standalone web server, or as a WSGI application for production
 use.</p>
 <section id="configuration">
-<h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading">¶</a></h3>
+<h3>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">¶</a></h3>
 <p>The core application configuration is found in <strong>config.py</strong>. This file includes
 all configurable settings for the application, along with descriptions of their
 use. It is essential that various settings are configured prior to deployment on
@@ -73,7 +73,7 @@ a web server; these can be overridden in <strong>config_local.py</strong> or
 avoid modifying the main configuration file.</p>
 </section>
 <section id="user-settings">
-<h3>User Settings<a class="headerlink" href="#user-settings" title="Permalink to this heading">¶</a></h3>
+<h3>User Settings<a class="headerlink" href="#user-settings" title="Link to this heading">¶</a></h3>
 <p>When running in desktop mode, pgAdmin has a single, default user account that is
 used for the desktop user. When running in server mode, there may be unlimited
 users who are required to login prior to using the application. pgAdmin utilised
@@ -94,7 +94,7 @@ particularly with regard to desktop vs. server mode.</p>
 </section>
 </section>
 <section id="pgadmin-core">
-<h2>pgAdmin Core<a class="headerlink" href="#pgadmin-core" title="Permalink to this heading">¶</a></h2>
+<h2>pgAdmin Core<a class="headerlink" href="#pgadmin-core" title="Link to this heading">¶</a></h2>
 <p>The heart of pgAdmin is the <strong>pgadmin</strong> package. This contains the globally
 available HTML templates used by the Jinja engine, as well as any global static
 files such as images, Javascript and CSS files that are used in multiple modules.</p>
@@ -103,7 +103,7 @@ is responsible for setting up logging and authentication, dynamically loading
 other modules, and a few other tasks.</p>
 </section>
 <section id="modules">
-<h2>Modules<a class="headerlink" href="#modules" title="Permalink to this heading">¶</a></h2>
+<h2>Modules<a class="headerlink" href="#modules" title="Link to this heading">¶</a></h2>
 <p>Units of functionality are added to pgAdmin through the addition of modules.
 Theses are Python object instance of classes, inherits the
 PgAdminModule class (a Flask Blueprint implementation), found in
@@ -218,7 +218,7 @@ loaded modules, but must use the defined hook points and fail gracefully in the
 event that a particular module is not present.</p>
 </section>
 <section id="nodes">
-<h2>Nodes<a class="headerlink" href="#nodes" title="Permalink to this heading">¶</a></h2>
+<h2>Nodes<a class="headerlink" href="#nodes" title="Link to this heading">¶</a></h2>
 <p>Nodes are very similar to modules, it represents an individual node or,
 collection object on the object explorer treeview. To recognised as a node module, a
 Python package (along with javascript modules) must be created. This must:</p>
@@ -230,7 +230,7 @@ exposes required the REST APIs</p></li>
 </ol>
 </section>
 <section id="front-end">
-<h2>Front End<a class="headerlink" href="#front-end" title="Permalink to this heading">¶</a></h2>
+<h2>Front End<a class="headerlink" href="#front-end" title="Link to this heading">¶</a></h2>
 <p>pgAdmin uses javascript extensively for the front-end implementation. It uses
 require.js to allow the lazy loading (or, say load only when required),
 bootstrap and MaterialUI for UI look and feel, React for generating
@@ -325,7 +325,7 @@ better understanding of the code.</p>
         <li class="right" >
           <a href="submitting_pull_requests.html" title="Submitting Pull Requests"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.8 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="contributions.html" >pgAdmin Project Contributions</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Code Overview</a></li> 
       </ul>

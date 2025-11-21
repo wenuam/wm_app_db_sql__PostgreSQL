@@ -117,9 +117,6 @@ def load_servers():
 
     file_path = unquote(filename)
 
-    # retrieve storage directory path
-    storage_manager_path = get_storage_directory()
-
     try:
         file_path = filename_with_file_manager_path(file_path)
     except PermissionError as e:
@@ -133,7 +130,8 @@ def load_servers():
                 data = json.loads(j.read())
 
                 # Validate the json file and data
-                errmsg = validate_json_data(data, False)
+                errmsg = validate_json_data(
+                    data, current_user.has_role("Administrator"))
                 if errmsg is not None:
                     return internal_server_error(errmsg)
 

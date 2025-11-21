@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>VACUUM</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="sql-update.html" title="UPDATE" /><link rel="next" href="sql-values.html" title="VALUES" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">VACUUM</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="sql-update.html" title="UPDATE">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><th width="60%" align="center">SQL Commands</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 15.3 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="sql-values.html" title="VALUES">Next</a></td></tr></table><hr /></div><div class="refentry" id="SQL-VACUUM"><div class="titlepage"></div><a id="id-1.9.3.184.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle">VACUUM</span></h2><p>VACUUM — garbage-collect and optionally analyze a database</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><pre class="synopsis">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>VACUUM</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="sql-update.html" title="UPDATE" /><link rel="next" href="sql-values.html" title="VALUES" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">VACUUM</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="sql-update.html" title="UPDATE">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><th width="60%" align="center">SQL Commands</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 16.1 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="sql-values.html" title="VALUES">Next</a></td></tr></table><hr /></div><div class="refentry" id="SQL-VACUUM"><div class="titlepage"></div><a id="id-1.9.3.184.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle">VACUUM</span></h2><p>VACUUM — garbage-collect and optionally analyze a database</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><pre class="synopsis">
 VACUUM [ ( <em class="replaceable"><code>option</code></em> [, ...] ) ] [ <em class="replaceable"><code>table_and_columns</code></em> [, ...] ]
 VACUUM [ FULL ] [ FREEZE ] [ VERBOSE ] [ ANALYZE ] [ <em class="replaceable"><code>table_and_columns</code></em> [, ...] ]
 
@@ -12,9 +12,13 @@ VACUUM [ FULL ] [ FREEZE ] [ VERBOSE ] [ ANALYZE ] [ <em class="replaceable"><co
     DISABLE_PAGE_SKIPPING [ <em class="replaceable"><code>boolean</code></em> ]
     SKIP_LOCKED [ <em class="replaceable"><code>boolean</code></em> ]
     INDEX_CLEANUP { AUTO | ON | OFF }
+    PROCESS_MAIN [ <em class="replaceable"><code>boolean</code></em> ]
     PROCESS_TOAST [ <em class="replaceable"><code>boolean</code></em> ]
     TRUNCATE [ <em class="replaceable"><code>boolean</code></em> ]
     PARALLEL <em class="replaceable"><code>integer</code></em>
+    SKIP_DATABASE_STATS [ <em class="replaceable"><code>boolean</code></em> ]
+    ONLY_DATABASE_STATS [ <em class="replaceable"><code>boolean</code></em> ]
+    BUFFER_USAGE_LIMIT <em class="replaceable"><code>size</code></em>
 
 <span class="phrase">and <em class="replaceable"><code>table_and_columns</code></em> is:</span>
 
@@ -141,6 +145,11 @@ VACUUM [ FULL ] [ FREEZE ] [ VERBOSE ] [ ANALYZE ] [ <em class="replaceable"><co
       mechanism.  When triggered it will skip index vacuuming, even
       when <code class="literal">INDEX_CLEANUP</code> is set to
       <code class="literal">ON</code>.
+     </p></dd><dt><span class="term"><code class="literal">PROCESS_MAIN</code></span></dt><dd><p>
+      Specifies that <code class="command">VACUUM</code> should attempt to process the
+      main relation. This is usually the desired behavior and is the default.
+      Setting this option to false may be useful when it is only necessary to
+      vacuum a relation's corresponding <code class="literal">TOAST</code> table.
      </p></dd><dt><span class="term"><code class="literal">PROCESS_TOAST</code></span></dt><dd><p>
       Specifies that <code class="command">VACUUM</code> should attempt to process the
       corresponding <code class="literal">TOAST</code> table for each relation, if one
@@ -163,7 +172,7 @@ VACUUM [ FULL ] [ FREEZE ] [ VERBOSE ] [ ANALYZE ] [ <em class="replaceable"><co
       Perform index vacuum and index cleanup phases of <code class="command">VACUUM</code>
       in parallel using <em class="replaceable"><code>integer</code></em>
       background workers (for the details of each vacuum phase, please
-      refer to <a class="xref" href="progress-reporting.html#VACUUM-PHASES" title="Table 28.41. VACUUM Phases">Table 28.41</a>).  The number of workers used
+      refer to <a class="xref" href="progress-reporting.html#VACUUM-PHASES" title="Table 28.45. VACUUM Phases">Table 28.45</a>).  The number of workers used
       to perform the operation is equal to the number of indexes on the
       relation that support parallel vacuum which is limited by the number of
       workers specified with <code class="literal">PARALLEL</code> option if any which is
@@ -179,6 +188,44 @@ VACUUM [ FULL ] [ FREEZE ] [ VERBOSE ] [ ANALYZE ] [ <em class="replaceable"><co
       vacuum are launched before the start of each phase and exit at the end of
       the phase.  These behaviors might change in a future release.  This
       option can't be used with the <code class="literal">FULL</code> option.
+     </p></dd><dt><span class="term"><code class="literal">SKIP_DATABASE_STATS</code></span></dt><dd><p>
+      Specifies that <code class="command">VACUUM</code> should skip updating the
+      database-wide statistics about oldest unfrozen XIDs.  Normally
+      <code class="command">VACUUM</code> will update these statistics once at the
+      end of the command.  However, this can take awhile in a database
+      with a very large number of tables, and it will accomplish nothing
+      unless the table that had contained the oldest unfrozen XID was
+      among those vacuumed.  Moreover, if multiple <code class="command">VACUUM</code>
+      commands are issued in parallel, only one of them can update the
+      database-wide statistics at a time.  Therefore, if an application
+      intends to issue a series of many <code class="command">VACUUM</code>
+      commands, it can be helpful to set this option in all but the last
+      such command; or set it in all the commands and separately
+      issue <code class="literal">VACUUM (ONLY_DATABASE_STATS)</code> afterwards.
+     </p></dd><dt><span class="term"><code class="literal">ONLY_DATABASE_STATS</code></span></dt><dd><p>
+      Specifies that <code class="command">VACUUM</code> should do nothing except
+      update the database-wide statistics about oldest unfrozen XIDs.
+      When this option is specified,
+      the <em class="replaceable"><code>table_and_columns</code></em>
+      list must be empty, and no other option may be enabled
+      except <code class="literal">VERBOSE</code>.
+     </p></dd><dt><span class="term"><code class="literal">BUFFER_USAGE_LIMIT</code></span></dt><dd><p>
+      Specifies the
+      <a class="glossterm" href="glossary.html#GLOSSARY-BUFFER-ACCESS-STRATEGY"><em class="glossterm"><a class="glossterm" href="glossary.html#GLOSSARY-BUFFER-ACCESS-STRATEGY" title="Buffer Access Strategy">Buffer Access Strategy</a></em></a>
+      ring buffer size for <code class="command">VACUUM</code>.  This size is used to
+      calculate the number of shared buffers which will be reused as part of
+      this strategy.  <code class="literal">0</code> disables use of a
+      <code class="literal">Buffer Access Strategy</code>.  If <code class="option">ANALYZE</code>
+      is also specified, the <code class="option">BUFFER_USAGE_LIMIT</code> value is used
+      for both the vacuum and analyze stages.  This option can't be used with
+      the <code class="option">FULL</code> option except if <code class="option">ANALYZE</code> is
+      also specified.  When this option is not specified,
+      <code class="command">VACUUM</code> uses the value from
+      <a class="xref" href="runtime-config-resource.html#GUC-VACUUM-BUFFER-USAGE-LIMIT">vacuum_buffer_usage_limit</a>.  Higher settings can
+      allow <code class="command">VACUUM</code> to run more quickly, but having too
+      large a setting may cause too many other useful pages to be evicted from
+      shared buffers.  The minimum value is <code class="literal">128 kB</code> and the
+      maximum value is <code class="literal">16 GB</code>.
      </p></dd><dt><span class="term"><em class="replaceable"><code>boolean</code></em></span></dt><dd><p>
       Specifies whether the selected option should be turned on or off.
       You can write <code class="literal">TRUE</code>, <code class="literal">ON</code>, or
@@ -188,6 +235,12 @@ VACUUM [ FULL ] [ FREEZE ] [ VERBOSE ] [ ANALYZE ] [ <em class="replaceable"><co
       be omitted, in which case <code class="literal">TRUE</code> is assumed.
      </p></dd><dt><span class="term"><em class="replaceable"><code>integer</code></em></span></dt><dd><p>
       Specifies a non-negative integer value passed to the selected option.
+     </p></dd><dt><span class="term"><em class="replaceable"><code>size</code></em></span></dt><dd><p>
+      Specifies an amount of memory in kilobytes.  Sizes may also be specified
+      as a string containing the numerical size followed by any one of the
+      following memory units: <code class="literal">B</code> (bytes),
+      <code class="literal">kB</code> (kilobytes), <code class="literal">MB</code> (megabytes),
+      <code class="literal">GB</code> (gigabytes), or <code class="literal">TB</code> (terabytes).
      </p></dd><dt><span class="term"><em class="replaceable"><code>table_name</code></em></span></dt><dd><p>
       The name (optionally schema-qualified) of a specific table or
       materialized view to vacuum.  If the specified table is a partitioned
@@ -245,8 +298,8 @@ VACUUM [ FULL ] [ FREEZE ] [ VERBOSE ] [ ANALYZE ] [ <em class="replaceable"><co
     <code class="structname">pg_stat_progress_vacuum</code> view. Backends running
     <code class="command">VACUUM FULL</code> will instead report their progress in the
     <code class="structname">pg_stat_progress_cluster</code> view. See
-    <a class="xref" href="progress-reporting.html#VACUUM-PROGRESS-REPORTING" title="28.4.3. VACUUM Progress Reporting">Section 28.4.3</a> and
-    <a class="xref" href="progress-reporting.html#CLUSTER-PROGRESS-REPORTING" title="28.4.4. CLUSTER Progress Reporting">Section 28.4.4</a> for details.
+    <a class="xref" href="progress-reporting.html#VACUUM-PROGRESS-REPORTING" title="28.4.5. VACUUM Progress Reporting">Section 28.4.5</a> and
+    <a class="xref" href="progress-reporting.html#CLUSTER-PROGRESS-REPORTING" title="28.4.2. CLUSTER Progress Reporting">Section 28.4.2</a> for details.
    </p></div><div class="refsect1" id="id-1.9.3.184.9"><h2>Examples</h2><p>
    To clean a single table <code class="literal">onek</code>, analyze it for
    the optimizer and print a detailed vacuum activity report:
@@ -255,4 +308,4 @@ VACUUM [ FULL ] [ FREEZE ] [ VERBOSE ] [ ANALYZE ] [ <em class="replaceable"><co
 VACUUM (VERBOSE, ANALYZE) onek;
 </pre></div><div class="refsect1" id="id-1.9.3.184.10"><h2>Compatibility</h2><p>
    There is no <code class="command">VACUUM</code> statement in the SQL standard.
-  </p></div><div class="refsect1" id="id-1.9.3.184.11"><h2>See Also</h2><span class="simplelist"><a class="xref" href="app-vacuumdb.html" title="vacuumdb"><span class="refentrytitle"><span class="application">vacuumdb</span></span></a>, <a class="xref" href="runtime-config-resource.html#RUNTIME-CONFIG-RESOURCE-VACUUM-COST" title="20.4.4. Cost-based Vacuum Delay">Section 20.4.4</a>, <a class="xref" href="routine-vacuuming.html#AUTOVACUUM" title="25.1.6. The Autovacuum Daemon">Section 25.1.6</a>, <a class="xref" href="progress-reporting.html#VACUUM-PROGRESS-REPORTING" title="28.4.3. VACUUM Progress Reporting">Section 28.4.3</a>, <a class="xref" href="progress-reporting.html#CLUSTER-PROGRESS-REPORTING" title="28.4.4. CLUSTER Progress Reporting">Section 28.4.4</a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="sql-update.html" title="UPDATE">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="sql-values.html" title="VALUES">Next</a></td></tr><tr><td width="40%" align="left" valign="top">UPDATE </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 15.3 Documentation">Home</a></td><td width="40%" align="right" valign="top"> VALUES</td></tr></table></div></body></html>
+  </p></div><div class="refsect1" id="id-1.9.3.184.11"><h2>See Also</h2><span class="simplelist"><a class="xref" href="app-vacuumdb.html" title="vacuumdb"><span class="refentrytitle"><span class="application">vacuumdb</span></span></a>, <a class="xref" href="runtime-config-resource.html#RUNTIME-CONFIG-RESOURCE-VACUUM-COST" title="20.4.4. Cost-based Vacuum Delay">Section 20.4.4</a>, <a class="xref" href="routine-vacuuming.html#AUTOVACUUM" title="25.1.6. The Autovacuum Daemon">Section 25.1.6</a>, <a class="xref" href="progress-reporting.html#VACUUM-PROGRESS-REPORTING" title="28.4.5. VACUUM Progress Reporting">Section 28.4.5</a>, <a class="xref" href="progress-reporting.html#CLUSTER-PROGRESS-REPORTING" title="28.4.2. CLUSTER Progress Reporting">Section 28.4.2</a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="sql-update.html" title="UPDATE">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="sql-values.html" title="VALUES">Next</a></td></tr><tr><td width="40%" align="left" valign="top">UPDATE </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 16.1 Documentation">Home</a></td><td width="40%" align="right" valign="top"> VALUES</td></tr></table></div></body></html>

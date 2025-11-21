@@ -17,7 +17,7 @@ import { MappedFormControl } from './MappedControl';
 import TabPanel from '../components/TabPanel';
 import DataGridView from './DataGridView';
 import { SCHEMA_STATE_ACTIONS, StateUtilsContext } from '.';
-import { InputSQL } from '../components/FormComponents';
+import { FormNote, InputSQL } from '../components/FormComponents';
 import gettext from 'sources/gettext';
 import { evalFunc } from 'sources/utils';
 import CustomPropTypes from '../custom_prop_types';
@@ -28,7 +28,8 @@ import FieldSetView from './FieldSetView';
 const useStyles = makeStyles((theme)=>({
   fullSpace: {
     padding: 0,
-    height: '100%'
+    height: '100%',
+    overflow: 'hidden',
   },
   controlRow: {
     marginBottom: theme.spacing(1),
@@ -38,6 +39,10 @@ const useStyles = makeStyles((theme)=>({
   },
   nestedControl: {
     height: 'unset',
+  },
+  fullControl: {
+    display: 'flex',
+    flexDirection: 'column'
   },
   errorMargin: {
     /* Error footer space */
@@ -187,7 +192,10 @@ export default function FormView({
           depListener.addDepListener(accessPath.concat(field.id), accessPath.concat(field.id), field.depChange, field.deferredDepChange);
         }
         (evalFunc(null, field.deps) || []).forEach((dep)=>{
+          // when dep is a string then prepend the complete accessPath
           let source = accessPath.concat(dep);
+
+          // but when dep is an array, then the intention is to provide the exact accesspath
           if(_.isArray(dep)) {
             source = dep;
           }
@@ -212,6 +220,8 @@ export default function FormView({
   }, [stateUtils.formResetKey]);
 
   let fullTabs = [];
+  let inlineComponents = [];
+  let inlineCompGroup = null;
 
   /* Prepare the array of components based on the types */
   for(const field of schemaRef.current.fields) {
@@ -304,47 +314,80 @@ export default function FormView({
           firstEleID.current = field.id;
         }
 
-        tabs[group].push(
-          <MappedFormControl
-            inputRef={(ele)=>{
-              if(firstEleRef && firstEleID.current === field.id) {
-                firstEleRef.current = ele;
-              }
-            }}
-            state={value}
-            key={id}
-            viewHelperProps={viewHelperProps}
-            name={id}
-            value={value[id]}
-            {...field}
-            id={id}
-            readonly={readonly}
-            disabled={disabled}
-            visible={visible}
-            onChange={(changeValue)=>{
-              /* Get the changes on dependent fields as well */
-              dataDispatch({
-                type: SCHEMA_STATE_ACTIONS.SET_VALUE,
-                path: accessPath.concat(id),
-                value: changeValue,
-              });
-            }}
-            hasError={hasError}
-            className={classes.controlRow}
-            noLabel={field.isFullTab}
-            memoDeps={[
-              value[id],
-              readonly,
-              disabled,
-              visible,
-              hasError,
-              classes.controlRow,
-              ...(evalFunc(null, field.deps) || []).map((dep)=>value[dep]),
-            ]}
-          />
-        );
+        let currentControl = <MappedFormControl
+          inputRef={(ele)=>{
+            if(firstEleRef && firstEleID.current === field.id) {
+              firstEleRef.current = ele;
+            }
+          }}
+          state={value}
+          key={id}
+          viewHelperProps={viewHelperProps}
+          name={id}
+          value={value[id]}
+          {...field}
+          id={id}
+          readonly={readonly}
+          disabled={disabled}
+          visible={visible}
+          onChange={(changeValue)=>{
+            /* Get the changes on dependent fields as well */
+            dataDispatch({
+              type: SCHEMA_STATE_ACTIONS.SET_VALUE,
+              path: accessPath.concat(id),
+              value: changeValue,
+            });
+          }}
+          hasError={hasError}
+          className={classes.controlRow}
+          noLabel={field.isFullTab}
+          memoDeps={[
+            value[id],
+            readonly,
+            disabled,
+            visible,
+            hasError,
+            classes.controlRow,
+            ...(evalFunc(null, field.deps) || []).map((dep)=>value[dep]),
+          ]}
+        />;
+
+        if(field.isFullTab && field.helpMessage) {
+          currentControl = (<React.Fragment key={`coll-${field.id}`}>
+            <FormNote key={`note-${field.id}`} text={field.helpMessage}/>
+            {currentControl}
+          </React.Fragment>);
+        }
+
+        if(field.inlineNext) {
+          inlineComponents.push(React.cloneElement(currentControl, {
+            withContainer: false, controlGridBasis: 3
+          }));
+          inlineCompGroup = group;
+        } else if(inlineComponents?.length > 0) {
+          inlineComponents.push(React.cloneElement(currentControl, {
+            withContainer: false, controlGridBasis: 3
+          }));
+          tabs[group].push(
+            <Box key={`ic-${inlineComponents[0].key}`} display="flex" className={classes.controlRow} gridRowGap="8px" flexWrap="wrap">
+              {inlineComponents}
+            </Box>
+          );
+          inlineComponents = [];
+          inlineCompGroup = null;
+        } else {
+          tabs[group].push(currentControl);
+        }
       }
     }
+  }
+
+  if(inlineComponents?.length > 0) {
+    tabs[inlineCompGroup].push(
+      <Box key={`ic-${inlineComponents[0].key}`} display="flex" className={classes.controlRow} gridRowGap="8px" flexWrap="wrap">
+        {inlineComponents}
+      </Box>
+    );
   }
 
   let finalTabs = _.pickBy(tabs, (v, tabName)=>schemaRef.current.filterGroups.indexOf(tabName) <= -1);
@@ -394,6 +437,8 @@ export default function FormView({
             let contentClassName = [stateUtils.formErr.message ? classes.errorMargin : null];
             if(fullTabs.indexOf(tabName) == -1) {
               contentClassName.push(classes.nestedControl);
+            } else {
+              contentClassName.push(classes.fullControl);
             }
             return (
               <TabPanel key={tabName} value={tabValue} index={i} classNameRoot={clsx(tabsClassname[tabName], isNested ? classes.nestedTabPanel : null)}

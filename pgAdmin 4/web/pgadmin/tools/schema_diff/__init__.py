@@ -73,7 +73,7 @@ class SchemaDiffModule(PgAdminModule):
 
         self.preference.register(
             'display', 'ignore_whitespaces',
-            gettext("Ignore whitespace"), 'boolean', False,
+            gettext("Ignore Whitespace"), 'boolean', False,
             category_label=PREF_LABEL_DISPLAY,
             help_str=gettext('Set ignore whitespace on or off by default in '
                              'the drop-down menu near the Compare button in '
@@ -82,11 +82,29 @@ class SchemaDiffModule(PgAdminModule):
 
         self.preference.register(
             'display', 'ignore_owner',
-            gettext("Ignore owner"), 'boolean', False,
+            gettext("Ignore Owner"), 'boolean', False,
             category_label=PREF_LABEL_DISPLAY,
             help_str=gettext('Set ignore owner on or off by default in the '
                              'drop-down menu near the Compare button in the '
                              'Schema Diff tab.')
+        )
+
+        self.preference.register(
+            'display', 'ignore_tablespace',
+            gettext("Ignore Tablespace"), 'boolean', False,
+            category_label=PREF_LABEL_DISPLAY,
+            help_str=gettext('Set ignore tablespace on or off by default in '
+                             'the drop-down menu near the Compare button in '
+                             'the Schema Diff tab.')
+        )
+
+        self.preference.register(
+            'display', 'ignore_grants',
+            gettext("Ignore Grants/Revoke"), 'boolean', False,
+            category_label=PREF_LABEL_DISPLAY,
+            help_str=gettext('Set ignore grants/revoke on or off by default '
+                             'in the drop-down menu near the Compare button '
+                             'in the Schema Diff tab.')
         )
 
 
@@ -127,8 +145,6 @@ def panel(trans_id, editor_title):
         "schema_diff/index.html",
         _=gettext,
         trans_id=trans_id,
-        requirejs=True,
-        basejs=True,
         editor_title=editor_title,
     )
 
@@ -448,8 +464,8 @@ def compare_database(params):
                                params['target_sid'])
     if not status:
         socketio.emit('compare_database_failed',
-                      error_msg.json if type(
-                          error_msg) == Response else error_msg,
+                      error_msg.json if isinstance(
+                          error_msg, Response) else error_msg,
                       namespace=SOCKETIO_NAMESPACE, to=request.sid)
         return error_msg
 
@@ -464,6 +480,8 @@ def compare_database(params):
     try:
         ignore_owner = bool(params['ignore_owner'])
         ignore_whitespaces = bool(params['ignore_whitespaces'])
+        ignore_tablespace = bool(params['ignore_tablespace'])
+        ignore_grants = bool(params['ignore_grants'])
 
         # Fetch all the schemas of source and target database
         # Compare them and get the status.
@@ -478,7 +496,7 @@ def compare_database(params):
         node_percent = 0
         if total_schema > 0:
             node_percent = round(100 / (total_schema * len(
-                SchemaDiffRegistry.get_registered_nodes())))
+                SchemaDiffRegistry.get_registered_nodes())), 2)
         total_percent = 0
 
         # Compare Database objects
@@ -491,7 +509,9 @@ def compare_database(params):
                 target_did=params['target_did'],
                 diff_model_obj=diff_model_obj, total_percent=total_percent,
                 node_percent=node_percent, ignore_owner=ignore_owner,
-                ignore_whitespaces=ignore_whitespaces)
+                ignore_whitespaces=ignore_whitespaces,
+                ignore_tablespace=ignore_tablespace,
+                ignore_grants=ignore_grants)
         comparison_result = \
             comparison_result + comparison_schema_result
 
@@ -513,7 +533,9 @@ def compare_database(params):
                         node_percent=node_percent,
                         is_schema_source_only=True,
                         ignore_owner=ignore_owner,
-                        ignore_whitespaces=ignore_whitespaces)
+                        ignore_whitespaces=ignore_whitespaces,
+                        ignore_tablespace=ignore_tablespace,
+                        ignore_grants=ignore_grants)
 
                 comparison_result = \
                     comparison_result + comparison_schema_result
@@ -534,7 +556,9 @@ def compare_database(params):
                         total_percent=total_percent,
                         node_percent=node_percent,
                         ignore_owner=ignore_owner,
-                        ignore_whitespaces=ignore_whitespaces)
+                        ignore_whitespaces=ignore_whitespaces,
+                        ignore_tablespace=ignore_tablespace,
+                        ignore_grants=ignore_grants)
 
                 comparison_result = \
                     comparison_result + comparison_schema_result
@@ -557,13 +581,13 @@ def compare_database(params):
                         total_percent=total_percent,
                         node_percent=node_percent,
                         ignore_owner=ignore_owner,
-                        ignore_whitespaces=ignore_whitespaces)
+                        ignore_whitespaces=ignore_whitespaces,
+                        ignore_tablespace=ignore_tablespace,
+                        ignore_grants=ignore_grants)
 
                 comparison_result = \
                     comparison_result + comparison_schema_result
 
-        msg = gettext("Successfully compare the specified databases.")
-        total_percent = 100
         # Update the message and total percentage done in session object
         update_session_diff_transaction(params['trans_id'], session_obj,
                                         diff_model_obj)
@@ -589,8 +613,8 @@ def compare_schema(params):
                                params['target_sid'])
     if not status:
         socketio.emit('compare_schema_failed',
-                      error_msg.json if type(
-                          error_msg) == Response else error_msg,
+                      error_msg.json if isinstance(
+                          error_msg, Response) else error_msg,
                       namespace=SOCKETIO_NAMESPACE, to=request.sid)
         return error_msg
 
@@ -601,8 +625,10 @@ def compare_schema(params):
     try:
         ignore_owner = bool(params['ignore_owner'])
         ignore_whitespaces = bool(params['ignore_whitespaces'])
+        ignore_tablespace = bool(params['ignore_tablespace'])
+        ignore_grants = bool(params['ignore_grants'])
         all_registered_nodes = SchemaDiffRegistry.get_registered_nodes()
-        node_percent = round(100 / len(all_registered_nodes))
+        node_percent = round(100 / len(all_registered_nodes), 2)
         total_percent = 0
 
         comparison_schema_result, total_percent = \
@@ -619,13 +645,13 @@ def compare_schema(params):
                 total_percent=total_percent,
                 node_percent=node_percent,
                 ignore_owner=ignore_owner,
-                ignore_whitespaces=ignore_whitespaces)
+                ignore_whitespaces=ignore_whitespaces,
+                ignore_tablespace=ignore_tablespace,
+                ignore_grants=ignore_grants)
 
         comparison_result = \
             comparison_result + comparison_schema_result
 
-        msg = gettext("Successfully compare the specified schemas.")
-        total_percent = 100
         # Update the message and total percentage done in session object
         update_session_diff_transaction(params['trans_id'], session_obj,
                                         diff_model_obj)
@@ -755,6 +781,8 @@ def compare_database_objects(**kwargs):
     node_percent = kwargs.get('node_percent')
     ignore_owner = kwargs.get('ignore_owner')
     ignore_whitespaces = kwargs.get('ignore_whitespaces')
+    ignore_tablespace = kwargs.get('ignore_tablespace')
+    ignore_grants = kwargs.get('ignore_grants')
     comparison_result = []
 
     all_registered_nodes = SchemaDiffRegistry.get_registered_nodes(None,
@@ -778,7 +806,9 @@ def compare_database_objects(**kwargs):
                                target_did=target_did,
                                group_name=gettext('Database Objects'),
                                ignore_owner=ignore_owner,
-                               ignore_whitespaces=ignore_whitespaces)
+                               ignore_whitespaces=ignore_whitespaces,
+                               ignore_tablespace=ignore_tablespace,
+                               ignore_grants=ignore_grants)
 
             if res is not None:
                 comparison_result = comparison_result + res
@@ -809,6 +839,8 @@ def compare_schema_objects(**kwargs):
     is_schema_source_only = kwargs.get('is_schema_source_only', False)
     ignore_owner = kwargs.get('ignore_owner')
     ignore_whitespaces = kwargs.get('ignore_whitespaces')
+    ignore_tablespace = kwargs.get('ignore_tablespace')
+    ignore_grants = kwargs.get('ignore_grants')
 
     source_schema_name = None
     if is_schema_source_only:
@@ -845,12 +877,14 @@ def compare_schema_objects(**kwargs):
                                group_name=gettext(schema_name),
                                source_schema_name=source_schema_name,
                                ignore_owner=ignore_owner,
-                               ignore_whitespaces=ignore_whitespaces)
+                               ignore_whitespaces=ignore_whitespaces,
+                               ignore_tablespace=ignore_tablespace,
+                               ignore_grants=ignore_grants)
 
             if res is not None:
                 comparison_result = comparison_result + res
         total_percent = total_percent + node_percent
-        # if total_percent is more then 100 then set it to less then 100
+        # if total_percent is more than 100 then set it to less than 100
         if total_percent >= 100:
             total_percent = 96
 

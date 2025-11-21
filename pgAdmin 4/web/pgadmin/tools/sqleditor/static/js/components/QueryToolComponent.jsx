@@ -18,7 +18,7 @@ import { MainToolBar } from './sections/MainToolBar';
 import { Messages } from './sections/Messages';
 import getApiInstance, {callFetch, parseApiError} from '../../../../../static/js/api_instance';
 import url_for from 'sources/url_for';
-import { PANELS, QUERY_TOOL_EVENTS, CONNECTION_STATUS } from './QueryToolConstants';
+import { PANELS, QUERY_TOOL_EVENTS, CONNECTION_STATUS, MAX_QUERY_LENGTH } from './QueryToolConstants';
 import { useInterval } from '../../../../../static/js/custom_hooks';
 import { Box } from '@material-ui/core';
 import { getDatabaseLabel, getTitle, setQueryToolDockerTitle } from '../sqleditor_title';
@@ -86,6 +86,7 @@ export default function QueryToolComponent({params, pgWindow, pgAdmin, selectedN
       browser: {}, sqleditor: {}, graphs: {}, misc: {},
     },
     is_new_tab: window.location == window.parent?.location,
+    is_visible: true,
     current_file: null,
     obtaining_conn: true,
     connected: false,
@@ -94,6 +95,7 @@ export default function QueryToolComponent({params, pgWindow, pgAdmin, selectedN
     connection_status_msg: '',
     params: {
       ...params,
+      title: _.unescape(params.title),
       is_query_tool: params.is_query_tool == 'true' ? true : false,
       node_name: retrieveNodeName(selectedNodeInfo),
     },
@@ -107,7 +109,7 @@ export default function QueryToolComponent({params, pgWindow, pgAdmin, selectedN
       fgcolor: params.fgcolor,
       bgcolor: params.bgcolor,
       conn_title: getTitle(
-        pgAdmin, null, selectedNodeInfo, true, _.unescape(params.server_name), _.unescape(params.database_name) || getDatabaseLabel(selectedNodeInfo),
+        pgAdmin, null, selectedNodeInfo, true, _.unescape(params.server_name), _.escape(params.database_name) || getDatabaseLabel(selectedNodeInfo),
         _.unescape(params.role) || _.unescape(params.user), params.is_query_tool == 'true' ? true : false),
       server_name: _.unescape(params.server_name),
       database_name: _.unescape(params.database_name) || getDatabaseLabel(selectedNodeInfo),
@@ -128,8 +130,9 @@ export default function QueryToolComponent({params, pgWindow, pgAdmin, selectedN
   let pollTime = qtState.preferences.sqleditor.connection_status_fetch_time > 0
     && !qtState.obtaining_conn && qtState.connected_once && qtState.preferences?.sqleditor?.connection_status ?
     qtState.preferences.sqleditor.connection_status_fetch_time*1000 : -1;
-  /* No need to poll when the query is executing. Query poller will the txn status */
-  if(qtState.connection_status === CONNECTION_STATUS.TRANSACTION_STATUS_ACTIVE && qtState.connected) {
+  /* No need to poll when the query is executing. Query poller will get the txn status */
+  if(qtState.connection_status === CONNECTION_STATUS.TRANSACTION_STATUS_ACTIVE && qtState.connected
+      || !qtState.is_visible) {
     pollTime = -1;
   }
   useInterval(async ()=>{
@@ -261,8 +264,8 @@ export default function QueryToolComponent({params, pgWindow, pgAdmin, selectedN
       });
     }
     api.post(baseUrl, qtState.params.is_query_tool ? {
-      user: qtState.params.user,
-      role: qtState.params.role,
+      user: selectedConn.user,
+      role: selectedConn.role,
       password: password
     } : JSON.stringify(qtState.params.sql_filter))
       .then(()=>{
@@ -346,6 +349,7 @@ export default function QueryToolComponent({params, pgWindow, pgAdmin, selectedN
     panel?.on(window.wcDocker.EVENT.VISIBILITY_CHANGED, function() {
       /* Focus the appropriate panel on visible */
       if(panel.isVisible()) {
+        setQtState({is_visible: true});
         if(LayoutHelper.isTabVisible(docker.current, PANELS.QUERY)) {
           LayoutHelper.focus(docker.current, PANELS.QUERY);
         } else if(LayoutHelper.isTabVisible(docker.current, PANELS.HISTORY)) {
@@ -353,6 +357,17 @@ export default function QueryToolComponent({params, pgWindow, pgAdmin, selectedN
         }
 
         eventBus.current.fireEvent(QUERY_TOOL_EVENTS.GOTO_LAST_SCROLL);
+      } else {
+        setQtState({is_visible: false});
+      }
+    });
+
+    /* If the tab or window is not visible */
+    document.addEventListener('visibilitychange', function() {
+      if(document.hidden) {
+        setQtState({is_visible: false});
+      } else {
+        setQtState({is_visible: true});
       }
     });
   }, []);
@@ -376,6 +391,13 @@ export default function QueryToolComponent({params, pgWindow, pgAdmin, selectedN
     window.addEventListener('unload', closeConn);
 
     const pushHistory = (h)=>{
+      // Do not store query text if max lenght exceeds.
+      if(h?.query?.length > MAX_QUERY_LENGTH) {
+        h = {
+          ...h,
+          query: gettext(`-- Query text not stored as it exceeds maximum length of ${MAX_QUERY_LENGTH}`)
+        };
+      }
       api.post(
         url_for('sqleditor.add_query_history', {
           'trans_id': qtState.params.trans_id,
@@ -670,6 +692,7 @@ export default function QueryToolComponent({params, pgWindow, pgAdmin, selectedN
       database: {
         _id: selectedConn.did,
         label: selectedConn.database_name,
+        _label: selectedConn.database_name,
       },
     };
 
@@ -724,7 +747,8 @@ export default function QueryToolComponent({params, pgWindow, pgAdmin, selectedN
     modal: modal,
     params: qtState.params,
     preferences: qtState.preferences,
-  }), [qtState.params, qtState.preferences]);
+    mainContainerRef: containerRef
+  }), [qtState.params, qtState.preferences, containerRef.current]);
 
   const queryToolConnContextValue = React.useMemo(()=>({
     connected: qtState.connected,

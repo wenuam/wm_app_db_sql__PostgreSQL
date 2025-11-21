@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>34.19. SSL Support</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="libpq-ldap.html" title="34.18. LDAP Lookup of Connection Parameters" /><link rel="next" href="libpq-threading.html" title="34.20. Behavior in Threaded Programs" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">34.19. SSL Support</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="libpq-ldap.html" title="34.18. LDAP Lookup of Connection Parameters">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="libpq.html" title="Chapter 34. libpq — C Library">Up</a></td><th width="60%" align="center">Chapter 34. <span class="application">libpq</span> — C Library</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 15.3 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="libpq-threading.html" title="34.20. Behavior in Threaded Programs">Next</a></td></tr></table><hr /></div><div class="sect1" id="LIBPQ-SSL"><div class="titlepage"><div><div><h2 class="title" style="clear: both">34.19. SSL Support</h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="libpq-ssl.html#LIBQ-SSL-CERTIFICATES">34.19.1. Client Verification of Server Certificates</a></span></dt><dt><span class="sect2"><a href="libpq-ssl.html#LIBPQ-SSL-CLIENTCERT">34.19.2. Client Certificates</a></span></dt><dt><span class="sect2"><a href="libpq-ssl.html#LIBPQ-SSL-PROTECTION">34.19.3. Protection Provided in Different Modes</a></span></dt><dt><span class="sect2"><a href="libpq-ssl.html#LIBPQ-SSL-FILEUSAGE">34.19.4. SSL Client File Usage</a></span></dt><dt><span class="sect2"><a href="libpq-ssl.html#LIBPQ-SSL-INITIALIZE">34.19.5. SSL Library Initialization</a></span></dt></dl></div><a id="id-1.7.3.26.2" class="indexterm"></a><p>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>34.19. SSL Support</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="libpq-ldap.html" title="34.18. LDAP Lookup of Connection Parameters" /><link rel="next" href="libpq-threading.html" title="34.20. Behavior in Threaded Programs" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">34.19. SSL Support</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="libpq-ldap.html" title="34.18. LDAP Lookup of Connection Parameters">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="libpq.html" title="Chapter 34. libpq — C Library">Up</a></td><th width="60%" align="center">Chapter 34. <span class="application">libpq</span> — C Library</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 16.1 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="libpq-threading.html" title="34.20. Behavior in Threaded Programs">Next</a></td></tr></table><hr /></div><div class="sect1" id="LIBPQ-SSL"><div class="titlepage"><div><div><h2 class="title" style="clear: both">34.19. SSL Support <a href="#LIBPQ-SSL" class="id_link">#</a></h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="libpq-ssl.html#LIBQ-SSL-CERTIFICATES">34.19.1. Client Verification of Server Certificates</a></span></dt><dt><span class="sect2"><a href="libpq-ssl.html#LIBPQ-SSL-CLIENTCERT">34.19.2. Client Certificates</a></span></dt><dt><span class="sect2"><a href="libpq-ssl.html#LIBPQ-SSL-PROTECTION">34.19.3. Protection Provided in Different Modes</a></span></dt><dt><span class="sect2"><a href="libpq-ssl.html#LIBPQ-SSL-FILEUSAGE">34.19.4. SSL Client File Usage</a></span></dt><dt><span class="sect2"><a href="libpq-ssl.html#LIBPQ-SSL-INITIALIZE">34.19.5. SSL Library Initialization</a></span></dt></dl></div><a id="id-1.7.3.26.2" class="indexterm"></a><p>
    <span class="productname">PostgreSQL</span> has native support for using <acronym class="acronym">SSL</acronym>
    connections to encrypt client/server communications using
    <acronym class="acronym">TLS</acronym> protocols for increased security.
@@ -13,7 +13,7 @@
    can be overridden by setting environment variable
    <code class="envar">OPENSSL_CONF</code> to the name of the desired configuration
    file.
-  </p><div class="sect2" id="LIBQ-SSL-CERTIFICATES"><div class="titlepage"><div><div><h3 class="title">34.19.1. Client Verification of Server Certificates</h3></div></div></div><p>
+  </p><div class="sect2" id="LIBQ-SSL-CERTIFICATES"><div class="titlepage"><div><div><h3 class="title">34.19.1. Client Verification of Server Certificates <a href="#LIBQ-SSL-CERTIFICATES" class="id_link">#</a></h3></div></div></div><p>
    By default, <span class="productname">PostgreSQL</span> will not perform any verification of
    the server certificate. This means that it is possible to spoof the server
    identity (for example by modifying a DNS record or by taking over the server
@@ -94,7 +94,7 @@
     is validated against the CA. Relying on this behavior is discouraged,
     and applications that need certificate validation should always use
     <code class="literal">verify-ca</code> or <code class="literal">verify-full</code>.
-   </p></div></div><div class="sect2" id="LIBPQ-SSL-CLIENTCERT"><div class="titlepage"><div><div><h3 class="title">34.19.2. Client Certificates</h3></div></div></div><p>
+   </p></div></div><div class="sect2" id="LIBPQ-SSL-CLIENTCERT"><div class="titlepage"><div><div><h3 class="title">34.19.2. Client Certificates <a href="#LIBPQ-SSL-CLIENTCERT" class="id_link">#</a></h3></div></div></div><p>
    If the server attempts to verify the identity of the
    client by requesting the client's leaf certificate,
    <span class="application">libpq</span> will send the certificate(s) stored in
@@ -146,7 +146,7 @@
    <a class="xref" href="libpq-connect.html#LIBPQ-PQSETSSLKEYPASSHOOK-OPENSSL"><code class="function">PQsetSSLKeyPassHook_OpenSSL</code></a>.
   </p><p>
    For instructions on creating certificates, see <a class="xref" href="ssl-tcp.html#SSL-CERTIFICATE-CREATION" title="19.9.5. Creating Certificates">Section 19.9.5</a>.
-  </p></div><div class="sect2" id="LIBPQ-SSL-PROTECTION"><div class="titlepage"><div><div><h3 class="title">34.19.3. Protection Provided in Different Modes</h3></div></div></div><p>
+  </p></div><div class="sect2" id="LIBPQ-SSL-PROTECTION"><div class="titlepage"><div><div><h3 class="title">34.19.3. Protection Provided in Different Modes <a href="#LIBPQ-SSL-PROTECTION" class="id_link">#</a></h3></div></div></div><p>
    The different values for the <code class="literal">sslmode</code> parameter provide different
    levels of protection. SSL can provide
    protection against three types of attacks:
@@ -218,12 +218,12 @@
    in the table, this makes no sense from a security point of view, and it only
    promises performance overhead if possible. It is only provided as the default
    for backward compatibility, and is not recommended in secure deployments.
-  </p></div><div class="sect2" id="LIBPQ-SSL-FILEUSAGE"><div class="titlepage"><div><div><h3 class="title">34.19.4. SSL Client File Usage</h3></div></div></div><p>
+  </p></div><div class="sect2" id="LIBPQ-SSL-FILEUSAGE"><div class="titlepage"><div><div><h3 class="title">34.19.4. SSL Client File Usage <a href="#LIBPQ-SSL-FILEUSAGE" class="id_link">#</a></h3></div></div></div><p>
    <a class="xref" href="libpq-ssl.html#LIBPQ-SSL-FILE-USAGE" title="Table 34.2. Libpq/Client SSL File Usage">Table 34.2</a> summarizes the files that are
    relevant to the SSL setup on the client.
   </p><div class="table" id="LIBPQ-SSL-FILE-USAGE"><p class="title"><strong>Table 34.2. Libpq/Client SSL File Usage</strong></p><div class="table-contents"><table class="table" summary="Libpq/Client SSL File Usage" border="1"><colgroup><col /><col /><col /></colgroup><thead><tr><th>File</th><th>Contents</th><th>Effect</th></tr></thead><tbody><tr><td><code class="filename">~/.postgresql/postgresql.crt</code></td><td>client certificate</td><td>sent to server</td></tr><tr><td><code class="filename">~/.postgresql/postgresql.key</code></td><td>client private key</td><td>proves client certificate sent by owner; does not indicate
       certificate owner is trustworthy</td></tr><tr><td><code class="filename">~/.postgresql/root.crt</code></td><td>trusted certificate authorities</td><td>checks that server certificate is signed by a trusted certificate
-      authority</td></tr><tr><td><code class="filename">~/.postgresql/root.crl</code></td><td>certificates revoked by certificate authorities</td><td>server certificate must not be on this list</td></tr></tbody></table></div></div><br class="table-break" /></div><div class="sect2" id="LIBPQ-SSL-INITIALIZE"><div class="titlepage"><div><div><h3 class="title">34.19.5. SSL Library Initialization</h3></div></div></div><p>
+      authority</td></tr><tr><td><code class="filename">~/.postgresql/root.crl</code></td><td>certificates revoked by certificate authorities</td><td>server certificate must not be on this list</td></tr></tbody></table></div></div><br class="table-break" /></div><div class="sect2" id="LIBPQ-SSL-INITIALIZE"><div class="titlepage"><div><div><h3 class="title">34.19.5. SSL Library Initialization <a href="#LIBPQ-SSL-INITIALIZE" class="id_link">#</a></h3></div></div></div><p>
    If your application initializes <code class="literal">libssl</code> and/or
    <code class="literal">libcrypto</code> libraries and <span class="application">libpq</span>
    is built with <acronym class="acronym">SSL</acronym> support, you should call
@@ -234,7 +234,7 @@
    However, this is unnecessary when using <span class="productname">OpenSSL</span>
    version 1.1.0 or later, as duplicate initializations are no longer problematic.
   </p><p>
-   </p><div class="variablelist"><dl class="variablelist"><dt id="LIBPQ-PQINITOPENSSL"><span class="term"><code class="function">PQinitOpenSSL</code><a id="id-1.7.3.26.9.3.1.1.1.2" class="indexterm"></a></span></dt><dd><p>
+   </p><div class="variablelist"><dl class="variablelist"><dt id="LIBPQ-PQINITOPENSSL"><span class="term"><code class="function">PQinitOpenSSL</code><a id="id-1.7.3.26.9.3.1.1.1.2" class="indexterm"></a></span> <a href="#LIBPQ-PQINITOPENSSL" class="id_link">#</a></dt><dd><p>
        Allows applications to select which security libraries to initialize.
 </p><pre class="synopsis">
 void PQinitOpenSSL(int do_ssl, int do_crypto);
@@ -253,7 +253,7 @@ void PQinitOpenSSL(int do_ssl, int do_crypto);
        call this function with zeroes for the appropriate parameter(s)
        before first opening a database connection.  Also be sure that you
        have done that initialization before opening a database connection.
-      </p></dd><dt id="LIBPQ-PQINITSSL"><span class="term"><code class="function">PQinitSSL</code><a id="id-1.7.3.26.9.3.1.2.1.2" class="indexterm"></a></span></dt><dd><p>
+      </p></dd><dt id="LIBPQ-PQINITSSL"><span class="term"><code class="function">PQinitSSL</code><a id="id-1.7.3.26.9.3.1.2.1.2" class="indexterm"></a></span> <a href="#LIBPQ-PQINITSSL" class="id_link">#</a></dt><dd><p>
        Allows applications to select which security libraries to initialize.
 </p><pre class="synopsis">
 void PQinitSSL(int do_ssl);
@@ -270,4 +270,4 @@ void PQinitSSL(int do_ssl);
        might be preferable for applications that need to work with older
        versions of <span class="application">libpq</span>.
       </p></dd></dl></div><p>
-  </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="libpq-ldap.html" title="34.18. LDAP Lookup of Connection Parameters">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="libpq.html" title="Chapter 34. libpq — C Library">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="libpq-threading.html" title="34.20. Behavior in Threaded Programs">Next</a></td></tr><tr><td width="40%" align="left" valign="top">34.18. LDAP Lookup of Connection Parameters </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 15.3 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 34.20. Behavior in Threaded Programs</td></tr></table></div></body></html>
+  </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="libpq-ldap.html" title="34.18. LDAP Lookup of Connection Parameters">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="libpq.html" title="Chapter 34. libpq — C Library">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="libpq-threading.html" title="34.20. Behavior in Threaded Programs">Next</a></td></tr><tr><td width="40%" align="left" valign="top">34.18. LDAP Lookup of Connection Parameters </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 16.1 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 34.20. Behavior in Threaded Programs</td></tr></table></div></body></html>

@@ -112,6 +112,7 @@ class ServerManager(object):
         self.gss_encrypted = False
         self.connection_params = server.connection_params
         self.create_connection_string(self.db, self.user)
+        self.prepare_threshold = server.prepare_threshold
 
         for con in self.connections:
             self.connections[con]._release()
@@ -389,7 +390,7 @@ WHERE db.oid = {0}""".format(did))
             conn = self.connections[conn_id]
             # only try to reconnect if connection was connected previously
             # and auto_reconnect is true.
-            wasConnected = conn.wasConnected
+            was_connected = conn.wasConnected
             auto_reconnect = conn.auto_reconnect
             if conn.wasConnected and conn.auto_reconnect:
                 try:
@@ -409,7 +410,7 @@ WHERE db.oid = {0}""".format(did))
                 except CryptKeyMissing:
                     # maintain the status as this will help to restore once
                     # the key is available
-                    conn.wasConnected = wasConnected
+                    conn.wasConnected = was_connected
                     conn.auto_reconnect = auto_reconnect
                 except Exception as e:
                     self.connections.pop(conn_id)
@@ -539,6 +540,8 @@ WHERE db.oid = {0}""".format(did))
                 if not crypt_key_present:
                     return False, crypt_key
                 password = decrypt(self.password, crypt_key).decode()
+            elif hasattr(self.password, 'decode'):
+                password = self.password.decode('utf-8')
             else:
                 password = self.password
 
@@ -571,12 +574,6 @@ WHERE db.oid = {0}""".format(did))
                     # password is in bytes, for python3 we need it in string
                     if isinstance(tunnel_password, bytes):
                         tunnel_password = tunnel_password.decode()
-                else:
-                    # Get password form OS password manager
-                    tunnel_password = keyring.get_password(
-                        KEY_RING_SERVICE_NAME,
-                        KEY_RING_TUNNEL_FORMAT.format(self.manager.name,
-                                                      self.manager.sid))
 
             except Exception as e:
                 current_app.logger.exception(e)
@@ -655,14 +652,15 @@ WHERE db.oid = {0}""".format(did))
         parameters.
         """
         dsn_args = dict()
-        dsn_args['host'] = \
-            self.local_bind_host if self.use_ssh_tunnel else self.host
+        dsn_args['host'] = self.host
         dsn_args['port'] = \
             self.local_bind_port if self.use_ssh_tunnel else self.port
         dsn_args['dbname'] = database
         dsn_args['user'] = user
         if self.service is not None:
             dsn_args['service'] = self.service
+        if self.use_ssh_tunnel:
+            dsn_args['hostaddr'] = self.local_bind_host
 
         # Make a copy to display the connection string on GUI.
         display_dsn_args = dsn_args.copy()
@@ -683,10 +681,9 @@ WHERE db.oid = {0}""".format(did))
                     with_complete_path = True
                     value = get_complete_file_path(value)
 
-                # In case of host address need to check ssh tunnel flag.
-                if key == 'hostaddr':
-                    value = self.local_bind_host if self.use_ssh_tunnel else \
-                        value
+                # If key is hostaddr and ssh tunnel is in use don't overwrite.
+                if key == 'hostaddr' and self.use_ssh_tunnel:
+                    continue
 
                 dsn_args[key] = value
                 display_dsn_args[key] = orig_value if with_complete_path else \

@@ -35,8 +35,8 @@ define('pgadmin.node.trigger', [
 
   if (!pgBrowser.Nodes['trigger']) {
     pgAdmin.Browser.Nodes['trigger'] = pgBrowser.Node.extend({
-      parent_type: ['table', 'view', 'partition'],
-      collection_type: ['coll-table', 'coll-view'],
+      parent_type: ['table', 'view', 'partition', 'foreign_table'],
+      collection_type: ['coll-table', 'coll-view','coll-foreign_table'],
       type: 'trigger',
       label: gettext('Trigger'),
       hasSQL:  true,
@@ -93,7 +93,13 @@ define('pgadmin.node.trigger', [
           category: 'create', priority: 4, label: gettext('Trigger...'),
           data: {action: 'create', check: true},
           enable: 'canCreate',
-        },
+        },{
+          name: 'create_trigger_onForeignTable', node: 'foreign_table', module: this,
+          applies: ['object', 'context'], callback: 'show_obj_properties',
+          category: 'create', priority: 3, label: gettext('Trigger...'),
+          data: {action: 'create', check: true},
+          enable: 'canCreate',
+        }
         ]);
       },
       callbacks: {
@@ -115,20 +121,14 @@ define('pgadmin.node.trigger', [
                 Notify.success(res.info);
                 t.removeIcon(i);
                 data.icon = 'icon-trigger';
+                data.has_enable_triggers =  res.data.has_enable_triggers;
                 t.addIcon(i, {icon: data.icon});
-                t.unload(i);
-                t.setInode(false);
-                t.deselect(i);
-                i.parent.parent._metadata.data.has_enable_triggers = res.data.has_enable_triggers;
-                // Fetch updated data from server
-                setTimeout(function() {
-                  t.select(i);
-                }, 10);
+                t.updateAndReselectNode(i, data);
               }
             })
             .catch((error)=>{
               Notify.pgRespErrorNotify(error);
-              t.unload(i);
+              t.refresh(i);
             });
         },
         /* Disable trigger */
@@ -149,20 +149,14 @@ define('pgadmin.node.trigger', [
                 Notify.success(res.info);
                 t.removeIcon(i);
                 data.icon = 'icon-trigger-bad';
+                data.has_enable_triggers = res.data.has_enable_triggers;
                 t.addIcon(i, {icon: data.icon});
-                t.unload(i);
-                t.setInode(false);
-                t.deselect(i);
-                i.parent.parent._metadata.data.has_enable_triggers = res.data.has_enable_triggers;
-                // Fetch updated data from server
-                setTimeout(function() {
-                  t.select(i);
-                }, 10);
+                t.updateAndReselectNode(i, data);
               }
             })
             .catch((error)=>{
               Notify.pgRespErrorNotify(error);
-              t.unload(i);
+              t.refresh(i);
             });
         },
       },

@@ -2,18 +2,18 @@
 
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Server Deployment &#8212; pgAdmin 4 7.2 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/style.css" />
+    <title>Server Deployment &#8212; pgAdmin 4 7.8 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/style.css?v=7c9fe073" />
     
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/documentation_options.js?v=2eb9bb39"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     
     <script src="_static/sidebar.js"></script>
     
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="desktop_deployment.html" title="Desktop Deployment"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.8 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="getting_started.html" >Getting Started</a> &#187;</li>
           <li class="nav-item nav-item-2"><a href="deployment.html" accesskey="U">Deployment</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Server Deployment</a></li> 
@@ -47,7 +47,7 @@
           <div class="body" role="main">
             
   <section id="server-deployment">
-<span id="id1"></span><h1><span class="target" id="index-0"></span>Server Deployment<a class="headerlink" href="#server-deployment" title="Permalink to this heading">¶</a></h1>
+<span id="id1"></span><h1><span class="target" id="index-0"></span>Server Deployment<a class="headerlink" href="#server-deployment" title="Link to this heading">¶</a></h1>
 <p>pgAdmin may be deployed as a web application by configuring the app to run in
 server mode and then deploying it either behind a webserver running as a reverse
 proxy, or using the WSGI interface.</p>
@@ -73,7 +73,7 @@ but be aware that this may differ from the version included with the source code
 for a specific version of pgAdmin.</p>
 </div>
 <section id="requirements">
-<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this heading">¶</a></h2>
+<h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading">¶</a></h2>
 <p><strong>Important</strong>: Some components of pgAdmin require the ability to maintain affinity
 between client sessions and a specific database connection (for example, the
 Query Tool in which the user might run a BEGIN command followed by a number of
@@ -100,13 +100,13 @@ overcome this limitation, however that is a significant amount of work for
 little practical gain.</p>
 </section>
 <section id="configuration">
-<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading">¶</a></h2>
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">¶</a></h2>
 <p>In order to configure pgAdmin to run in server mode, it may be necessary to
 configure the Python code to run in multi-user mode, and then to configure the
 web server to find and execute the code.</p>
 <p>See <a class="reference internal" href="config_py.html#config-py"><span class="std std-ref">The config.py File</span></a> for more information on configuration settings.</p>
 <section id="python">
-<h3>Python<a class="headerlink" href="#python" title="Permalink to this heading">¶</a></h3>
+<h3>Python<a class="headerlink" href="#python" title="Link to this heading">¶</a></h3>
 <p>From pgAdmin 4 v2 onwards, server mode is the default configuration. If running under
 the desktop runtime, this is overridden automatically. There should typically be no
 need to modify the configuration simply to enable server mode to work, however it may
@@ -147,11 +147,11 @@ www-data in group www-data, and that the SQLite path is <code class="docutils li
 </section>
 </section>
 <section id="hosting">
-<h2>Hosting<a class="headerlink" href="#hosting" title="Permalink to this heading">¶</a></h2>
+<h2>Hosting<a class="headerlink" href="#hosting" title="Link to this heading">¶</a></h2>
 <p>There are many possible ways to host pgAdmin in server mode. Some examples are
 given below:</p>
 <section id="apache-httpd-configuration-windows">
-<h3>Apache HTTPD Configuration (Windows)<a class="headerlink" href="#apache-httpd-configuration-windows" title="Permalink to this heading">¶</a></h3>
+<h3>Apache HTTPD Configuration (Windows)<a class="headerlink" href="#apache-httpd-configuration-windows" title="Link to this heading">¶</a></h3>
 <p>Once Apache HTTP has been configured to support <code class="docutils literal notranslate"><span class="pre">mod_wsgi</span></code>, the pgAdmin
 application may be configured similarly to the example below:</p>
 <div class="highlight-apache notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;VirtualHost</span><span class="w"> </span><span class="s">*</span><span class="nt">&gt;</span>
@@ -173,7 +173,7 @@ below which will activate Python virtual environment when Apache server runs.</p
 <p><strong>Note:</strong> The changes made in <code class="docutils literal notranslate"><span class="pre">pgAdmin4.wsgi</span></code> file will revert when pgAdmin4 is either upgraded or downgraded.</p>
 </section>
 <section id="apache-httpd-configuration-linux-unix">
-<h3>Apache HTTPD Configuration (Linux/Unix)<a class="headerlink" href="#apache-httpd-configuration-linux-unix" title="Permalink to this heading">¶</a></h3>
+<h3>Apache HTTPD Configuration (Linux/Unix)<a class="headerlink" href="#apache-httpd-configuration-linux-unix" title="Link to this heading">¶</a></h3>
 <p>Once Apache HTTP has been configured to support <code class="docutils literal notranslate"><span class="pre">mod_wsgi</span></code>, the pgAdmin
 application may be configured similarly to the example below:</p>
 <div class="highlight-apache notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;VirtualHost</span><span class="w"> </span><span class="s">*</span><span class="nt">&gt;</span>
@@ -203,7 +203,7 @@ application may be configured similarly to the example below:</p>
 <p>Adjust as needed to suit your access control requirements.</p>
 </section>
 <section id="standalone-gunicorn-configuration">
-<h3>Standalone Gunicorn Configuration<a class="headerlink" href="#standalone-gunicorn-configuration" title="Permalink to this heading">¶</a></h3>
+<h3>Standalone Gunicorn Configuration<a class="headerlink" href="#standalone-gunicorn-configuration" title="Link to this heading">¶</a></h3>
 <p>pgAdmin may be hosted by Gunicorn directly simply by running a command such as
 the one shown below. Note that this example assumes pgAdmin was installed using
 the Python Wheel (you may need to adjust the path to suit your installation):</p>
@@ -216,7 +216,7 @@ the Python Wheel (you may need to adjust the path to suit your installation):</p
 </div>
 </section>
 <section id="standalone-uwsgi-configuration">
-<h3>Standalone uWSGI Configuration<a class="headerlink" href="#standalone-uwsgi-configuration" title="Permalink to this heading">¶</a></h3>
+<h3>Standalone uWSGI Configuration<a class="headerlink" href="#standalone-uwsgi-configuration" title="Link to this heading">¶</a></h3>
 <p>pgAdmin may be hosted by uWSGI directly simply by running a command such as
 the one shown below. Note that this example assumes pgAdmin was installed using
 the Python Wheel (you may need to adjust the path to suit your installation):</p>
@@ -229,7 +229,7 @@ the Python Wheel (you may need to adjust the path to suit your installation):</p
 </div>
 </section>
 <section id="nginx-configuration-with-gunicorn">
-<h3>NGINX Configuration with Gunicorn<a class="headerlink" href="#nginx-configuration-with-gunicorn" title="Permalink to this heading">¶</a></h3>
+<h3>NGINX Configuration with Gunicorn<a class="headerlink" href="#nginx-configuration-with-gunicorn" title="Link to this heading">¶</a></h3>
 <p>pgAdmin can be hosted by Gunicorn, with NGINX in front of it. Note that these
 examples assume pgAdmin was installed using the Python Wheel (you may need to
 adjust the path to suit your installation).</p>
@@ -261,7 +261,7 @@ NGINX as follows:</p>
 </div>
 </section>
 <section id="nginx-configuration-with-uwsgi">
-<h3>NGINX Configuration with uWSGI<a class="headerlink" href="#nginx-configuration-with-uwsgi" title="Permalink to this heading">¶</a></h3>
+<h3>NGINX Configuration with uWSGI<a class="headerlink" href="#nginx-configuration-with-uwsgi" title="Link to this heading">¶</a></h3>
 <p>pgAdmin can be hosted by uWSGI, with NGINX in front of it. Note that these
 examples assume pgAdmin was installed using the Python Wheel (you may need to
 adjust the path to suit your installation).</p>
@@ -305,7 +305,7 @@ on the server. Start uWSGI, noting that the directory name is specified in the
 </div>
 </section>
 <section id="additional-information">
-<h3>Additional Information<a class="headerlink" href="#additional-information" title="Permalink to this heading">¶</a></h3>
+<h3>Additional Information<a class="headerlink" href="#additional-information" title="Link to this heading">¶</a></h3>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>pgAdmin will spawn additional Python processes from time to time, and
@@ -353,7 +353,7 @@ used, instead of the WSGI host process. For example, uWSGI offers the
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="getting_started.html">Getting Started</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="deployment.html">Deployment</a></li>
-<li class="toctree-l2"><a class="reference internal" href="login.html">Login Dialog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="login.html">Login Page</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mfa.html">Enabling two-factor authentication (2FA)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user_management.html">User Management Dialog</a></li>
 <li class="toctree-l2"><a class="reference internal" href="change_ownership.html">Change Ownership Dialog</a></li>
@@ -418,7 +418,7 @@ used, instead of the WSGI host process. For example, uWSGI offers the
         <li class="right" >
           <a href="desktop_deployment.html" title="Desktop Deployment"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.8 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="getting_started.html" >Getting Started</a> &#187;</li>
           <li class="nav-item nav-item-2"><a href="deployment.html" >Deployment</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Server Deployment</a></li> 

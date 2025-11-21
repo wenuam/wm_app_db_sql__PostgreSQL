@@ -491,8 +491,6 @@ def panel(trans_id):
     return render_template(
         "erd/index.html",
         title=underscore_unescape(params['title']),
-        requirejs=True,
-        basejs=True,
         params=json.dumps(params),
     )
 
@@ -665,7 +663,7 @@ def tables(params):
                                                params.get('tid', None))
 
         if not status:
-            tables = tables.json if type(tables) == Response else tables
+            tables = tables.json if isinstance(tables, Response) else tables
             socketio.emit('tables_failed', tables,
                           namespace=SOCKETIO_NAMESPACE,
                           to=request.sid)

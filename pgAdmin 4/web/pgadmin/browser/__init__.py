@@ -18,7 +18,8 @@ from smtplib import SMTPConnectError, SMTPResponseException, \
 from socket import error as SOCKETErrorException
 from urllib.request import urlopen
 from pgadmin.utils.constants import KEY_RING_SERVICE_NAME, \
-    KEY_RING_USERNAME_FORMAT, KEY_RING_DESKTOP_USER
+    KEY_RING_USERNAME_FORMAT, KEY_RING_DESKTOP_USER, KEY_RING_TUNNEL_FORMAT, \
+    MessageType
 
 import time
 
@@ -29,13 +30,13 @@ from flask_babel import gettext
 from flask_gravatar import Gravatar
 from flask_login import current_user, login_required
 from flask_login.utils import login_url
-from flask_security.changeable import change_user_password
+from flask_security.changeable import send_password_changed_notice
 from flask_security.decorators import anonymous_user_required
 from flask_security.recoverable import reset_password_token_status, \
     generate_reset_password_token, update_password
 from flask_security.signals import reset_password_instructions_sent
 from flask_security.utils import config_value, do_flash, get_url, \
-    get_message, slash_url_suffix, login_user, send_mail, \
+    get_message, slash_url_suffix, login_user, send_mail, hash_password, \
     get_post_logout_redirect
 from flask_security.views import _security, view_commit, _ctx
 from werkzeug.datastructures import MultiDict
@@ -46,7 +47,8 @@ from pgadmin.authenticate import get_logout_url
 from pgadmin.authenticate.mfa.utils import mfa_required, is_mfa_enabled
 from pgadmin.settings import get_setting, store_setting
 from pgadmin.utils import PgAdminModule
-from pgadmin.utils.ajax import make_json_response
+from pgadmin.utils.ajax import make_json_response, internal_server_error, \
+    bad_request
 from pgadmin.utils.csrf import pgCSRFProtect
 from pgadmin.utils.preferences import Preferences
 from pgadmin.utils.menu import MenuItem
@@ -60,6 +62,7 @@ from pgadmin.utils.constants import MIMETYPE_APP_JS, PGADMIN_NODE,\
     INTERNAL, KERBEROS, LDAP, QT_DEFAULT_PLACEHOLDER, OAUTH2, WEBSERVER,\
     VW_EDT_DEFAULT_PLACEHOLDER
 from pgadmin.authenticate import AuthSourceManager
+from pgadmin.utils.exception import CryptKeyMissing
 
 try:
     from flask_security.views import default_render_json
@@ -451,7 +454,7 @@ def check_browser_upgrade():
             download_url=data[config.UPGRADE_CHECK_KEY]['download_url']
         )
 
-        flash(msg, 'warning')
+        flash(msg, MessageType.WARNING)
 
 
 @blueprint.route("/")
@@ -486,7 +489,7 @@ def index():
                 known=browser_known
             )
 
-            flash(msg, 'warning')
+            flash(msg, MessageType.WARNING)
 
     # Get the current version info from the website, and flash a message if
     # the user is out of date, and the check is enabled.
@@ -506,8 +509,6 @@ def index():
     response = Response(render_template(
         MODULE_NAME + "/index.html",
         username=current_user.username,
-        requirejs=True,
-        basejs=True,
         _=gettext
     ))
 
@@ -667,7 +668,7 @@ def utils():
             mfa_enabled=is_mfa_enabled(),
             is_admin=current_user.has_role("Administrator"),
             login_url=login_url,
-            username=current_user.username,
+            username=current_user.username.replace("'","\\'"),
             auth_source=auth_source,
             heartbeat_timeout=config.SERVER_HEARTBEAT_TIMEOUT,
             password_length_min=config.PASSWORD_LENGTH_MIN,
@@ -823,8 +824,9 @@ def set_master_password():
         if data != '':
             data = json.loads(data)
 
-    if not config.DISABLED_LOCAL_PASSWORD_STORAGE:
-        if data.get('password') and \
+    if not config.DISABLED_LOCAL_PASSWORD_STORAGE and \
+            (config.ALLOW_SAVE_PASSWORD or config.ALLOW_SAVE_TUNNEL_PASSWORD):
+        if data.get('password') and config.MASTER_PASSWORD_REQUIRED and\
                 not validate_master_password(data.get('password')):
             return form_master_password_response(
                 present=False,
@@ -834,6 +836,13 @@ def set_master_password():
         from pgadmin.model import Server
         from pgadmin.utils.crypto import decrypt
         desktop_user = current_user
+
+        enc_key = data['password']
+        if not config.MASTER_PASSWORD_REQUIRED:
+            status, enc_key = get_crypt_key()
+            if not status:
+                raise CryptKeyMissing
+
         try:
             all_server = Server.query.all()
             # pgAdmin will use the OS password manager to store the server
@@ -841,20 +850,34 @@ def set_master_password():
             # OS password manager
             if keyring.get_password(
                     KEY_RING_SERVICE_NAME, KEY_RING_DESKTOP_USER.format(
-                        desktop_user.username)) or data['password']:
+                        desktop_user.username)) or enc_key:
                 is_migrated = False
+
                 for server in all_server:
-                    if server.password and data['password'] \
-                            and server.save_password:
-                        name = KEY_RING_USERNAME_FORMAT.format(server.name,
-                                                               server.id)
-                        password = decrypt(server.password,
-                                           data['password']).decode()
-                        # Store the password using OS password manager
-                        keyring.set_password(KEY_RING_SERVICE_NAME, name,
-                                             password)
-                        is_migrated = True
-                        setattr(server, 'password', None)
+                    if enc_key:
+                        if server.password and config.ALLOW_SAVE_PASSWORD \
+                                and server.save_password:
+                            name = KEY_RING_USERNAME_FORMAT.format(server.name,
+                                                                   server.id)
+                            password = decrypt(server.password,
+                                               enc_key).decode()
+                            # Store the password using OS password manager
+                            keyring.set_password(KEY_RING_SERVICE_NAME, name,
+                                                 password)
+                            is_migrated = True
+                            setattr(server, 'password', None)
+
+                        if server.tunnel_password and \
+                                config.ALLOW_SAVE_TUNNEL_PASSWORD:
+                            tname = KEY_RING_TUNNEL_FORMAT.format(server.name,
+                                                                  server.id)
+                            tpassword = decrypt(server.tunnel_password,
+                                                enc_key).decode()
+                            # Store the password using OS password manager
+                            keyring.set_password(KEY_RING_SERVICE_NAME, tname,
+                                                 tpassword)
+                            is_migrated = True
+                            setattr(server, 'tunnel_password', None)
 
                 db.session.commit()
 
@@ -869,6 +892,10 @@ def set_master_password():
                 )
             else:
                 if len(all_server) == 0:
+                    # Store the password using OS password manager
+                    keyring.set_password(KEY_RING_SERVICE_NAME,
+                                         KEY_RING_DESKTOP_USER.format(
+                                             desktop_user.username), 'test')
                     return form_master_password_response(
                         present=True,
                     )
@@ -876,10 +903,19 @@ def set_master_password():
                     is_master_password_present = True
                     keyring_name = ''
                     for server in all_server:
-                        if server.password and server.save_password:
+                        is_password_present = \
+                            server.save_password or server.tunnel_password
+                        if server.password and is_password_present:
                             is_master_password_present = False
                             keyring_name = config.KEYRING_NAME
                             break
+
+                    if is_master_password_present:
+                        # Store the password using OS password manager
+                        keyring.set_password(KEY_RING_SERVICE_NAME,
+                                             KEY_RING_DESKTOP_USER.format(
+                                                 desktop_user.username),
+                                             'test')
 
                     return form_master_password_response(
                         present=is_master_password_present,
@@ -1025,66 +1061,55 @@ if hasattr(config, 'SECURITY_CHANGEABLE') and config.SECURITY_CHANGEABLE:
     def change_password():
         """View function which handles a change password request."""
 
-        has_error = False
         form_class = _security.forms.get('change_password_form').cls
         req_json = request.get_json(silent=True)
 
-        if req_json:
-            form = form_class(MultiDict(req_json))
-        else:
+        if not req_json:
             form = form_class()
+            return {
+                'csrf_token': form.csrf_token._value()
+            }
+        elif req_json:
+            form = form_class(MultiDict(req_json))
+            if form.validate():
+                errormsg = None
+                # change_user_password from flask-security logs out the user
+                # this is undesirable, so change password on own
+                try:
+                    user = User.query.filter(
+                        User.fs_uniquifier == current_user.fs_uniquifier)\
+                        .first()
+                    user.password = hash_password(form.new_password.data)
 
-        if form.validate_on_submit():
-            try:
-                change_user_password(current_user._get_current_object(),
-                                     form.new_password.data)
-            except SOCKETErrorException as e:
-                # Handle socket errors which are not covered by SMTPExceptions.
-                logging.exception(str(e), exc_info=True)
-                flash(gettext(SMTP_SOCKET_ERROR).format(e),
-                      'danger')
-                has_error = True
-            except (SMTPConnectError, SMTPResponseException,
-                    SMTPServerDisconnected, SMTPDataError, SMTPHeloError,
-                    SMTPException, SMTPAuthenticationError, SMTPSenderRefused,
-                    SMTPRecipientsRefused) as e:
-                # Handle smtp specific exceptions.
-                logging.exception(str(e), exc_info=True)
-                flash(gettext(SMTP_ERROR).format(e),
-                      'danger')
-                has_error = True
-            except Exception as e:
-                # Handle other exceptions.
-                logging.exception(str(e), exc_info=True)
-                flash(
-                    gettext(PASS_ERROR).format(e),
-                    'danger'
-                )
-                has_error = True
+                    try:
+                        send_password_changed_notice(user)
+                    except Exception as _:
+                        # No need to throw error if failed in sending email
+                        pass
+                except Exception as e:
+                    # Handle other exceptions.
+                    logging.exception(str(e), exc_info=True)
+                    errormsg = gettext(PASS_ERROR).format(e)
 
-            if request.get_json(silent=True) is None and not has_error:
-                after_this_request(view_commit)
-                do_flash(*get_message('PASSWORD_CHANGE'))
+                if errormsg is None:
+                    old_key = get_crypt_key()[1]
+                    set_crypt_key(form.new_password.data, False)
 
-                old_key = get_crypt_key()[1]
-                set_crypt_key(form.new_password.data, False)
+                    from pgadmin.browser.server_groups.servers.utils \
+                        import reencrpyt_server_passwords
+                    reencrpyt_server_passwords(
+                        current_user.id, old_key, form.new_password.data)
 
-                from pgadmin.browser.server_groups.servers.utils \
-                    import reencrpyt_server_passwords
-                reencrpyt_server_passwords(
-                    current_user.id, old_key, form.new_password.data)
+                    db.session.commit()
+                elif errormsg is not None:
+                    return internal_server_error(errormsg)
+            else:
+                return bad_request(list(form.errors.values())[0][0])
 
-                return redirect(get_url(_security.post_change_view) or
-                                get_url(_security.post_login_view))
-
-        if request.get_json(silent=True) and not has_error:
-            form.user = current_user
-            return default_render_json(form)
-
-        return _security.render_template(
-            config_value('CHANGE_PASSWORD_TEMPLATE'),
-            change_password_form=form,
-            **_ctx('change_password'))
+        return make_json_response(
+            success=1,
+            info=gettext('pgAdmin user password changed successfully')
+        )
 
 # Only register route if SECURITY_RECOVERABLE is set to True
 if hasattr(config, 'SECURITY_RECOVERABLE') and config.SECURITY_RECOVERABLE:
@@ -1135,7 +1160,7 @@ if hasattr(config, 'SECURITY_RECOVERABLE') and config.SECURITY_RECOVERABLE:
                               'Please contact the administrators of this '
                               'service if you need to reset your password.'
                               ).format(form.user.auth_source),
-                      'danger')
+                      MessageType.ERROR)
                 has_error = True
             if not has_error:
                 try:
@@ -1145,7 +1170,7 @@ if hasattr(config, 'SECURITY_RECOVERABLE') and config.SECURITY_RECOVERABLE:
                     # covered by SMTPExceptions.
                     logging.exception(str(e), exc_info=True)
                     flash(gettext(SMTP_SOCKET_ERROR).format(e),
-                          'danger')
+                          MessageType.ERROR)
                     has_error = True
                 except (SMTPConnectError, SMTPResponseException,
                         SMTPServerDisconnected, SMTPDataError, SMTPHeloError,
@@ -1155,13 +1180,13 @@ if hasattr(config, 'SECURITY_RECOVERABLE') and config.SECURITY_RECOVERABLE:
                     # Handle smtp specific exceptions.
                     logging.exception(str(e), exc_info=True)
                     flash(gettext(SMTP_ERROR).format(e),
-                          'danger')
+                          MessageType.ERROR)
                     has_error = True
                 except Exception as e:
                     # Handle other exceptions.
                     logging.exception(str(e), exc_info=True)
                     flash(gettext(PASS_ERROR).format(e),
-                          'danger')
+                          MessageType.ERROR)
                     has_error = True
 
             if request.get_json(silent=True) is None and not has_error:
@@ -1170,6 +1195,10 @@ if hasattr(config, 'SECURITY_RECOVERABLE') and config.SECURITY_RECOVERABLE:
 
         if request.get_json(silent=True) and not has_error:
             return default_render_json(form, include_user=False)
+
+        for errors in form.errors.values():
+            for error in errors:
+                flash(error, MessageType.WARNING)
 
         return _security.render_template(
             config_value('FORGOT_PASSWORD_TEMPLATE'),
@@ -1211,7 +1240,7 @@ if hasattr(config, 'SECURITY_RECOVERABLE') and config.SECURITY_RECOVERABLE:
                 # Handle socket errors which are not covered by SMTPExceptions.
                 logging.exception(str(e), exc_info=True)
                 flash(gettext(SMTP_SOCKET_ERROR).format(e),
-                      'danger')
+                      MessageType.ERROR)
                 has_error = True
             except (SMTPConnectError, SMTPResponseException,
                     SMTPServerDisconnected, SMTPDataError, SMTPHeloError,
@@ -1221,13 +1250,13 @@ if hasattr(config, 'SECURITY_RECOVERABLE') and config.SECURITY_RECOVERABLE:
                 # Handle smtp specific exceptions.
                 logging.exception(str(e), exc_info=True)
                 flash(gettext(SMTP_ERROR).format(e),
-                      'danger')
+                      MessageType.ERROR)
                 has_error = True
             except Exception as e:
                 # Handle other exceptions.
                 logging.exception(str(e), exc_info=True)
                 flash(gettext(PASS_ERROR).format(e),
-                      'danger')
+                      MessageType.ERROR)
                 has_error = True
 
             if not has_error:
@@ -1239,7 +1268,7 @@ if hasattr(config, 'SECURITY_RECOVERABLE') and config.SECURITY_RECOVERABLE:
                     flash(gettext('You successfully reset your password but'
                                   ' your account is locked. Please contact '
                                   'the Administrator.'),
-                          'warning')
+                          MessageType.WARNING)
                     return redirect(get_post_logout_redirect())
                 do_flash(*get_message('PASSWORD_RESET'))
                 login_user(user)

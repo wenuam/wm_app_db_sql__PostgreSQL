@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>27.4. Hot Standby</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="warm-standby-failover.html" title="27.3. Failover" /><link rel="next" href="monitoring.html" title="Chapter 28. Monitoring Database Activity" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">27.4. Hot Standby</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="warm-standby-failover.html" title="27.3. Failover">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="high-availability.html" title="Chapter 27. High Availability, Load Balancing, and Replication">Up</a></td><th width="60%" align="center">Chapter 27. High Availability, Load Balancing, and Replication</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 15.3 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="monitoring.html" title="Chapter 28. Monitoring Database Activity">Next</a></td></tr></table><hr /></div><div class="sect1" id="HOT-STANDBY"><div class="titlepage"><div><div><h2 class="title" style="clear: both">27.4. Hot Standby</h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="hot-standby.html#HOT-STANDBY-USERS">27.4.1. User's Overview</a></span></dt><dt><span class="sect2"><a href="hot-standby.html#HOT-STANDBY-CONFLICT">27.4.2. Handling Query Conflicts</a></span></dt><dt><span class="sect2"><a href="hot-standby.html#HOT-STANDBY-ADMIN">27.4.3. Administrator's Overview</a></span></dt><dt><span class="sect2"><a href="hot-standby.html#HOT-STANDBY-PARAMETERS">27.4.4. Hot Standby Parameter Reference</a></span></dt><dt><span class="sect2"><a href="hot-standby.html#HOT-STANDBY-CAVEATS">27.4.5. Caveats</a></span></dt></dl></div><a id="id-1.6.14.18.2" class="indexterm"></a><p>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>27.4. Hot Standby</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="warm-standby-failover.html" title="27.3. Failover" /><link rel="next" href="monitoring.html" title="Chapter 28. Monitoring Database Activity" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">27.4. Hot Standby</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="warm-standby-failover.html" title="27.3. Failover">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="high-availability.html" title="Chapter 27. High Availability, Load Balancing, and Replication">Up</a></td><th width="60%" align="center">Chapter 27. High Availability, Load Balancing, and Replication</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 16.1 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="monitoring.html" title="Chapter 28. Monitoring Database Activity">Next</a></td></tr></table><hr /></div><div class="sect1" id="HOT-STANDBY"><div class="titlepage"><div><div><h2 class="title" style="clear: both">27.4. Hot Standby <a href="#HOT-STANDBY" class="id_link">#</a></h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="hot-standby.html#HOT-STANDBY-USERS">27.4.1. User's Overview</a></span></dt><dt><span class="sect2"><a href="hot-standby.html#HOT-STANDBY-CONFLICT">27.4.2. Handling Query Conflicts</a></span></dt><dt><span class="sect2"><a href="hot-standby.html#HOT-STANDBY-ADMIN">27.4.3. Administrator's Overview</a></span></dt><dt><span class="sect2"><a href="hot-standby.html#HOT-STANDBY-PARAMETERS">27.4.4. Hot Standby Parameter Reference</a></span></dt><dt><span class="sect2"><a href="hot-standby.html#HOT-STANDBY-CAVEATS">27.4.5. Caveats</a></span></dt></dl></div><a id="id-1.6.14.18.2" class="indexterm"></a><p>
     Hot standby is the term used to describe the ability to connect to
     the server and run read-only queries while the server is in archive
     recovery or standby mode. This
@@ -12,7 +12,7 @@
     Running queries in hot standby mode is similar to normal query operation,
     though there are several usage and administrative differences
     explained below.
-   </p><div class="sect2" id="HOT-STANDBY-USERS"><div class="titlepage"><div><div><h3 class="title">27.4.1. User's Overview</h3></div></div></div><p>
+   </p><div class="sect2" id="HOT-STANDBY-USERS"><div class="titlepage"><div><div><h3 class="title">27.4.1. User's Overview <a href="#HOT-STANDBY-USERS" class="id_link">#</a></h3></div></div></div><p>
     When the <a class="xref" href="runtime-config-replication.html#GUC-HOT-STANDBY">hot_standby</a> parameter is set to true on a
     standby server, it will begin accepting connections once the recovery has
     brought the system to a consistent state.  All such connections are
@@ -128,12 +128,12 @@
     (In server versions before 14, the <code class="varname">in_hot_standby</code>
     parameter did not exist; a workable substitute method for older servers
     is <code class="command">SHOW transaction_read_only</code>.)  In addition, a set of
-    functions (<a class="xref" href="functions-admin.html#FUNCTIONS-RECOVERY-INFO-TABLE" title="Table 9.90. Recovery Information Functions">Table 9.90</a>) allow users to
+    functions (<a class="xref" href="functions-admin.html#FUNCTIONS-RECOVERY-INFO-TABLE" title="Table 9.92. Recovery Information Functions">Table 9.92</a>) allow users to
     access information about the standby server. These allow you to write
     programs that are aware of the current state of the database. These
     can be used to monitor the progress of recovery, or to allow you to
     write complex programs that restore the database to particular states.
-   </p></div><div class="sect2" id="HOT-STANDBY-CONFLICT"><div class="titlepage"><div><div><h3 class="title">27.4.2. Handling Query Conflicts</h3></div></div></div><p>
+   </p></div><div class="sect2" id="HOT-STANDBY-CONFLICT"><div class="titlepage"><div><div><h3 class="title">27.4.2. Handling Query Conflicts <a href="#HOT-STANDBY-CONFLICT" class="id_link">#</a></h3></div></div></div><p>
     The primary and standby servers are in many ways loosely connected. Actions
     on the primary will have an effect on the standby. As a result, there is
     potential for negative interactions or conflicts between them. The easiest
@@ -239,10 +239,15 @@
     primary.  So it is possible that cleanup on the primary will remove row
     versions that are still visible to a transaction on the standby.
    </p><p>
-    Experienced users should note that both row version cleanup and row version
-    freezing will potentially conflict with standby queries. Running a manual
-    <code class="command">VACUUM FREEZE</code> is likely to cause conflicts even on tables with
-    no updated or deleted rows.
+    Row version cleanup isn't the only potential cause of conflicts with
+    standby queries.  All index-only scans (including those that run on
+    standbys) must use an <acronym class="acronym">MVCC</acronym> snapshot that
+    <span class="quote">“<span class="quote">agrees</span>”</span> with the visibility map.  Conflicts are therefore
+    required whenever <code class="command">VACUUM</code> <a class="link" href="routine-vacuuming.html#VACUUM-FOR-VISIBILITY-MAP" title="25.1.4. Updating the Visibility Map">sets a page as all-visible in the
+     visibility map</a> containing one or more rows
+    <span class="emphasis"><em>not</em></span> visible to all standby queries.  So even running
+    <code class="command">VACUUM</code> against a table with no updated or deleted rows
+    requiring cleanup might lead to conflicts.
    </p><p>
     Users should be clear that tables that are regularly and heavily updated
     on the primary server will quickly cause cancellation of longer running
@@ -270,15 +275,6 @@
     <code class="varname">max_standby_streaming_delay</code> to avoid rapid cancellations
     by newly-arrived streaming WAL entries after reconnection.
    </p><p>
-    Another option is to increase <a class="xref" href="runtime-config-replication.html#GUC-VACUUM-DEFER-CLEANUP-AGE">vacuum_defer_cleanup_age</a>
-    on the primary server, so that dead rows will not be cleaned up as quickly
-    as they normally would be.  This will allow more time for queries to
-    execute before they are canceled on the standby, without having to set
-    a high <code class="varname">max_standby_streaming_delay</code>.  However it is
-    difficult to guarantee any specific execution-time window with this
-    approach, since <code class="varname">vacuum_defer_cleanup_age</code> is measured in
-    transactions executed on the primary server.
-   </p><p>
     The number of query cancels and the reason for them can be viewed using
     the <code class="structname">pg_stat_database_conflicts</code> system view on the standby
     server. The <code class="structname">pg_stat_database</code> system view also contains
@@ -287,7 +283,7 @@
     Users can control whether a log message is produced when WAL replay is waiting
     longer than <code class="varname">deadlock_timeout</code> for conflicts. This
     is controlled by the <a class="xref" href="runtime-config-logging.html#GUC-LOG-RECOVERY-CONFLICT-WAITS">log_recovery_conflict_waits</a> parameter.
-   </p></div><div class="sect2" id="HOT-STANDBY-ADMIN"><div class="titlepage"><div><div><h3 class="title">27.4.3. Administrator's Overview</h3></div></div></div><p>
+   </p></div><div class="sect2" id="HOT-STANDBY-ADMIN"><div class="titlepage"><div><div><h3 class="title">27.4.3. Administrator's Overview <a href="#HOT-STANDBY-ADMIN" class="id_link">#</a></h3></div></div></div><p>
     If <code class="varname">hot_standby</code> is <code class="literal">on</code> in <code class="filename">postgresql.conf</code>
     (the default value) and there is a
     <a class="link" href="warm-standby.html#FILE-STANDBY-SIGNAL"><code class="filename">standby.signal</code></a><a id="id-1.6.14.18.7.2.5" class="indexterm"></a>
@@ -515,13 +511,12 @@ HINT:  You can then restart the server after making the necessary configuration 
     information stored on the standby server.
     The <code class="command">CHECKPOINT</code> command is accepted during recovery,
     though it performs a restartpoint rather than a new checkpoint.
-   </p></div><div class="sect2" id="HOT-STANDBY-PARAMETERS"><div class="titlepage"><div><div><h3 class="title">27.4.4. Hot Standby Parameter Reference</h3></div></div></div><p>
+   </p></div><div class="sect2" id="HOT-STANDBY-PARAMETERS"><div class="titlepage"><div><div><h3 class="title">27.4.4. Hot Standby Parameter Reference <a href="#HOT-STANDBY-PARAMETERS" class="id_link">#</a></h3></div></div></div><p>
     Various parameters have been mentioned above in
     <a class="xref" href="hot-standby.html#HOT-STANDBY-CONFLICT" title="27.4.2. Handling Query Conflicts">Section 27.4.2</a> and
     <a class="xref" href="hot-standby.html#HOT-STANDBY-ADMIN" title="27.4.3. Administrator's Overview">Section 27.4.3</a>.
    </p><p>
-    On the primary, parameters <a class="xref" href="runtime-config-wal.html#GUC-WAL-LEVEL">wal_level</a> and
-    <a class="xref" href="runtime-config-replication.html#GUC-VACUUM-DEFER-CLEANUP-AGE">vacuum_defer_cleanup_age</a> can be used.
+    On the primary, the <a class="xref" href="runtime-config-wal.html#GUC-WAL-LEVEL">wal_level</a> parameter can be used.
     <a class="xref" href="runtime-config-replication.html#GUC-MAX-STANDBY-ARCHIVE-DELAY">max_standby_archive_delay</a> and
     <a class="xref" href="runtime-config-replication.html#GUC-MAX-STANDBY-STREAMING-DELAY">max_standby_streaming_delay</a> have no effect if set on
     the primary.
@@ -529,10 +524,7 @@ HINT:  You can then restart the server after making the necessary configuration 
     On the standby, parameters <a class="xref" href="runtime-config-replication.html#GUC-HOT-STANDBY">hot_standby</a>,
     <a class="xref" href="runtime-config-replication.html#GUC-MAX-STANDBY-ARCHIVE-DELAY">max_standby_archive_delay</a> and
     <a class="xref" href="runtime-config-replication.html#GUC-MAX-STANDBY-STREAMING-DELAY">max_standby_streaming_delay</a> can be used.
-    <a class="xref" href="runtime-config-replication.html#GUC-VACUUM-DEFER-CLEANUP-AGE">vacuum_defer_cleanup_age</a> has no effect
-    as long as the server remains in standby mode, though it will
-    become relevant if the standby becomes primary.
-   </p></div><div class="sect2" id="HOT-STANDBY-CAVEATS"><div class="titlepage"><div><div><h3 class="title">27.4.5. Caveats</h3></div></div></div><p>
+   </p></div><div class="sect2" id="HOT-STANDBY-CAVEATS"><div class="titlepage"><div><div><h3 class="title">27.4.5. Caveats <a href="#HOT-STANDBY-CAVEATS" class="id_link">#</a></h3></div></div></div><p>
     There are several limitations of hot standby.
     These can and probably will be fixed in future releases:
 
@@ -572,4 +564,4 @@ HINT:  You can then restart the server after making the necessary configuration 
      hot standby mode will generate an error.
     </p></li></ul></div><p>
 
-   </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="warm-standby-failover.html" title="27.3. Failover">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="high-availability.html" title="Chapter 27. High Availability, Load Balancing, and Replication">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="monitoring.html" title="Chapter 28. Monitoring Database Activity">Next</a></td></tr><tr><td width="40%" align="left" valign="top">27.3. Failover </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 15.3 Documentation">Home</a></td><td width="40%" align="right" valign="top"> Chapter 28. Monitoring Database Activity</td></tr></table></div></body></html>
+   </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="warm-standby-failover.html" title="27.3. Failover">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="high-availability.html" title="Chapter 27. High Availability, Load Balancing, and Replication">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="monitoring.html" title="Chapter 28. Monitoring Database Activity">Next</a></td></tr><tr><td width="40%" align="left" valign="top">27.3. Failover </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 16.1 Documentation">Home</a></td><td width="40%" align="right" valign="top"> Chapter 28. Monitoring Database Activity</td></tr></table></div></body></html>

@@ -2,18 +2,18 @@
 
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Coding Standards &#8212; pgAdmin 4 7.2 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/style.css" />
+    <title>Coding Standards &#8212; pgAdmin 4 7.8 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/style.css?v=7c9fe073" />
     
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/documentation_options.js?v=2eb9bb39"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     
     <script src="_static/sidebar.js"></script>
     
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="code_overview.html" title="Code Overview"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.8 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="contributions.html" accesskey="U">pgAdmin Project Contributions</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Coding Standards</a></li> 
       </ul>
@@ -46,11 +46,11 @@
           <div class="body" role="main">
             
   <section id="coding-standards">
-<span id="id1"></span><h1><span class="target" id="index-0"></span>Coding Standards<a class="headerlink" href="#coding-standards" title="Permalink to this heading">¶</a></h1>
+<span id="id1"></span><h1><span class="target" id="index-0"></span>Coding Standards<a class="headerlink" href="#coding-standards" title="Link to this heading">¶</a></h1>
 <p>pgAdmin uses multiple technologies and multiple languages, each of which have
 their own coding standards.</p>
 <section id="general">
-<h2>General<a class="headerlink" href="#general" title="Permalink to this heading">¶</a></h2>
+<h2>General<a class="headerlink" href="#general" title="Link to this heading">¶</a></h2>
 <p>In all languages, indentations should be made with 4 spaces, and excessively long
 lines wrapped where appropriate to ensure they can be read on smaller displays
 (80 characters is used in many places, but this is not a required maximum size
@@ -60,7 +60,7 @@ than 120 characters.</p>
 purpose or how it works if not obvious from a quick review of the code itself.</p>
 </section>
 <section id="css-3">
-<h2>CSS 3<a class="headerlink" href="#css-3" title="Permalink to this heading">¶</a></h2>
+<h2>CSS 3<a class="headerlink" href="#css-3" title="Link to this heading">¶</a></h2>
 <p>CSS3 is used for styling and layout throughout the application. Extensive use is
 made of the Bootstrap Framework to aid in that process, however additional
 styles must still be created from time to time.</p>
@@ -87,13 +87,13 @@ or purpose for the style.</p>
 <p>All stylesheets must be CSS3 compliant.</p>
 </section>
 <section id="html-5">
-<h2>HTML 5<a class="headerlink" href="#html-5" title="Permalink to this heading">¶</a></h2>
+<h2>HTML 5<a class="headerlink" href="#html-5" title="Link to this heading">¶</a></h2>
 <p>HTML 5 is used for page structure throughout the application, in most cases
 being rendered from templates by the Jinja2 template engine in Flask.</p>
 <p>All HTML must be HTML 5 compliant.</p>
 </section>
 <section id="javascript">
-<h2>Javascript<a class="headerlink" href="#javascript" title="Permalink to this heading">¶</a></h2>
+<h2>Javascript<a class="headerlink" href="#javascript" title="Link to this heading">¶</a></h2>
 <p>Client-side code is written in Javascript using jQuery and various plugins.
 Whilst much of the code is rendered from static files, there is also code that
 is rendered from templates using Jinja2 (often to inject the users settings) or
@@ -139,7 +139,7 @@ ES6 features and conventions.</p>
 </div>
 </section>
 <section id="python">
-<h2>Python<a class="headerlink" href="#python" title="Permalink to this heading">¶</a></h2>
+<h2>Python<a class="headerlink" href="#python" title="Link to this heading">¶</a></h2>
 <p>Python is used for the backend web server. All code must be compatible with
 Python 2.7 and should include PyDoc comments whilst following the official
 Python coding standards defined in
@@ -255,7 +255,7 @@ with the required file header is shown below:</p>
         <li class="right" >
           <a href="code_overview.html" title="Code Overview"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.8 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="contributions.html" >pgAdmin Project Contributions</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Coding Standards</a></li> 
       </ul>

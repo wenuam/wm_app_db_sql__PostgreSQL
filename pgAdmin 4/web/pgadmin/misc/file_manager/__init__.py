@@ -212,7 +212,7 @@ def init_filemanager():
         data = Filemanager.get_trasaction_selection(trans_id)
         pref = Preferences.module('file_manager')
         file_dialog_view = pref.preference('file_dialog_view').get()
-        if type(file_dialog_view) == list:
+        if isinstance(file_dialog_view, list):
             file_dialog_view = file_dialog_view[0]
 
         last_selected_format = get_file_type_setting(data['supported_types'])
@@ -311,7 +311,7 @@ class Filemanager():
     def __init__(self, trans_id, ss=''):
         self.trans_id = trans_id
         self.dir = get_storage_directory()
-        self.sharedDir = get_storage_directory(shared_storage=ss)
+        self.shared_dir = get_storage_directory(shared_storage=ss)
 
         if self.dir is not None and isinstance(self.dir, list):
             self.dir = ""
@@ -409,10 +409,10 @@ class Filemanager():
         last_ss_name = blueprint.last_storage.get()
         if last_ss_name and last_ss_name != MY_STORAGE \
                 and len(config.SHARED_STORAGE) > 0:
-            selectedDir = [sdir for sdir in config.SHARED_STORAGE if
-                           sdir['name'] == last_ss_name]
-            last_ss = selectedDir[0]['path'] if len(
-                selectedDir) == 1 else storage_dir
+            selected_dir = [sdir for sdir in config.SHARED_STORAGE if
+                            sdir['name'] == last_ss_name]
+            last_ss = selected_dir[0]['path'] if len(
+                selected_dir) == 1 else storage_dir
         else:
             if last_ss_name != MY_STORAGE:
                 last_dir = '/'
@@ -770,8 +770,8 @@ class Filemanager():
         trans_data = Filemanager.get_trasaction_selection(self.trans_id)
         the_dir = None
         if config.SERVER_MODE:
-            if self.sharedDir and len(config.SHARED_STORAGE) > 0:
-                the_dir = self.sharedDir
+            if self.shared_dir and len(config.SHARED_STORAGE) > 0:
+                the_dir = self.shared_dir
             else:
                 the_dir = self.dir
 
@@ -782,18 +782,16 @@ class Filemanager():
             the_dir, path, trans_data, file_type, show_hidden)
         return filelist
 
-    def check_access(self, ss, mode):
-        if self.sharedDir:
-            selectedDirList = [sdir for sdir in config.SHARED_STORAGE if
-                               sdir['name'] == ss]
-            selectedDir = selectedDirList[0] if len(
-                selectedDirList) == 1 else None
+    def check_access(self, ss):
+        if self.shared_dir:
+            selected_dir_list = [sdir for sdir in config.SHARED_STORAGE if
+                                 sdir['name'] == ss]
+            selected_dir = selected_dir_list[0] if len(
+                selected_dir_list) == 1 else None
 
-            if selectedDir:
-                if selectedDir[
-                        'restricted_access'] and not current_user.has_role(
-                        "Administrator"):
-                    raise PermissionError(ACCESS_DENIED_MESSAGE)
+            if selected_dir and selected_dir['restricted_access'] and \
+                    not current_user.has_role("Administrator"):
+                raise PermissionError(ACCESS_DENIED_MESSAGE)
 
     def rename(self, old=None, new=None):
         """
@@ -802,8 +800,8 @@ class Filemanager():
         if not self.validate_request('rename'):
             return unauthorized(self.ERROR_NOT_ALLOWED['Error'])
 
-        if self.sharedDir:
-            the_dir = self.sharedDir
+        if self.shared_dir:
+            the_dir = self.shared_dir
         else:
             the_dir = self.dir if self.dir is not None else ''
 
@@ -831,9 +829,9 @@ class Filemanager():
 
         try:
             os.rename(oldpath_sys, newpath_sys)
-        except Exception as e:
+        except OSError as e:
             return internal_server_error("{0} {1}".format(
-                gettext('There was an error renaming the file:'), e))
+                gettext('There was an error renaming the file:'), e.strerror))
 
         return {
             'Old Path': old,
@@ -848,8 +846,8 @@ class Filemanager():
         """
         if not self.validate_request('delete'):
             return unauthorized(self.ERROR_NOT_ALLOWED['Error'])
-        if self.sharedDir:
-            the_dir = self.sharedDir
+        if self.shared_dir:
+            the_dir = self.shared_dir
         else:
             the_dir = self.dir if self.dir is not None else ''
         orig_path = "{0}{1}".format(the_dir, path)
@@ -861,9 +859,9 @@ class Filemanager():
                 os.rmdir(orig_path)
             else:
                 os.remove(orig_path)
-        except Exception as e:
+        except OSError as e:
             return internal_server_error("{0} {1}".format(
-                gettext('There was an error deleting the file:'), e))
+                gettext('There was an error deleting the file:'), e.strerror))
 
         return make_json_response(status=200)
 
@@ -874,8 +872,8 @@ class Filemanager():
         if not self.validate_request('upload'):
             return unauthorized(self.ERROR_NOT_ALLOWED['Error'])
 
-        if self.sharedDir:
-            the_dir = self.sharedDir
+        if self.shared_dir:
+            the_dir = self.shared_dir
         else:
             the_dir = self.dir if self.dir is not None else ''
 
@@ -905,9 +903,9 @@ class Filemanager():
                     if not data:
                         break
                     f.write(data)
-        except Exception as e:
+        except OSError as e:
             return internal_server_error("{0} {1}".format(
-                gettext('There was an error adding the file:'), e))
+                gettext('There was an error adding the file:'), e.strerror))
 
         Filemanager.check_access_permission(the_dir, path)
 
@@ -949,6 +947,8 @@ class Filemanager():
         new_name = name
         count = 0
         while True:
+            if not (path.endswith("/") or name.startswith("/")):
+                path = path + "/"
             file_path = "{}{}/".format(path, new_name)
             create_path = file_path
             if in_dir != "":
@@ -1021,10 +1021,10 @@ class Filemanager():
             if ex.strerror == 'Permission denied':
                 return unauthorized(str(ex.strerror))
             else:
-                return internal_server_error(str(ex))
+                return internal_server_error(str(ex.strerror))
 
         except Exception as ex:
-            return internal_server_error(str(ex))
+            return internal_server_error(str(ex.strerror))
 
         # Remove root storage path from error message
         # when running in Server mode
@@ -1042,8 +1042,8 @@ class Filemanager():
         if not self.validate_request('create'):
             return unauthorized(self.ERROR_NOT_ALLOWED['Error'])
 
-        if self.sharedDir and len(config.SHARED_STORAGE) > 0:
-            user_dir = self.sharedDir
+        if self.shared_dir and len(config.SHARED_STORAGE) > 0:
+            user_dir = self.shared_dir
         else:
             user_dir = self.dir if self.dir is not None else ''
 
@@ -1054,8 +1054,8 @@ class Filemanager():
             self.get_new_name(user_dir, path, name)
         try:
             os.mkdir(create_path)
-        except Exception as e:
-            return internal_server_error(str(e))
+        except OSError as e:
+            return internal_server_error(str(e.strerror))
 
         result = {
             'Parent': path,
@@ -1073,8 +1073,8 @@ class Filemanager():
         if not self.validate_request('download'):
             return unauthorized(self.ERROR_NOT_ALLOWED['Error'])
 
-        if self.sharedDir and len(config.SHARED_STORAGE) > 0:
-            the_dir = self.sharedDir
+        if self.shared_dir and len(config.SHARED_STORAGE) > 0:
+            the_dir = self.shared_dir
         else:
             the_dir = self.dir if self.dir is not None else ''
 
@@ -1139,7 +1139,7 @@ def file_manager(trans_id):
 
     if ss and mode in ['upload', 'rename', 'delete', 'addfolder', 'add',
                        'permission']:
-        my_fm.check_access(ss, mode)
+        my_fm.check_access(ss)
     func = getattr(my_fm, mode)
     try:
         if mode in ['getfolder', 'download']:
@@ -1157,6 +1157,6 @@ def file_manager(trans_id):
     except PermissionError as e:
         return unauthorized(str(e))
 
-    if type(res) == Response:
+    if isinstance(res, Response):
         return res
     return make_json_response(data={'result': res, 'status': True})
