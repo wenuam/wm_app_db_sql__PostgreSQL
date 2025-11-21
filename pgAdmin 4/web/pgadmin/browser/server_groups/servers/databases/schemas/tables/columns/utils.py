@@ -2,7 +2,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2023, The pgAdmin Development Team
+# Copyright (C) 2013 - 2024, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 ##########################################################################
@@ -17,6 +17,8 @@ from pgadmin.browser.server_groups.servers.databases.schemas.utils \
     import DataTypeReader
 from pgadmin.browser.server_groups.servers.utils import parse_priv_from_db, \
     parse_priv_to_db
+from pgadmin.browser.server_groups.servers.databases.utils \
+    import make_object_name
 from functools import wraps
 
 
@@ -225,7 +227,8 @@ def parse_options_for_column(db_variables):
 
 @get_template_path
 def get_formatted_columns(conn, tid, data, other_columns,
-                          table_or_type, template_path=None):
+                          table_or_type, template_path=None,
+                          with_serial=False):
     """
     This function will iterate and return formatted data for all
     the columns.
@@ -253,6 +256,28 @@ def get_formatted_columns(conn, tid, data, other_columns,
             if col['name'] == other_col['name']:
                 col['inheritedfrom' + table_or_type] = \
                     other_col['inheritedfrom']
+
+        if with_serial:
+            # Here we assume if a column is serial
+            serial_seq_name = make_object_name(
+                data['name'], col['name'], 'seq')
+            # replace the escaped quotes for comparison
+            defval = (col.get('defval', '') or '').replace("''", "'").\
+                replace('""', '"')
+
+            if serial_seq_name in defval and defval.startswith("nextval('")\
+                    and col['typname'] in ('integer', 'smallint', 'bigint'):
+
+                serial_type = {
+                    'integer': 'serial',
+                    'smallint': 'smallserial',
+                    'bigint': 'bigserial'
+                }[col['typname']]
+
+                col['displaytypname'] = serial_type
+                col['cltype'] = serial_type
+                col['typname'] = serial_type
+                col['defval'] = ''
 
     data['columns'] = all_columns
 
@@ -311,7 +336,7 @@ def _parse_format_col_for_edit(data, columns, column_acl):
         if action in columns:
             final_columns = []
             for c in columns[action]:
-                if 'inheritedfrom' not in c:
+                if c.get('inheritedfrom', None) is None:
                     final_columns.append(c)
 
             _parse_column_actions(final_columns, column_acl)
@@ -339,7 +364,7 @@ def parse_format_columns(data, mode=None):
         final_columns = []
 
         for c in columns:
-            if 'inheritedfrom' not in c:
+            if c.get('inheritedfrom', None) is None:
                 final_columns.append(c)
 
         # Now we have all lis of columns which we need
@@ -370,9 +395,6 @@ def convert_length_precision_to_string(data):
     :return:
     """
 
-    # We need to handle the below case because jquery has changed
-    # undefined/null values to empty strings
-    # https://github.com/jquery/jquery/commit/36d2d9ae937f626d98319ed850905e8d1cbfd078
     if 'attlen' in data and data['attlen'] == '':
         data['attlen'] = None
     elif 'attlen' in data and data['attlen'] is not None:
@@ -418,7 +440,7 @@ def fetch_length_precision(data):
     length = False
     precision = False
     if 'elemoid' in data:
-        length, precision, typeval = \
+        length, precision, _ = \
             DataTypeReader.get_length_precision(data['elemoid'])
 
     # Set length and precision to None

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>GRANT</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="sql-fetch.html" title="FETCH" /><link rel="next" href="sql-importforeignschema.html" title="IMPORT FOREIGN SCHEMA" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">GRANT</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="sql-fetch.html" title="FETCH">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><th width="60%" align="center">SQL Commands</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 16.1 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="sql-importforeignschema.html" title="IMPORT FOREIGN SCHEMA">Next</a></td></tr></table><hr /></div><div class="refentry" id="SQL-GRANT"><div class="titlepage"></div><a id="id-1.9.3.150.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle">GRANT</span></h2><p>GRANT — define access privileges</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><pre class="synopsis">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>GRANT</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="sql-fetch.html" title="FETCH" /><link rel="next" href="sql-importforeignschema.html" title="IMPORT FOREIGN SCHEMA" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">GRANT</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="sql-fetch.html" title="FETCH">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><th width="60%" align="center">SQL Commands</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 16.2 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="sql-importforeignschema.html" title="IMPORT FOREIGN SCHEMA">Next</a></td></tr></table><hr /></div><div class="refentry" id="SQL-GRANT"><div class="titlepage"></div><a id="id-1.9.3.150.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle">GRANT</span></h2><p>GRANT — define access privileges</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><pre class="synopsis">
 GRANT { { SELECT | INSERT | UPDATE | DELETE | TRUNCATE | REFERENCES | TRIGGER }
     [, ...] | ALL [ PRIVILEGES ] }
     ON { [ TABLE ] <em class="replaceable"><code>table_name</code></em> [, ...]
@@ -161,17 +161,24 @@ GRANT <em class="replaceable"><code>role_name</code></em> [, ...] TO <em class="
    command.  Use <code class="literal">ALL ROUTINES</code> to include procedures.
   </p></div><div class="refsect2" id="SQL-GRANT-DESCRIPTION-ROLES"><h3>GRANT on Roles</h3><p>
    This variant of the <code class="command">GRANT</code> command grants membership
-   in a role to one or more other roles.  Membership in a role is significant
+   in a role to one or more other roles, and the modification of
+   membership options <code class="literal">SET</code>, <code class="literal">INHERIT</code>,
+   and <code class="literal">ADMIN</code>;  see <a class="xref" href="role-membership.html" title="22.3. Role Membership">Section 22.3</a>
+   for details.  Membership in a role is significant
    because it potentially allows access to the privileges granted to a role
    to each of its members, and potentially also the ability to make changes
    to the role itself. However, the actual permissions conferred depend on
-   the options associated with the grant.
+   the options associated with the grant.  To modify that options of
+   an existing membership, simply specify the membership with updated
+   option values.
   </p><p>
    Each of the options described below can be set to either
    <code class="literal">TRUE</code> or <code class="literal">FALSE</code>. The keyword
    <code class="literal">OPTION</code> is accepted as a synonym for
    <code class="literal">TRUE</code>, so that <code class="literal">WITH ADMIN OPTION</code>
-   is a synonym for <code class="literal">WITH ADMIN TRUE</code>.
+   is a synonym for <code class="literal">WITH ADMIN TRUE</code>.  When altering
+   an existing membership the omission of an option results in the current
+   value being retained.
   </p><p>
    The <code class="literal">ADMIN</code> option allows the member to
    in turn grant membership in the role to others, and revoke membership
@@ -181,15 +188,13 @@ GRANT <em class="replaceable"><code>role_name</code></em> [, ...] TO <em class="
    membership in any role to anyone. This option defaults to
    <code class="literal">FALSE</code>.
   </p><p>
-   The <code class="literal">INHERIT</code> option, if it is set to
-   <code class="literal">TRUE</code>, causes the member to inherit the privileges of
-   the granted role. That is, it can automatically use whatever database
-   privileges have been granted to that role. If set to
-   <code class="literal">FALSE</code>, the member does not inherit the privileges
-   of the granted role. If this clause is not specified, it defaults to
-   true if the member role is set to <code class="literal">INHERIT</code> and to false
-   if the member role is set to <code class="literal">NOINHERIT</code>.
-   See <a class="link" href="sql-createrole.html" title="CREATE ROLE"><code class="command">CREATE ROLE</code></a>.
+   The <code class="literal">INHERIT</code> option controls the inheritance status
+   of the new membership;  see <a class="xref" href="role-membership.html" title="22.3. Role Membership">Section 22.3</a> for
+   details on inheritance.  If it is set to <code class="literal">TRUE</code>,
+   it causes the new member to inherit from the granted role. If
+   set to <code class="literal">FALSE</code>, the new member does not inherit.
+   If unspecified when create a new role membership this defaults to
+   the inheritance attribute of the role being added.
   </p><p>
    The <code class="literal">SET</code> option, if it is set to
    <code class="literal">TRUE</code>, allows the member to change to the granted
@@ -359,4 +364,4 @@ GRANT admins TO joe;
     Privileges on databases, tablespaces, schemas, languages, and
     configuration parameters are
     <span class="productname">PostgreSQL</span> extensions.
-   </p></div><div class="refsect1" id="id-1.9.3.150.9"><h2>See Also</h2><span class="simplelist"><a class="xref" href="sql-revoke.html" title="REVOKE"><span class="refentrytitle">REVOKE</span></a>, <a class="xref" href="sql-alterdefaultprivileges.html" title="ALTER DEFAULT PRIVILEGES"><span class="refentrytitle">ALTER DEFAULT PRIVILEGES</span></a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="sql-fetch.html" title="FETCH">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="sql-importforeignschema.html" title="IMPORT FOREIGN SCHEMA">Next</a></td></tr><tr><td width="40%" align="left" valign="top">FETCH </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 16.1 Documentation">Home</a></td><td width="40%" align="right" valign="top"> IMPORT FOREIGN SCHEMA</td></tr></table></div></body></html>
+   </p></div><div class="refsect1" id="id-1.9.3.150.9"><h2>See Also</h2><span class="simplelist"><a class="xref" href="sql-revoke.html" title="REVOKE"><span class="refentrytitle">REVOKE</span></a>, <a class="xref" href="sql-alterdefaultprivileges.html" title="ALTER DEFAULT PRIVILEGES"><span class="refentrytitle">ALTER DEFAULT PRIVILEGES</span></a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="sql-fetch.html" title="FETCH">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="sql-importforeignschema.html" title="IMPORT FOREIGN SCHEMA">Next</a></td></tr><tr><td width="40%" align="left" valign="top">FETCH </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 16.2 Documentation">Home</a></td><td width="40%" align="right" valign="top"> IMPORT FOREIGN SCHEMA</td></tr></table></div></body></html>

@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2023, The pgAdmin Development Team
+// Copyright (C) 2013 - 2024, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -44,6 +44,7 @@ export default class ServerSchema extends BaseUISchema {
       tunnel_identity_file: undefined,
       tunnel_password: undefined,
       tunnel_authentication: false,
+      tunnel_keep_alive: 0,
       save_tunnel_password: false,
       connection_string: undefined,
       connection_params: [
@@ -328,6 +329,15 @@ export default class ServerSchema extends BaseUISchema {
         },
       },
       {
+        id: 'tunnel_keep_alive', label: gettext('Keep alive (seconds)'),
+        type: 'int', group: gettext('SSH Tunnel'), min: 0,
+        mode: ['properties', 'edit', 'create'], deps: ['use_ssh_tunnel'],
+        disabled: function(state) {
+          return !state.use_ssh_tunnel;
+        },
+        readonly: obj.isConnected,
+      },
+      {
         id: 'db_res', label: gettext('DB restriction'), type: 'select', group: gettext('Advanced'),
         options: [],
         mode: ['properties', 'edit', 'create'], readonly: obj.isConnected, controlProps: {
@@ -335,7 +345,7 @@ export default class ServerSchema extends BaseUISchema {
       },
       {
         id: 'passexec_cmd', label: gettext('Password exec command'), type: 'text',
-        group: gettext('Advanced'),
+        group: gettext('Advanced'), controlProps: {maxLength: null},
         mode: ['properties', 'edit', 'create'],
         disabled: pgAdmin.server_mode == 'True',
       },
@@ -359,6 +369,14 @@ export default class ServerSchema extends BaseUISchema {
 
   validate(state, setError) {
     let errmsg = null;
+
+    if(isEmptyString(state.gid)) {
+      errmsg = gettext('Server group must be specified.');
+      setError('gid', errmsg);
+      return true;
+    } else {
+      setError('gid', null);
+    }
 
     if (isEmptyString(state.service)) {
       errmsg = gettext('Either Host name or Service must be specified.');
@@ -435,6 +453,14 @@ export default class ServerSchema extends BaseUISchema {
         } else {
           setError('tunnel_identity_file', null);
         }
+      }
+
+      if(isEmptyString(state.tunnel_keep_alive)) {
+        errmsg = gettext('Keep alive must be specified. Specify 0 for no keep alive.');
+        setError('tunnel_keep_alive', errmsg);
+        return true;
+      } else {
+        setError('tunnel_keep_alive', null);
       }
     }
     return false;

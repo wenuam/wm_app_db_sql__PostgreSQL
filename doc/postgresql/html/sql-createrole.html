@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>CREATE ROLE</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="sql-createpublication.html" title="CREATE PUBLICATION" /><link rel="next" href="sql-createrule.html" title="CREATE RULE" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">CREATE ROLE</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="sql-createpublication.html" title="CREATE PUBLICATION">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><th width="60%" align="center">SQL Commands</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 16.1 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="sql-createrule.html" title="CREATE RULE">Next</a></td></tr></table><hr /></div><div class="refentry" id="SQL-CREATEROLE"><div class="titlepage"></div><a id="id-1.9.3.78.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle">CREATE ROLE</span></h2><p>CREATE ROLE — define a new database role</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><pre class="synopsis">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>CREATE ROLE</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="sql-createpublication.html" title="CREATE PUBLICATION" /><link rel="next" href="sql-createrule.html" title="CREATE RULE" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">CREATE ROLE</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="sql-createpublication.html" title="CREATE PUBLICATION">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><th width="60%" align="center">SQL Commands</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 16.2 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="sql-createrule.html" title="CREATE RULE">Next</a></td></tr></table><hr /></div><div class="refentry" id="SQL-CREATEROLE"><div class="titlepage"></div><a id="id-1.9.3.78.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle">CREATE ROLE</span></h2><p>CREATE ROLE — define a new database role</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><pre class="synopsis">
 CREATE ROLE <em class="replaceable"><code>name</code></em> [ [ WITH ] <em class="replaceable"><code>option</code></em> [ ... ] ]
 
 <span class="phrase">where <em class="replaceable"><code>option</code></em> can be:</span>
@@ -32,6 +32,15 @@ CREATE ROLE <em class="replaceable"><code>name</code></em> [ [ WITH ] <em class=
   </p><p>
    Note that roles are defined at the database cluster
    level, and so are valid in all databases in the cluster.
+  </p><p>
+   During role creation it is possible to immediately assign the newly created
+   role to be a member of an existing role, and also assign existing roles
+   to be members of the newly created role.  The rules for which initial
+   role membership options are enabled described below in the
+   <code class="literal">IN ROLE</code>, <code class="literal">ROLE</code>, and
+   <code class="literal">ADMIN</code> clauses.  The <a class="xref" href="sql-grant.html" title="GRANT"><span class="refentrytitle">GRANT</span></a>
+   command has fine-grained option control during membership creation,
+   and the ability to modify these options after the new role is created.
   </p></div><div class="refsect1" id="id-1.9.3.78.6"><h2>Parameters</h2><div class="variablelist"><dl class="variablelist"><dt><span class="term"><em class="replaceable"><code>name</code></em></span></dt><dd><p>
         The name of the new role.
        </p></dd><dt><span class="term"><code class="literal">SUPERUSER</code><br /></span><span class="term"><code class="literal">NOSUPERUSER</code></span></dt><dd><p>
@@ -58,22 +67,19 @@ CREATE ROLE <em class="replaceable"><code>name</code></em> [ [ WITH ] <em class=
         capabilities are conferred by this privilege.
         If not specified, <code class="literal">NOCREATEROLE</code> is the default.
        </p></dd><dt><span class="term"><code class="literal">INHERIT</code><br /></span><span class="term"><code class="literal">NOINHERIT</code></span></dt><dd><p>
-        When the <code class="literal">GRANT</code> statement is used to confer
-        membership in one role to another role, the <code class="literal">GRANT</code>
-        may use the <code class="literal">WITH INHERIT</code> clause to specify whether
-        the privileges of the granted role should be <span class="quote">“<span class="quote">inherited</span>”</span>
-        by the new member. If the <code class="literal">GRANT</code> statement does not
-        specify either inheritance behavior, the new <code class="literal">GRANT</code>
-        will be created <code class="literal">WITH INHERIT TRUE</code> if the member
-        role is set to <code class="literal">INHERIT</code> and to
-        <code class="literal">WITH INHERIT FALSE</code> if it is set to
-        <code class="literal">NOINHERIT</code>.
+        This affects the membership inheritance status when this
+        role is added as a member of another role, both in this and
+        future commands.  Specifically, it controls the inheritance
+        status of memberships added with this command using the
+        <code class="literal">IN ROLE</code> clause, and in later commands using
+        the <code class="literal">ROLE</code> clause.  It is also used as the
+        default inheritance status when adding this role as a member
+        using the <code class="literal">GRANT</code> command.  If not specified,
+        <code class="literal">INHERIT</code> is the default.
        </p><p>
         In <span class="productname">PostgreSQL</span> versions before 16,
-        the <code class="literal">GRANT</code> statement did not support
-        <code class="literal">WITH INHERIT</code>. Therefore, changing this role-level
-        property would also change the behavior of already-existing grants.
-        This is no longer the case.
+        inheritance was a role-level attribute that controlled all runtime
+        membership checks for that role.
        </p></dd><dt><span class="term"><code class="literal">LOGIN</code><br /></span><span class="term"><code class="literal">NOLOGIN</code></span></dt><dd><p>
         These clauses determine whether a role is allowed to log in;
         that is, whether the role can be given as the initial session
@@ -149,20 +155,25 @@ CREATE ROLE <em class="replaceable"><code>name</code></em> [ [ WITH ] <em class=
        </p></dd><dt><span class="term"><code class="literal">IN ROLE</code> <em class="replaceable"><code>role_name</code></em></span></dt><dd><p>
         The <code class="literal">IN ROLE</code> clause causes the new role to
         be automatically added as a member of the specified existing
-        roles. (Note that there is no option to add the new role as an
-        administrator; use a separate <code class="command">GRANT</code> command
-        to do that.)
+        roles. The new membership will have the <code class="literal">SET</code>
+        option enabled and the <code class="literal">ADMIN</code> option disabled.
+        The <code class="literal">INHERIT</code> option will be enabled unless the
+        <code class="literal">NOINHERIT</code> option is specified.
        </p></dd><dt><span class="term"><code class="literal">IN GROUP</code> <em class="replaceable"><code>role_name</code></em></span></dt><dd><p><code class="literal">IN GROUP</code> is an obsolete spelling of
         <code class="literal">IN ROLE</code>.
        </p></dd><dt><span class="term"><code class="literal">ROLE</code> <em class="replaceable"><code>role_name</code></em></span></dt><dd><p>
         The <code class="literal">ROLE</code> clause causes one or more specified
-        existing roles to be automatically added as members of the new
-        role.  This in effect makes the new role a <span class="quote">“<span class="quote">group</span>”</span>.
+        existing roles to be automatically added as members, with the
+        <code class="literal">SET</code> option enabled. This in effect makes the
+        new role a <span class="quote">“<span class="quote">group</span>”</span>.  Roles named in this clause
+        with role-level the <code class="literal">INHERIT</code> attribute will have
+        the <code class="literal">INHERIT</code> option enabled in the new membership.
+        New memberships will have the <code class="literal">ADMIN</code> option disabled.
        </p></dd><dt><span class="term"><code class="literal">ADMIN</code> <em class="replaceable"><code>role_name</code></em></span></dt><dd><p>
-        The <code class="literal">ADMIN</code> clause is like <code class="literal">ROLE</code>,
-        but the named roles are added to the new role <code class="literal">WITH ADMIN
-        OPTION</code>, giving them the right to grant membership in this role
-        to others.
+        The <code class="literal">ADMIN</code> clause has the same effect as
+        <code class="literal">ROLE</code>, but the named roles are added as members
+        of the new role with <code class="literal">ADMIN</code> enabled, giving
+        them the right to grant membership in the new role to others.
        </p></dd><dt><span class="term"><code class="literal">USER</code> <em class="replaceable"><code>role_name</code></em></span></dt><dd><p>
         The <code class="literal">USER</code> clause is an obsolete spelling of
         the <code class="literal">ROLE</code> clause.
@@ -186,15 +197,17 @@ CREATE ROLE <em class="replaceable"><code>name</code></em> [ [ WITH ] <em class=
    particular, the expiration time is not enforced when logging in using
    a non-password-based authentication method.
   </p><p>
-   The <code class="literal">INHERIT</code> attribute governs inheritance of grantable
-   privileges (that is, access privileges for database objects and role
-   memberships).  It does not apply to the special role attributes set by
-   <code class="command">CREATE ROLE</code> and <code class="command">ALTER ROLE</code>.  For example, being
-   a member of a role with <code class="literal">CREATEDB</code> privilege does not immediately
-   grant the ability to create databases, even if <code class="literal">INHERIT</code> is set;
-   it would be necessary to become that role via
-   <a class="link" href="sql-set-role.html" title="SET ROLE"><code class="command">SET ROLE</code></a> before
-   creating a database.
+   The role attributes defined here are non-inheritable, i.e., being a
+   member of a role with, e.g., <code class="literal">CREATEDB</code> will not
+   allow the member to create new databases even if the membership grant
+   has the <code class="literal">INHERIT</code> option.  Of course, if the membership
+   grant has the <code class="literal">SET</code> option the member role would be able to
+   <a class="link" href="sql-set-role.html" title="SET ROLE"><code class="command">SET ROLE</code></a> to the
+   createdb role and then create a new database.
+  </p><p>
+   The membership grants created by the
+   <code class="literal">IN ROLE</code>, <code class="literal">ROLE</code>, and <code class="literal">ADMIN</code>
+   clauses have the role executing this command as the grantee.
   </p><p>
    The <code class="literal">INHERIT</code> attribute is the default for reasons of backwards
    compatibility: in prior releases of <span class="productname">PostgreSQL</span>,
@@ -261,6 +274,8 @@ CREATE ROLE <em class="replaceable"><code>name</code></em> [ WITH ADMIN <em clas
    have many more optional attributes than they do in the standard.
   </p><p>
    The behavior specified by the SQL standard is most closely approximated
-   by giving users the <code class="literal">NOINHERIT</code> attribute, while roles are
-   given the <code class="literal">INHERIT</code> attribute.
-  </p></div><div class="refsect1" id="id-1.9.3.78.10"><h2>See Also</h2><span class="simplelist"><a class="xref" href="sql-set-role.html" title="SET ROLE"><span class="refentrytitle">SET ROLE</span></a>, <a class="xref" href="sql-alterrole.html" title="ALTER ROLE"><span class="refentrytitle">ALTER ROLE</span></a>, <a class="xref" href="sql-droprole.html" title="DROP ROLE"><span class="refentrytitle">DROP ROLE</span></a>, <a class="xref" href="sql-grant.html" title="GRANT"><span class="refentrytitle">GRANT</span></a>, <a class="xref" href="sql-revoke.html" title="REVOKE"><span class="refentrytitle">REVOKE</span></a>, <a class="xref" href="app-createuser.html" title="createuser"><span class="refentrytitle"><span class="application">createuser</span></span></a>, <a class="xref" href="runtime-config-client.html#GUC-CREATEROLE-SELF-GRANT">createrole_self_grant</a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="sql-createpublication.html" title="CREATE PUBLICATION">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="sql-createrule.html" title="CREATE RULE">Next</a></td></tr><tr><td width="40%" align="left" valign="top">CREATE PUBLICATION </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 16.1 Documentation">Home</a></td><td width="40%" align="right" valign="top"> CREATE RULE</td></tr></table></div></body></html>
+   creating SQL-standard users as <span class="productname">PostgreSQL</span>
+   roles with the <code class="literal">NOINHERIT</code> option, and SQL-standard
+   roles as <span class="productname">PostgreSQL</span> roles with the
+   <code class="literal">INHERIT</code> option.
+  </p></div><div class="refsect1" id="id-1.9.3.78.10"><h2>See Also</h2><span class="simplelist"><a class="xref" href="sql-set-role.html" title="SET ROLE"><span class="refentrytitle">SET ROLE</span></a>, <a class="xref" href="sql-alterrole.html" title="ALTER ROLE"><span class="refentrytitle">ALTER ROLE</span></a>, <a class="xref" href="sql-droprole.html" title="DROP ROLE"><span class="refentrytitle">DROP ROLE</span></a>, <a class="xref" href="sql-grant.html" title="GRANT"><span class="refentrytitle">GRANT</span></a>, <a class="xref" href="sql-revoke.html" title="REVOKE"><span class="refentrytitle">REVOKE</span></a>, <a class="xref" href="app-createuser.html" title="createuser"><span class="refentrytitle"><span class="application">createuser</span></span></a>, <a class="xref" href="runtime-config-client.html#GUC-CREATEROLE-SELF-GRANT">createrole_self_grant</a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="sql-createpublication.html" title="CREATE PUBLICATION">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="sql-createrule.html" title="CREATE RULE">Next</a></td></tr><tr><td width="40%" align="left" valign="top">CREATE PUBLICATION </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 16.2 Documentation">Home</a></td><td width="40%" align="right" valign="top"> CREATE RULE</td></tr></table></div></body></html>

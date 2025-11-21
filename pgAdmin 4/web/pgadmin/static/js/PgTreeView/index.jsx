@@ -16,7 +16,7 @@ const useStyles = makeStyles((theme) => ({
   node: {
     display: 'inline-block',
     paddingLeft: '1.5rem',
-    height: '1.5rem'
+    height: '100%',
   },
   checkboxStyle: {
     fill: theme.palette.primary.main
@@ -78,8 +78,8 @@ export default function PgTreeView({ data = [], hasCheckbox = false, selectionCh
                 ref={(obj) => {
                   treeObj.current = obj;
                 }}
-                width={width}
-                height={height}
+                width={isNaN(width) ? 100 : width}
+                height={isNaN(height) ? 100 : height}
                 data={treeData}
                 disableDrag={true}
                 disableDrop={true}
@@ -171,7 +171,7 @@ function Node({ node, style, tree, hasCheckbox, onNodeSelectionChange}) {
       {
         hasCheckbox ? <Checkbox style={{ padding: 0 }} color="primary" className={clsx(!node.isInternal ? classes.leafNode: null)}
           checked={isSelected ? true: false}
-          checkedIcon={isIndeterminate  ? <IndeterminateCheckBoxIcon />: <CheckBoxIcon />}
+          checkedIcon={isIndeterminate  ? <IndeterminateCheckBoxIcon style={{height: '1.4rem'}} />: <CheckBoxIcon style={{height: '1.4rem'}} />}
           onChange={onCheckboxSelection}/> :
           <span className={clsx(node.data.icon)}></span>
       }

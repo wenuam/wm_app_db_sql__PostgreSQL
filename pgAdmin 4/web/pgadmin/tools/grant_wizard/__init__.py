@@ -2,7 +2,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2023, The pgAdmin Development Team
+# Copyright (C) 2013 - 2024, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 ##########################################################################
@@ -41,14 +41,6 @@ class GrantWizardModule(PgAdminModule):
         class and define methods to load its own
         javascript file.
     """
-
-    def get_own_stylesheets(self):
-        """
-        Returns:
-            list: the stylesheets used by this module.
-        """
-        stylesheets = []
-        return stylesheets
 
     def show_system_objects(self):
         """
@@ -272,6 +264,9 @@ def properties(sid, did, node_id, node_type):
 
     res_data, msg = get_data(sid, did, node_id, node_type, server_info)
 
+    if res_data is None and isinstance(msg, Response):
+        return msg
+
     return make_json_response(
         result=res_data,
         info=msg,
@@ -300,7 +295,7 @@ def get_data(sid, did, node_id, node_type, server_data):
     status, res = conn.execute_dict(sql)
 
     if not status:
-        return internal_server_error(errormsg=res)
+        return None, internal_server_error(errormsg=res)
     node_types = res['rows']
 
     def _append_rows(status, res, disp_type):

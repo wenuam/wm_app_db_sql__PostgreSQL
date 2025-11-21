@@ -2,7 +2,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2023, The pgAdmin Development Team
+# Copyright (C) 2013 - 2024, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 ##########################################################################
@@ -24,7 +24,7 @@ from threading import Lock
 from .paths import get_storage_directory
 from .preferences import Preferences
 from pgadmin.utils.constants import UTILITIES_ARRAY, USER_NOT_FOUND, \
-    MY_STORAGE, ACCESS_DENIED_MESSAGE
+    MY_STORAGE, ACCESS_DENIED_MESSAGE, INTERNAL
 from pgadmin.utils.ajax import make_json_response
 from pgadmin.model import db, User, ServerGroup, Server
 from urllib.parse import unquote
@@ -49,19 +49,6 @@ class PgAdminModule(Blueprint):
 
         super().__init__(name, import_name, **kwargs)
 
-        def create_module_preference():
-            # Create preference for each module by default
-            if hasattr(self, 'LABEL'):
-                self.preference = Preferences(self.name, self.LABEL)
-            else:
-                self.preference = Preferences(self.name, None)
-
-            self.register_preferences()
-
-        # Create and register the module preference object and preferences for
-        # it just before the first request
-        self.before_app_first_request(create_module_preference)
-
     def register_preferences(self):
         # To be implemented by child classes
         pass
@@ -74,19 +61,24 @@ class PgAdminModule(Blueprint):
 
         super().register(app, options)
 
+        def create_module_preference():
+            # Create preference for each module by default
+            if hasattr(self, 'LABEL'):
+                self.preference = Preferences(self.name, self.LABEL)
+            else:
+                self.preference = Preferences(self.name, None)
+
+            self.register_preferences()
+
+        # Create and register the module preference object and preferences for
+        # it just before starting app
+        app.register_before_app_start(create_module_preference)
+
         for module in self.submodules:
             module.parentmodules.append(self)
             if app.blueprints.get(module.name) is None:
                 app.register_blueprint(module)
                 app.register_logout_hook(module)
-
-    def get_own_stylesheets(self):
-        """
-        Returns:
-            list: the stylesheets used by this module, not including any
-                stylesheet needed by the submodules.
-        """
-        return []
 
     def get_own_messages(self):
         """
@@ -104,26 +96,12 @@ class PgAdminModule(Blueprint):
         """
         return defaultdict(list)
 
-    def get_panels(self):
-        """
-        Returns:
-            list: a list of panel objects to add
-        """
-        return []
-
     def get_exposed_url_endpoints(self):
         """
         Returns:
             list: a list of url endpoints exposed to the client.
         """
         return []
-
-    @property
-    def stylesheets(self):
-        stylesheets = self.get_own_stylesheets()
-        for module in self.submodules:
-            stylesheets.extend(module.stylesheets)
-        return stylesheets
 
     @property
     def messages(self):
@@ -461,10 +439,11 @@ def add_value(attr_dict, key, value):
 
 
 def dump_database_servers(output_file, selected_servers,
-                          dump_user=current_user, from_setup=False):
+                          dump_user=current_user, from_setup=False,
+                          auth_source=INTERNAL):
     """Dump the server groups and servers.
     """
-    user = _does_user_exist(dump_user, from_setup)
+    user = _does_user_exist(dump_user, from_setup, auth_source)
     if user is None:
         return False, USER_NOT_FOUND % dump_user
 
@@ -478,7 +457,10 @@ def dump_database_servers(output_file, selected_servers,
     servers = Server.query.filter_by(user_id=user_id).all()
     server_dict = {}
     for server in servers:
-        if selected_servers is None or str(server.id) in selected_servers:
+        if selected_servers is None or (
+            isinstance(selected_servers, list) and len(selected_servers) == 0)\
+                or str(server.id) in selected_servers\
+                or server.id in selected_servers:
             # Get the group name
             group_name = ServerGroup.query.filter_by(
                 user_id=user_id, id=server.servergroup_id).first().name
@@ -614,10 +596,11 @@ def validate_json_data(data, is_admin):
 
 
 def load_database_servers(input_file, selected_servers,
-                          load_user=current_user, from_setup=False):
+                          load_user=current_user, from_setup=False,
+                          auth_source=INTERNAL):
     """Load server groups and servers.
     """
-    user = _does_user_exist(load_user, from_setup)
+    user = _does_user_exist(load_user, from_setup, auth_source)
     if user is None:
         return False, USER_NOT_FOUND % load_user
 
@@ -767,10 +750,11 @@ def load_database_servers(input_file, selected_servers,
     return True, msg
 
 
-def clear_database_servers(load_user=current_user, from_setup=False):
+def clear_database_servers(load_user=current_user, from_setup=False,
+                           auth_source=INTERNAL):
     """Clear groups and servers configurations.
     """
-    user = _does_user_exist(load_user, from_setup)
+    user = _does_user_exist(load_user, from_setup, auth_source)
     if user is None:
         return False
 
@@ -781,14 +765,15 @@ def clear_database_servers(load_user=current_user, from_setup=False):
     for server in servers:
         db.session.delete(server)
 
-    # Remove all groups
-    groups = ServerGroup.query.filter_by(user_id=user_id)
+    # Remove all servergroups except for the first
+    # This matches the UI behavior in
+    # web/pgadmin/browser/server_groups/__init__.py#delete
+    # TODO: Investigate if we can skip the first with an `offset(1)`
+    groups = ServerGroup.query.filter_by(user_id=user_id).order_by("id")
+    default_sg = groups.first()
     for group in groups:
-        db.session.delete(group)
-    servers = Server.query.filter_by(user_id=user_id)
-
-    for server in servers:
-        db.session.delete(server)
+        if group.id != default_sg.id:
+            db.session.delete(group)
 
     try:
         db.session.commit()
@@ -803,14 +788,16 @@ def clear_database_servers(load_user=current_user, from_setup=False):
         return False, error_msg
 
 
-def _does_user_exist(user, from_setup):
+def _does_user_exist(user, from_setup, auth_source=INTERNAL):
     """
     This function will check user is exist or not. If exist then return
     """
     if isinstance(user, User):
-        user = user.email
+        auth_source = user.auth_source
+        user = user.username
 
-    new_user = User.query.filter_by(email=user).first()
+    new_user = User.query.filter_by(username=user,
+                                    auth_source=auth_source).first()
 
     if new_user is None:
         print(USER_NOT_FOUND % user)

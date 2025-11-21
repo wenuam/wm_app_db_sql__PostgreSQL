@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2023, The pgAdmin Development Team
+// Copyright (C) 2013 - 2024, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -25,7 +25,7 @@ function MappedFormControlBase({ type, value, id, onChange, className, visible, 
   const name = id;
   const onTextChange = useCallback((e) => {
     let val = e;
-    if(e && e.target) {
+    if(e?.target) {
       val = e.target.value;
     }
     onChange && onChange(val);
@@ -124,7 +124,7 @@ function MappedCellControlBase({ cell, value, id, optionsLoaded, onCellChange, v
   const name = id;
   const onTextChange = useCallback((e) => {
     let val = e;
-    if (e && e.target) {
+    if (e?.target) {
       val = e.target.value;
     }
 
@@ -133,7 +133,7 @@ function MappedCellControlBase({ cell, value, id, optionsLoaded, onCellChange, v
 
   const onRadioChange = useCallback((e) => {
     let val =e;
-    if(e && e.target) {
+    if(e?.target) {
       val = e.target.checked;
     }
     onCellChange && onCellChange(val);
@@ -212,7 +212,7 @@ const ALLOWED_PROPS_FIELD_COMMON = [
   'label', 'options', 'optionsLoaded', 'controlProps', 'schema', 'inputRef',
   'visible', 'autoFocus', 'helpMessage', 'className', 'optionsReloadBasis',
   'orientation', 'isvalidate', 'fields', 'radioType', 'hideBrowseButton', 'btnName', 'hidden',
-  'withContainer', 'controlGridBasis', 'hasCheckbox', 'treeData'
+  'withContainer', 'controlGridBasis', 'hasCheckbox', 'treeData', 'title'
 ];
 
 const ALLOWED_PROPS_FIELD_FORM = [

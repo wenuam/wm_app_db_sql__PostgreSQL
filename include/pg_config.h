@@ -71,9 +71,6 @@
 /* Define to 1 if you have the `backtrace_symbols' function. */
 /* #undef HAVE_BACKTRACE_SYMBOLS */
 
-/* Define to 1 if you have the `BIO_get_data' function. */
-#define HAVE_BIO_GET_DATA 1
-
 /* Define to 1 if you have the `BIO_meth_new' function. */
 #define HAVE_BIO_METH_NEW 1
 
@@ -607,7 +604,7 @@
 #define PACKAGE_NAME "PostgreSQL"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "PostgreSQL 16.1"
+#define PACKAGE_STRING "PostgreSQL 16.2"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "postgresql"
@@ -616,7 +613,7 @@
 #define PACKAGE_URL "https://www.postgresql.org/"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "16.1"
+#define PACKAGE_VERSION "16.2"
 
 /* Define to the name of a signed 128-bit integer type. */
 /* #undef PG_INT128_TYPE */
@@ -635,7 +632,7 @@
 #define PG_MAJORVERSION_NUM 16
 
 /* PostgreSQL minor version number */
-#define PG_MINORVERSION_NUM 1
+#define PG_MINORVERSION_NUM 2
 
 /* Define to best printf format archetype, usually gnu_printf if available. */
 /* #undef PG_PRINTF_ATTRIBUTE */
@@ -644,13 +641,13 @@
 #define PG_USE_STDBOOL 1
 
 /* PostgreSQL version as a string */
-#define PG_VERSION "16.1"
+#define PG_VERSION "16.2"
 
 /* PostgreSQL version as a number */
-#define PG_VERSION_NUM 160001
+#define PG_VERSION_NUM 160002
 
 /* A string containing the version number, platform, and C compiler */
-#define PG_VERSION_STR "PostgreSQL 16.1, compiled by Visual C++ build " CppAsString2(_MSC_VER) ", 64-bit"
+#define PG_VERSION_STR "PostgreSQL 16.2, compiled by Visual C++ build " CppAsString2(_MSC_VER) ", 64-bit"
 
 /* Define to 1 to allow profiling output to be saved separately for each
    process. */

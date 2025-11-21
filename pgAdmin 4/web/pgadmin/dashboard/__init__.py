@@ -2,7 +2,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2023, The pgAdmin Development Team
+# Copyright (C) 2013 - 2024, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 ##########################################################################
@@ -35,30 +35,6 @@ class DashboardModule(PgAdminModule):
 
     def get_own_menuitems(self):
         return {}
-
-    def get_own_stylesheets(self):
-        """
-        Returns:
-            list: the stylesheets used by this module.
-        """
-        stylesheets = []
-        return stylesheets
-
-    def get_panels(self):
-        return [
-            Panel(
-                name='dashboard',
-                priority=1,
-                title=gettext('Dashboard'),
-                icon='',
-                content='',
-                is_closeable=True,
-                is_private=False,
-                limit=1,
-                is_iframe=False,
-                can_hide=True
-            ).__dict__
-        ]
 
     def register_preferences(self):
         """

@@ -2,13 +2,13 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2023, The pgAdmin Development Team
+// Copyright (C) 2013 - 2024, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
 
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { Box, makeStyles, Tab, Tabs } from '@material-ui/core';
+import { Box, makeStyles, Tab, Tabs, Tooltip } from '@material-ui/core';
 import _ from 'lodash';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
@@ -50,6 +50,13 @@ const useStyles = makeStyles((theme)=>({
   },
   sqlTabInput: {
     border: 0,
+  },
+  nonTabPanel: {
+    padding: 0,
+    background: 'inherit',
+  },
+  nonTabPanelContent: {
+    height: 'unset'
   }
 }));
 
@@ -352,6 +359,10 @@ export default function FormView({
           ]}
         />;
 
+        if(field.tooltip) {
+          currentControl = <Tooltip title={field.tooltip} aria-label={field.tooltip}>{currentControl}</Tooltip>;
+        }
+
         if(field.isFullTab && field.helpMessage) {
           currentControl = (<React.Fragment key={`coll-${field.id}`}>
             <FormNote key={`note-${field.id}`} text={field.helpMessage}/>
@@ -417,7 +428,7 @@ export default function FormView({
   if(isTabView) {
     return (
       <>
-        <Box height="100%" display="flex" flexDirection="column" className={className} ref={formRef}>
+        <Box height="100%" display="flex" flexDirection="column" className={className} ref={formRef} data-test="form-view">
           <Box>
             <Tabs
               value={tabValue}
@@ -429,7 +440,7 @@ export default function FormView({
               action={(ref)=>ref && ref.updateIndicator()}
             >
               {Object.keys(finalTabs).map((tabName)=>{
-                return <Tab key={tabName} label={tabName} />;
+                return <Tab key={tabName} label={tabName} data-test={tabName}/>;
               })}
             </Tabs>
           </Box>
@@ -442,7 +453,7 @@ export default function FormView({
             }
             return (
               <TabPanel key={tabName} value={tabValue} index={i} classNameRoot={clsx(tabsClassname[tabName], isNested ? classes.nestedTabPanel : null)}
-                className={clsx(contentClassName)}>
+                className={clsx(contentClassName)} data-testid={tabName}>
                 {finalTabs[tabName]}
               </TabPanel>
             );
@@ -450,15 +461,18 @@ export default function FormView({
         </Box>
       </>);
   } else {
-    let contentClassName = [stateUtils.formErr.message ? classes.errorMargin : null];
+    let contentClassName = [classes.nonTabPanelContent, stateUtils.formErr.message ? classes.errorMargin : null];
     return (
       <>
-        <Box height="100%" display="flex" flexDirection="column" className={clsx(className, contentClassName)} ref={formRef}>
-          {Object.keys(finalTabs).map((tabName)=>{
-            return (
-              <React.Fragment key={tabName}>{finalTabs[tabName]}</React.Fragment>
-            );
-          })}
+        <Box height="100%" display="flex" flexDirection="column" className={clsx(className)} ref={formRef} data-test="form-view">
+          <TabPanel value={tabValue} index={0} classNameRoot={classes.nonTabPanel}
+            className={clsx(contentClassName)}>
+            {Object.keys(finalTabs).map((tabName)=>{
+              return (
+                <React.Fragment key={tabName}>{finalTabs[tabName]}</React.Fragment>
+              );
+            })}
+          </TabPanel>
         </Box>
       </>);
   }

@@ -7,11 +7,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>ERD Tool &#8212; pgAdmin 4 7.8 documentation</title>
+    <title>ERD Tool &#8212; pgAdmin 4 8.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="_static/style.css?v=7c9fe073" />
+    <link rel="stylesheet" type="text/css" href="_static/style.css?v=d36593c3" />
     
-    <script src="_static/documentation_options.js?v=2eb9bb39"></script>
+    <script src="_static/documentation_options.js?v=28b929c1"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="schema_diff.html" title="Schema Diff"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.8 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.2 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="developer_tools.html" accesskey="U">Developer Tools</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">ERD Tool</a></li> 
       </ul>
@@ -58,7 +58,14 @@
 <li><p>Drag and drop tables from object explorer to the diagram.</p></li>
 </ul>
 <img alt="ERD tool window" class="align-center" src="_images/erd_tool.png" />
-<p>You can open multiple copies of the ERD tool in individual tabs simultaneously. To close a copy of the ERD tool, click the <em>X</em> in the upper-right hand corner of the tab bar.</p>
+<p>You can open multiple copies of the ERD tool in individual tabs simultaneously.
+You can also generate an ERD from a database, schema or a table.</p>
+<ul class="simple">
+<li><p>The ERD for database will fetch all the tables from all the schemas of the database and plot them with foreign key links.</p></li>
+<li><p>The ERD for schema will fetch all the tables from a schema and plot them with foreign key links. If any table refers to a table in another
+schema, then that link/foreign key will be removed.</p></li>
+<li><p>The ERD for table will fetch all the tables linked directly or indirectly to mentioned table. You can change the depth of traversal from <a class="reference internal" href="preferences.html#preferences"><span class="std std-ref">Preferences</span></a>.</p></li>
+</ul>
 <section id="toolbar">
 <h2>Toolbar<a class="headerlink" href="#toolbar" title="Link to this heading">¶</a></h2>
 <p>The <em>ERD Tool</em> toolbar uses context-sensitive icons that provide shortcuts to frequently performed tasks. The option is enabled for the highlighted icon and is disabled for the grayed-out icon.</p>
@@ -455,7 +462,7 @@ Shift + “-”</p></td>
         <li class="right" >
           <a href="schema_diff.html" title="Schema Diff"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 7.8 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.2 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="developer_tools.html" >Developer Tools</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">ERD Tool</a></li> 
       </ul>
@@ -463,7 +470,7 @@ Shift + “-”</p></td>
     <div class="footer" role="contentinfo">
         <div class="related" role="navigation" aria-label="related navigation">
           <ul>
-              <li class="left" style="margin-left: 10px">&#169; Copyright (C) 2013 - 2023, The pgAdmin Development Team.</li>
+              <li class="left" style="margin-left: 10px">&#169; Copyright (C) 2013 - 2024, The pgAdmin Development Team.</li>
             <li class="right" style="margin-right: 10px"><a href="genindex.html" title="General Index" accesskey="I">index</a></li>
             <li class="right" ><a href="psql_tool.html" title="PSQL Tool" accesskey="N">next</a> |</li>
             <li class="right" ><a href="schema_diff.html" title="Schema Diff" accesskey="P">previous</a> |</li>
