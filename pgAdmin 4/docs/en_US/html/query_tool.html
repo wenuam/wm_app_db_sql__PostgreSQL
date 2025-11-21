@@ -7,12 +7,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Query Tool &#8212; pgAdmin 4 8.2 documentation</title>
+    <title>Query Tool &#8212; pgAdmin 4 8.7 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/style.css?v=d36593c3" />
     
-    <script src="_static/documentation_options.js?v=28b929c1"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/documentation_options.js?v=70b0b77f"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     
     <script src="_static/sidebar.js"></script>
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="debugger.html" title="Debugger"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="developer_tools.html" accesskey="U">Developer Tools</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Query Tool</a></li> 
       </ul>
@@ -65,12 +65,11 @@ format or a table format (similar to <a class="reference external" href="https:/
 </ul>
 <img alt="Query tool window" class="align-center" src="_images/query_tool.png" />
 <p>You can open multiple copies of the Query tool in individual tabs
-simultaneously.  To close a copy of the Query tool, click the <em>X</em> in the
-upper-right hand corner of the tab bar.</p>
+simultaneously.  To close a copy of the Query tool, click the <em>X</em> of the tab.</p>
 <p>The Query Tool features two panels:</p>
 <ul class="simple">
 <li><p>The upper panel displays the <em>SQL Editor</em>. You can use the panel to enter,
-edit, or execute a query. It also shows the <em>History</em> tab which can be used
+edit, or execute a query or a script. It also shows the <em>History</em> tab which can be used
 to view the queries that have been executed in the session, and a <em>Scratch Pad</em>
 which can be used to hold text snippets during editing. If the Scratch Pad is
 closed, it can be re-opened (or additional ones opened) by right-clicking in
@@ -112,9 +111,17 @@ key combination to select from a popup menu of autocomplete options.</p>
 <p>After entering a query, select the <em>Execute script</em> icon from the toolbar. The
 complete contents of the SQL editor panel will be sent to the database server
 for execution. To execute only a section of the code that is displayed in the
-SQL editor, highlight the text that you want the server to execute, and click
-the <em>Execute script</em> icon.</p>
-<img alt="Query tool execute query section" class="align-center" src="_images/query_execute_section.png" />
+SQL editor, highlight the text that you want the server to execute, and click the
+<em>Execute script</em> icon.</p>
+<img alt="Query tool execute script section" class="align-center" src="_images/query_execute_script.png" />
+<p>You can also execute a query based on cursor position. Query tool will detect
+a query and underline it when cursor position changes. Now, to execute the
+current underlined query, hit the <em>Execute query</em> button on the toolbar. If a section
+is highlighted then it will behave like normal execute.</p>
+<img alt="Query tool execute query section" class="align-center" src="_images/query_execute_query.png" />
+<p>The warning will appear only if <em>Underline query at cursor?</em> is set to <em>False</em> and
+the <em>Underlined query execute warning?</em> switch is set to <em>True</em> Preferences Query tool’s Options.</p>
+<img alt="Query tool execute query warning" class="align-center" src="_images/query_execute_warning.png" />
 <p>The message returned by the server when a command executes is displayed on the
 <em>Messages</em> tab.  If the command is successful, the <em>Messages</em> tab displays
 execution details.</p>
@@ -174,8 +181,6 @@ recently executed query.</p>
 You can:</p>
 <ul class="simple">
 <li><p>Select and copy from the displayed result set.</p></li>
-<li><p>Use the <em>Execute script</em> options to retrieve query execution information and
-set query execution options.</p></li>
 <li><p>Use the <em>Save results to file</em> icon to save the content of the <em>Data Output</em>
 tab as a comma-delimited file.</p></li>
 <li><p>Edit the data in the result set of a SELECT query if it is updatable.</p></li>
@@ -388,6 +393,8 @@ transaction status by clicking on the status icon in the Query Tool:</p>
 <img alt="Query Tool Manage macros" class="align-center" src="_images/query_tool_manage_macros.png" />
 <p>To create a macro, select the <em>Manage Macros</em> option from the <em>Macros</em> menu on the <em>Query Tool</em>. Select the key you wish to use, enter the name of the macro, and the query, optionally including the selection placeholder, and then click the <em>Save</em> button to store the macro.</p>
 <img alt="Query Tool Manage Macros dialogue" class="align-center" src="_images/query_tool_manage_macros_dialog.png" />
+<p>To add a query to macros, write and select your query, then go to the <em>Macros</em> menu in the Query Tool and click <em>Add to macros</em>. Your query will be automatically saved to macros.</p>
+<img alt="Query Tool Add To Macros" class="align-center" src="_images/query_tool_add_to_macro.png" />
 <p>To delete a macro, select the macro on the <em>Manage Macros</em> dialogue, and then click the <em>Delete</em> button.
 The server will prompt you for confirmation to delete the macro.</p>
 <img alt="Query Tool Manage Macros Clear row confirmation" class="align-center" src="_images/query_tool_macros_clear_confirmation.png" />
@@ -456,7 +463,7 @@ The server will prompt you for confirmation to delete the macro.</p>
 <li class="toctree-l1"><a class="reference internal" href="licence.html">Licence</a></li>
 </ul>
 
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -464,7 +471,7 @@ The server will prompt you for confirmation to delete the macro.</p>
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
 <div id="sidebarbutton" title="Collapse sidebar">
@@ -486,7 +493,7 @@ The server will prompt you for confirmation to delete the macro.</p>
         <li class="right" >
           <a href="debugger.html" title="Debugger"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="developer_tools.html" >Developer Tools</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Query Tool</a></li> 
       </ul>

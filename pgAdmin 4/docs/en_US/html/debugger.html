@@ -7,12 +7,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Debugger &#8212; pgAdmin 4 8.2 documentation</title>
+    <title>Debugger &#8212; pgAdmin 4 8.7 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/style.css?v=d36593c3" />
     
-    <script src="_static/documentation_options.js?v=28b929c1"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/documentation_options.js?v=70b0b77f"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     
     <script src="_static/sidebar.js"></script>
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="developer_tools.html" title="Developer Tools"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="developer_tools.html" accesskey="U">Developer Tools</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Debugger</a></li> 
       </ul>
@@ -86,7 +86,7 @@ to the session.</p>
 that you wish to debug in the pgAdmin tree control and select <em>Debug</em> from the
 <em>Debugging</em> sub-menu.  The debugger window will open, prompting you for any
 values required by the program:</p>
-<img alt="Debugger parameter dialog" src="_images/debug_params.png" />
+<img alt="Debugger parameter dialog" class="align-center" src="_images/debug_params.png" />
 <p>Use the fields on the <em>Debugger</em> dialog to provide a value for each parameter:</p>
 <blockquote>
 <div><ul class="simple">
@@ -119,35 +119,48 @@ Use toolbar icons to manage breakpoints and step into or through code; hover
 over an icon for a tooltip that identifies the option associated with the icon.
 The toolbar options are:</p>
 <img alt="Debugger navigation toolbar" class="align-center" src="_images/debug_toolbar.png" />
-<table class="docutils align-default">
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 16.7%" />
+<col style="width: 66.7%" />
+<col style="width: 16.7%" />
+</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Option</p></th>
 <th class="head"><p>Action</p></th>
+<th class="head"><p>Shortcut</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><em>Step into</em></p></td>
 <td><p>Click the <em>Step into</em> icon to execute the currently highlighted line of code.</p></td>
+<td><p>Option/Alt + Shift + I</p></td>
 </tr>
 <tr class="row-odd"><td><p><em>Step over</em></p></td>
 <td><p>Click the <em>Step over</em> icon to execute a line of code, stepping over any sub-functions invoked by the code.
 The sub-function executes, but is not debugged unless it contains a breakpoint.</p></td>
+<td><p>Option/Alt + Shift + O</p></td>
 </tr>
 <tr class="row-even"><td><p><em>Continue/Start</em></p></td>
 <td><p>Click the <em>Continue/Start</em> icon to execute the highlighted code, and continue until the program
 encounters a breakpoint or completes.</p></td>
+<td><p>Option/Alt + Shift + C</p></td>
 </tr>
 <tr class="row-odd"><td><p><em>Toggle breakpoint</em></p></td>
 <td><p>Use the <em>Toggle breakpoint</em> icon to enable or disable a breakpoint (without removing the breakpoint).</p></td>
+<td><p>Option/Alt + Shift + T</p></td>
 </tr>
 <tr class="row-even"><td><p><em>Clear all breakpoints</em></p></td>
 <td><p>Click the <em>Clear all breakpoints</em> icon to remove all breakpoints from the program.</p></td>
+<td><p>Option/Alt + Shift + X</p></td>
 </tr>
 <tr class="row-odd"><td><p><em>Stop</em></p></td>
 <td><p>Click the <em>Stop</em> icon to halt the execution of a program.</p></td>
+<td><p>Option/Alt + Shift + S</p></td>
 </tr>
 <tr class="row-even"><td><p><em>Help</em></p></td>
 <td><p>Click the <em>Help</em> icon to open debugger documentation.</p></td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -229,7 +242,7 @@ details:</p>
 <li class="toctree-l1"><a class="reference internal" href="licence.html">Licence</a></li>
 </ul>
 
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -237,7 +250,7 @@ details:</p>
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
 <div id="sidebarbutton" title="Collapse sidebar">
@@ -259,7 +272,7 @@ details:</p>
         <li class="right" >
           <a href="developer_tools.html" title="Developer Tools"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="developer_tools.html" >Developer Tools</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Debugger</a></li> 
       </ul>

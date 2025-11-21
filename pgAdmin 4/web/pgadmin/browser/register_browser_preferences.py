@@ -324,21 +324,6 @@ def register_browser_preferences(self):
 
     self.preference.register(
         'keyboard_shortcuts',
-        'context_menu',
-        gettext('Open context menu'),
-        'keyboardshortcut',
-        {
-            'alt': True,
-            'shift': True,
-            'control': False,
-            'key': {'key_code': 67, 'char': 'c'}
-        },
-        category_label=PREF_LABEL_KEYBOARD_SHORTCUTS,
-        fields=fields
-    )
-
-    self.preference.register(
-        'keyboard_shortcuts',
         'direct_debugging',
         gettext('Direct debugging'),
         'keyboardshortcut',
@@ -347,36 +332,6 @@ def register_browser_preferences(self):
             'shift': True,
             'control': False,
             'key': {'key_code': 71, 'char': 'g'}
-        },
-        category_label=PREF_LABEL_KEYBOARD_SHORTCUTS,
-        fields=fields
-    )
-
-    self.preference.register(
-        'keyboard_shortcuts',
-        'dialog_tab_forward',
-        gettext('Dialog tab forward'),
-        'keyboardshortcut',
-        {
-            'alt': False,
-            'shift': True,
-            'control': True,
-            'key': {'key_code': 93, 'char': ']'}
-        },
-        category_label=PREF_LABEL_KEYBOARD_SHORTCUTS,
-        fields=fields
-    )
-
-    self.preference.register(
-        'keyboard_shortcuts',
-        'dialog_tab_backward',
-        gettext('Dialog tab backward'),
-        'keyboardshortcut',
-        {
-            'alt': False,
-            'shift': True,
-            'control': True,
-            'key': {'key_code': 91, 'char': '['}
         },
         category_label=PREF_LABEL_KEYBOARD_SHORTCUTS,
         fields=fields

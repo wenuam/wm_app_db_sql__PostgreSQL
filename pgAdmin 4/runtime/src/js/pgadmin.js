@@ -80,7 +80,7 @@ function startDesktopMode() {
       process.env[key] = updated_path;
     }
 
-    if (platform() === 'win32' && (key === 'PATH' || key == 'Path')) {
+    if (platform() === 'win32' && key.toUpperCase() === 'PATH') {
       let _libpq_path = path.join(path.dirname(path.dirname(path.resolve(pgadminFile))), 'runtime');
       process.env[key] = _libpq_path + ';' + process.env[key];
     }
@@ -207,6 +207,17 @@ function launchPgAdminWindow() {
 
     // Set zoom in and out events.
     misc.setZoomEvents();
+
+    // Workaround to fix increasing window size.
+    // https://github.com/nwjs/nw.js/issues/7973
+    pgadminWindow.on('close', function () {
+      // Resize Window
+      resizeHeightBy = pgadminWindow.window.outerHeight - pgadminWindow.window.innerHeight;
+      pgadminWindow.resizeBy(0, -resizeHeightBy);
+      // Remove 'close' event handler, and then close window
+      pgadminWindow.removeAllListeners('close');
+      pgadminWindow.close()
+    });
 
     pgadminWindow.on('closed', function () {
       misc.cleanupAndQuitApp();
@@ -633,10 +644,8 @@ function updateCheckedMenuItem(menuItem) {
             sm.checked = menuItem.checked
           }
         })
-      } else {
-        if (sub.label == menuItem.label && type == 'checkbox') {
-          sub.checked = menuItem.checked
-        }
+      } else if (sub.label == menuItem.label && type == 'checkbox') {
+        sub.checked = menuItem.checked
       }
     });
   });

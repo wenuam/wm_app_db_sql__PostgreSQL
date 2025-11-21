@@ -7,12 +7,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Backup Dialog &#8212; pgAdmin 4 8.2 documentation</title>
+    <title>Backup Dialog &#8212; pgAdmin 4 8.7 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/style.css?v=d36593c3" />
     
-    <script src="_static/documentation_options.js?v=28b929c1"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/documentation_options.js?v=70b0b77f"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     
     <script src="_static/sidebar.js"></script>
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="backup_and_restore.html" title="Backup and Restore"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="backup_and_restore.html" accesskey="U">Backup and Restore</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Backup Dialog</a></li> 
       </ul>
@@ -218,10 +218,24 @@ greater than or equal to 11.</p></li>
 set row_security to on instead, allowing the user to dump the parts of the
 contents of the table that they have access to. This option is relevant
 only when dumping the contents of a table which has row security.</p></li>
-<li><p>Move the switch next to <em>With OIDs</em> towards right position to include object
-identifiers as part of the table data for each table.</p></li>
-<li><p>Use the <em>Exclude table data</em> field to not dump data for any tables
-matching the table pattern.</p></li>
+<li><p>Use the <em>Include table(s) and Children</em> field to dump the tables and any partitions
+or inheritance child tables of the tables matching the pattern.
+<strong>Note:</strong> This option is visible only for database server greater than or
+equal to 16.</p></li>
+<li><p>The Exclude patterns field is utilized to exclude patterns in the following manner:</p></li>
+<li><p>Use the <em>Table(s)</em> field to not dump the tables matching the
+pattern. Multiple patterns can be given separated by space.</p></li>
+<li><p>Use the <em>Table(s) data</em> field to not dump data for any tables
+matching the pattern. Multiple patterns can be given separated by
+spaces.</p></li>
+<li><p>Use the <em>Table(s) and children</em> field to not dump the tables and any
+partitions or inheritance child tables of the tables matching the pattern.
+<strong>Note:</strong> This option is visible only for database server greater than or
+equal to 16.</p></li>
+<li><p>Use the <em>Table(s) data and children</em> field to not dump data for the
+tables and any partitions or inheritance child tables of the tables matching
+the table pattern. <strong>Note:</strong> This option is visible only for database server
+greater than or equal to 16.</p></li>
 </ul>
 </div></blockquote>
 <p>Click the <em>Options</em> tab to continue. Use the fields in the <em>Options</em>
@@ -321,7 +335,7 @@ tab</p>
 <li class="toctree-l1"><a class="reference internal" href="licence.html">Licence</a></li>
 </ul>
 
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -329,7 +343,7 @@ tab</p>
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
 <div id="sidebarbutton" title="Collapse sidebar">
@@ -351,7 +365,7 @@ tab</p>
         <li class="right" >
           <a href="backup_and_restore.html" title="Backup and Restore"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="backup_and_restore.html" >Backup and Restore</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Backup Dialog</a></li> 
       </ul>

@@ -26,7 +26,8 @@ import ERDDialogs from '../dialogs';
 import ConfirmSaveContent from '../../../../../../static/js/Dialogs/ConfirmSaveContent';
 import Loader from '../../../../../../static/js/components/Loader';
 import { MainToolBar } from './MainToolBar';
-import { Box, withStyles } from '@material-ui/core';
+import { Box } from '@mui/material';
+import { withStyles } from '@mui/styles';
 import EventBus from '../../../../../../static/js/helpers/EventBus';
 import { ERD_EVENTS } from '../ERDConstants';
 import getApiInstance, { callFetch, parseApiError } from '../../../../../../static/js/api_instance';
@@ -50,7 +51,7 @@ export class KeyboardShortcutAction extends Action {
     for(let shortcut_val of shortcut_handlers){
       let [key, handler] = shortcut_val;
       if(key) {
-        this.shortcuts[this.shortcutKey(key.alt, key.control, key.shift, false, key.key.key_code)] = handler;
+        this.shortcuts[this.shortcutKey(key.alt, key.ctrl_is_meta ? false : key.control, key.shift, Boolean(key.ctrl_is_meta), key.key.key_code)] = handler;
       }
     }
   }
@@ -62,6 +63,8 @@ export class KeyboardShortcutAction extends Action {
   callHandler(event) {
     let handler = this.shortcuts[this.shortcutKey(event.altKey, event.ctrlKey, event.shiftKey, event.metaKey, event.keyCode)];
     if(handler) {
+      event.stopPropagation();
+      event.preventDefault();
       handler();
     }
   }
@@ -127,12 +130,10 @@ class ERDTool extends React.Component {
     this.diagram = new ERDCore();
     /* Flag for checking if user has opted for save before close */
     this.closeOnSave = React.createRef();
-    this.fileInputRef = React.createRef();
     this.containerRef = React.createRef();
     this.diagramContainerRef = React.createRef();
     this.canvasEle = props.isTest ? document.createElement('div') : null;
     this.noteRefEle = null;
-    this.noteNode = null;
     this.keyboardActionObj = null;
     this.erdDialogs = new ERDDialogs(this.context);
     this.apiObj = getApiInstance();
@@ -485,7 +486,7 @@ class ERDTool extends React.Component {
             })
             .catch((err)=>{
               console.error(err);
-              reject();
+              reject(new Error(err));
             });
         });
         const {x, y} = this.diagram.getEngine().getRelativeMousePoint(e);
@@ -640,7 +641,7 @@ class ERDTool extends React.Component {
       this.setTitle(fileName);
       this.setLoading(null);
       if(this.closeOnSave) {
-        this.closePanel.call(this);
+        this.closePanel();
       }
     }).catch((err)=>{
       this.setLoading(null);

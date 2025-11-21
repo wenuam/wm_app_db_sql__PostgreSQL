@@ -7,12 +7,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Container Deployment &#8212; pgAdmin 4 8.2 documentation</title>
+    <title>Container Deployment &#8212; pgAdmin 4 8.7 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/style.css?v=d36593c3" />
     
-    <script src="_static/documentation_options.js?v=28b929c1"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/documentation_options.js?v=70b0b77f"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     
     <script src="_static/sidebar.js"></script>
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="server_deployment.html" title="Server Deployment"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="getting_started.html" >Getting Started</a> &#187;</li>
           <li class="nav-item nav-item-2"><a href="deployment.html" accesskey="U">Deployment</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Container Deployment</a></li> 
@@ -72,11 +72,11 @@ that you want, using a command such as this if you’re using Docker:</p>
 <tr class="row-even"><td><p>latest</p></td>
 <td><p>The most recent release.</p></td>
 </tr>
-<tr class="row-odd"><td><p>7.4</p></td>
-<td><p>A specific version (7.4 in this case).</p></td>
+<tr class="row-odd"><td><p>8.4</p></td>
+<td><p>A specific version (8.4 in this case).</p></td>
 </tr>
-<tr class="row-even"><td><p>7</p></td>
-<td><p>the latest release of a specific major version (major version 7 in this case).</p></td>
+<tr class="row-even"><td><p>8</p></td>
+<td><p>the latest release of a specific major version (major version 8 in this case).</p></td>
 </tr>
 <tr class="row-odd"><td><p>snapshot</p></td>
 <td><p>The latest nightly test build.</p></td>
@@ -91,11 +91,11 @@ maintenance functions to be executed. Multiple versions are included in the
 following directories to allow use with different versions of the database
 server:</p>
 <ul class="simple">
-<li><p>PostgreSQL 11: <em>/usr/local/pgsql-11</em></p></li>
 <li><p>PostgreSQL 12: <em>/usr/local/pgsql-12</em></p></li>
 <li><p>PostgreSQL 13: <em>/usr/local/pgsql-13</em></p></li>
 <li><p>PostgreSQL 14: <em>/usr/local/pgsql-14</em></p></li>
 <li><p>PostgreSQL 15: <em>/usr/local/pgsql-15</em></p></li>
+<li><p>PostgreSQL 16: <em>/usr/local/pgsql-16</em></p></li>
 </ul>
 <p>The default binary paths set in the container are as follows:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">DEFAULT_BINARY_PATHS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">{</span>
@@ -154,7 +154,12 @@ than using the default.</p>
 <p><em>Default: /pgadmin4/servers.json</em></p>
 <p>Override the default file path for the server definition list. See the
 /pgadmin4/servers.json mapped file below for more information. See the format
-of the <a class="reference external" href="https://www.pgadmin.org/docs/pgadmin4/latest/import_export_servers.html#json-format">JSON file</a>.</p>
+of the <a class="reference external" href="https://www.pgadmin.org/docs/pgadmin4/latest/import_export_servers.html#json-format">Servers JSON file</a>.</p>
+<p><strong>PGADMIN_PREFERENCES_JSON_FILE</strong></p>
+<p><em>Default: /pgadmin4/preferences.json</em></p>
+<p>Override the default file path for the preferences customization at the container creation. See the
+/pgadmin4/preferences.json mapped file below for more information. See the format
+of the <a class="reference external" href="https://www.pgadmin.org/docs/pgadmin4/latest/preferences.html#json-format">Preferences JSON file</a>.</p>
 <p><strong>GUNICORN_ACCESS_LOGFILE</strong></p>
 <p><em>Default: -</em> (stdout)</p>
 <p>Specify an output file in which to store the Gunicorn access logs, instead of
@@ -224,6 +229,12 @@ the container environment through <em>PGADMIN_CONFIG_</em> prefixed variables.</
 <p>If this file is mapped, server definitions found in it will be loaded at launch
 time. This allows connection information to be pre-loaded into the instance of
 pgAdmin in the container. Note that server definitions are only loaded on first
+launch, i.e. when the configuration database is created, and not on subsequent
+launches using the same configuration database.</p>
+<p><strong>/pgadmin4/preferences.json</strong></p>
+<p>If this file is mapped, preferences defined in it will be updated at launch
+time. This allows customization of preferences settings into the instance of
+pgAdmin in the container. Note that preferences are only set on first
 launch, i.e. when the configuration database is created, and not on subsequent
 launches using the same configuration database.</p>
 <p><strong>/certs/server.cert</strong></p>
@@ -521,7 +532,7 @@ docker<span class="w"> </span>run<span class="w"> </span>--name<span class="w"> 
 <li class="toctree-l1"><a class="reference internal" href="licence.html">Licence</a></li>
 </ul>
 
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -529,7 +540,7 @@ docker<span class="w"> </span>run<span class="w"> </span>--name<span class="w"> 
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
 <div id="sidebarbutton" title="Collapse sidebar">
@@ -551,7 +562,7 @@ docker<span class="w"> </span>run<span class="w"> </span>--name<span class="w"> 
         <li class="right" >
           <a href="server_deployment.html" title="Server Deployment"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="getting_started.html" >Getting Started</a> &#187;</li>
           <li class="nav-item nav-item-2"><a href="deployment.html" >Deployment</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Container Deployment</a></li> 

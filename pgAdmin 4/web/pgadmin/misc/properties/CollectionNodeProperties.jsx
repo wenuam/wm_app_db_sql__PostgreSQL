@@ -8,21 +8,22 @@
 //////////////////////////////////////////////////////////////
 import React from 'react';
 import getApiInstance from 'sources/api_instance';
-import { makeStyles } from '@material-ui/core/styles';
-import { Box, Switch } from '@material-ui/core';
+import { makeStyles } from '@mui/styles';
+import { Box } from '@mui/material';
 import { generateCollectionURL } from '../../browser/static/js/node_ajax';
 import gettext from 'sources/gettext';
 import PgTable from 'sources/components/PgTable';
 import Theme from 'sources/Theme';
 import PropTypes from 'prop-types';
 import { PgButtonGroup, PgIconButton } from '../../static/js/components/Buttons';
-import DeleteIcon from '@material-ui/icons/Delete';
-import DeleteSweepIcon from '@material-ui/icons/DeleteSweep';
-import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
+import DeleteIcon from '@mui/icons-material/Delete';
+import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import EmptyPanelMessage from '../../static/js/components/EmptyPanelMessage';
 import Loader from 'sources/components/Loader';
 import { evalFunc } from '../../static/js/utils';
 import { usePgAdmin } from '../../static/js/BrowserComponent';
+import { getSwitchCell } from '../../static/js/components/PgReactTableStyled';
 
 const useStyles = makeStyles((theme) => ({
   emptyPanel: {
@@ -64,12 +65,6 @@ const useStyles = makeStyles((theme) => ({
     overflow: 'hidden !important',
     overflowX: 'auto !important'
   },
-  readOnlySwitch: {
-    opacity: 0.75,
-    '& .MuiSwitch-track': {
-      opacity: theme.palette.action.disabledOpacity,
-    }
-  }
 }));
 
 export default function CollectionNodeProperties({
@@ -86,50 +81,38 @@ export default function CollectionNodeProperties({
 
   const [data, setData] = React.useState([]);
   const [infoMsg, setInfoMsg] = React.useState('Please select an object in the tree view.');
-  const [selectedObject, setSelectedObject] = React.useState([]);
+  const [selectedObject, setSelectedObject] = React.useState({});
   const [loaderText, setLoaderText] = React.useState('');
   const schemaRef = React.useRef();
 
   const [pgTableColumns, setPgTableColumns] = React.useState([
     {
-      Header: 'properties',
-      accessor: 'Properties',
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
+      header: 'properties',
+      accessorKey: 'Properties',
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
     },
     {
-      Header: 'value',
-      accessor: 'value',
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
+      header: 'value',
+      accessorKey: 'value',
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
     },
   ]);
 
-  const getTableSelectedRows = (selRows) => {
-    setSelectedObject(selRows);
-  };
-
   const onDrop = (type) => {
-    let selRowModels = selectedObject,
-      selRows = [],
+    let selRows = [],
       selItem = pgAdmin.Browser.tree.selected(),
       selectedItemData = selItem ? pgAdmin.Browser.tree.itemData(selItem) : null,
       selNode = selectedItemData && pgAdmin.Browser.Nodes[selectedItemData._type],
-      url = undefined,
-      msg = undefined,
-      title = undefined;
+      url, msg, title;
 
-    if (selNode && selNode.type && selNode.type == 'coll-constraints') {
-      // In order to identify the constraint type, the type should be passed to the server
-      selRows = selRowModels.map((row) => ({
-        id: row.original.oid,
-        _type: row.original._type,
-      }));
-    } else {
-      selRows = selRowModels.map((row) => row.original[schemaRef.current.idAttribute]);
-    }
+    selRows = Object.keys(selectedObject).map((i)=>(selNode?.type == 'coll-constraints' ? {
+      id: data[i].oid,
+      _type: data[i]._type,
+    } : data[i][schemaRef.current.idAttribute]));
 
     if (selRows.length === 0) {
       pgAdmin.Browser.notifier.alert(
@@ -173,6 +156,7 @@ export default function CollectionNodeProperties({
           }
           pgAdmin.Browser.tree.refresh(selItem);
           setIsStale(true);
+          setSelectedObject({});
         })
         .catch(function (error) {
           pgAdmin.Browser.notifier.alert(
@@ -193,7 +177,7 @@ export default function CollectionNodeProperties({
   };
 
   React.useEffect(() => {
-    if (node){
+    if (node) {
 
       let nodeObj =
       pgAdmin.Browser.Nodes[nodeData?._type.replace('coll-', '')];
@@ -204,33 +188,32 @@ export default function CollectionNodeProperties({
 
       let tableColumns = [];
       let column = {};
+      if(!isStale || !isActive) {
+        return;
+      }
+
       setLoaderText(gettext('Loading...'));
 
-      if (nodeData._type.indexOf('coll-') > -1 && !_.isUndefined(nodeObj.getSchema)) {
-        schemaRef.current = nodeObj.getSchema?.call(nodeObj, treeNodeInfo, nodeData);
+      if (!_.isUndefined(nodeObj.getSchema)) {
+        schemaRef.current = nodeObj.getSchema?.(treeNodeInfo, nodeData);
         schemaRef.current?.fields.forEach((field) => {
           if (node.columns.indexOf(field.id) > -1) {
             if (field.label.indexOf('?') > -1) {
               column = {
-                Header: field.label,
-                accessor: field.id,
-                sortable: true,
-                resizable: true,
-                disableGlobalFilter: false,
-                minWidth: 0,
-                // eslint-disable-next-line react/display-name
-                Cell: ({ value }) => {
-                  return (<Switch color="primary" checked={value} className={classes.readOnlySwitch} value={value} readOnly title={String(value)} />);
-                }
+                header: field.label,
+                accessorKey: field.id,
+                enableSorting: true,
+                enableResizing: true,
+                enableFilters: true,
+                cell: getSwitchCell()
               };
             } else {
               column = {
-                Header: field.label,
-                accessor: field.id,
-                sortable: true,
-                resizable: true,
-                disableGlobalFilter: false,
-                minWidth: 0,
+                header: field.label,
+                accessorKey: field.id,
+                enableSorting: true,
+                enableResizing: true,
+                enableFilters: true,
               };
             }
             tableColumns.push(column);
@@ -239,20 +222,16 @@ export default function CollectionNodeProperties({
       }else{
         node.columns.forEach((field) => {
           column = {
-            Header: field,
-            accessor: field,
-            sortable: true,
-            resizable: true,
-            disableGlobalFilter: false,
-            minWidth: 0,
+            header: field,
+            accessorKey: field,
+            enableSorting: true,
+            enableResizing: true,
+            enableFilters: true,
           };
           tableColumns.push(column);
         });
       }
 
-      if(!isStale || !isActive) {
-        return;
-      }
 
       api({
         url: url,
@@ -275,7 +254,7 @@ export default function CollectionNodeProperties({
         });
       setIsStale(false);
     }
-  }, [nodeData, node, nodeItem, isStale]);
+  }, [nodeData, node, nodeItem, isStale, isActive]);
 
   const CustomHeader = () => {
     const canDrop = evalFunc(node, node.canDrop, nodeData, nodeItem, treeNodeInfo);
@@ -292,7 +271,7 @@ export default function CollectionNodeProperties({
               onDrop('drop');
             }}
             disabled={
-              (selectedObject.length > 0)
+              (Object.keys(selectedObject).length > 0)
                 ? !canDrop
                 : true
             }
@@ -305,7 +284,7 @@ export default function CollectionNodeProperties({
               onDrop('dropCascade');
             }}
             disabled={
-              (selectedObject.length > 0)
+              (Object.keys(selectedObject).length > 0)
                 ? !canDropCascade
                 : true
             }
@@ -318,7 +297,7 @@ export default function CollectionNodeProperties({
                 onDrop('dropForce');
               }}
               disabled={
-                (selectedObject.length > 0)
+                (Object.keys(selectedObject).length > 0)
                   ? !canDropForce
                   : true
               }
@@ -334,14 +313,15 @@ export default function CollectionNodeProperties({
         {data.length > 0 ?
           (
             <PgTable
-              isSelectRow={!('catalog' in treeNodeInfo) && (nodeData.label !== 'Catalogs') && _.isUndefined(node?.canSelect)}
+              hasSelectRow={!('catalog' in treeNodeInfo) && (nodeData.label !== 'Catalogs') && _.isUndefined(node?.canSelect)}
               CustomHeader={CustomHeader}
               className={classes.autoResizer}
               columns={pgTableColumns}
               data={data}
               type={'panel'}
               isSearch={false}
-              getSelectedRows={getTableSelectedRows}
+              selectedRows={selectedObject}
+              setSelectedRows={setSelectedObject}
             />
           )
           :
@@ -358,16 +338,9 @@ export default function CollectionNodeProperties({
 
 CollectionNodeProperties.propTypes = {
   node: PropTypes.func,
-  itemData: PropTypes.object,
   nodeData: PropTypes.object,
   treeNodeInfo: PropTypes.object,
   nodeItem: PropTypes.object,
-  preferences: PropTypes.object,
-  sid: PropTypes.number,
-  did: PropTypes.number,
-  row: PropTypes.object,
-  serverConnected: PropTypes.bool,
-  value: PropTypes.bool,
   isActive: PropTypes.bool,
   isStale: PropTypes.bool,
   setIsStale: PropTypes.func,

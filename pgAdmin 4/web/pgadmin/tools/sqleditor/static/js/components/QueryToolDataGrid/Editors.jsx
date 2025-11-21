@@ -6,11 +6,12 @@
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
-import { makeStyles, Box, Portal } from '@material-ui/core';
+import { Box, Portal } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 import React, {useContext, useLayoutEffect, useRef} from 'react';
 import { DefaultButton, PrimaryButton } from '../../../../../../static/js/components/Buttons';
-import CheckRoundedIcon from '@material-ui/icons/CheckRounded';
-import CloseIcon from '@material-ui/icons/Close';
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
+import CloseIcon from '@mui/icons-material/Close';
 import gettext from 'sources/gettext';
 import clsx from 'clsx';
 import JSONBigNumber from 'json-bignumber';
@@ -119,7 +120,7 @@ function isValidArray(val) {
   return !(val != '' && (val.charAt(0) != '{' || val.charAt(val.length - 1) != '}'));
 }
 
-function setEditorPosition(cellEle, editorEle) {
+export function setEditorPosition(cellEle, editorEle, closestEle, topValue) {
   if(!editorEle || !cellEle) {
     return;
   }
@@ -127,12 +128,12 @@ function setEditorPosition(cellEle, editorEle) {
   if(editorEle.style.left || editorEle.style.top) {
     return;
   }
-  let gridEle = cellEle.closest('.rdg');
+  let gridEle = cellEle.closest(closestEle);
   let cellRect = cellEle.getBoundingClientRect();
   let gridEleRect = gridEle.getBoundingClientRect();
   let position = {
     left: cellRect.left,
-    top:  Math.max(cellRect.top - editorEle.offsetHeight + 12, 0)
+    top:  Math.max(cellRect.top - editorEle.offsetHeight + topValue, 0)
   };
 
   if ((position.left + editorEle.offsetWidth + 10) > gridEle.offsetWidth) {
@@ -203,7 +204,7 @@ export function TextEditor({row, column, onRowChange, onClose}) {
   return(
     <Portal container={document.body}>
       <Box ref={(ele)=>{
-        setEditorPosition(getCellElement(column.idx), ele);
+        setEditorPosition(getCellElement(column.idx), ele, '.rdg', 12);
       }} className={classes.textEditor} data-label="pg-editor" onKeyDown={suppressEnterKey} >
         <textarea ref={autoFocusAndSelect} className={classes.textarea} value={localVal} onChange={onChange} />
         <Box display="flex" justifyContent="flex-end">
@@ -211,11 +212,10 @@ export function TextEditor({row, column, onRowChange, onClose}) {
             {gettext('Cancel')}
           </DefaultButton>
           {column.can_edit &&
-          <>
             <PrimaryButton startIcon={<CheckRoundedIcon />} onClick={onOK} size="small" className={classes.buttonMargin}>
               {gettext('OK')}
             </PrimaryButton>
-          </>}
+          }
         </Box>
       </Box>
     </Portal>
@@ -254,7 +254,7 @@ export function NumberEditor({row, column, onRowChange, onClose}) {
   };
   const onBlur = ()=>{
     if(isValidData()) {
-      onClose(column.can_edit ? true : false);
+      onClose(column.can_edit);
       return true;
     }
     return false;
@@ -374,7 +374,7 @@ export function JsonTextEditor({row, column, onRowChange, onClose}) {
   return (
     <Portal container={document.body}>
       <Box ref={(ele)=>{
-        setEditorPosition(getCellElement(column.idx), ele);
+        setEditorPosition(getCellElement(column.idx), ele, '.rdg', 12);
       }} className={classes.jsonEditor} data-label="pg-editor" onKeyDown={suppressEnterKey} >
         <JsonEditor
           value={localVal}
@@ -389,11 +389,10 @@ export function JsonTextEditor({row, column, onRowChange, onClose}) {
             {gettext('Cancel')}
           </DefaultButton>
           {column.can_edit &&
-          <>
             <PrimaryButton startIcon={<CheckRoundedIcon />} onClick={onOK} size="small" className={classes.buttonMargin}>
               {gettext('OK')}
             </PrimaryButton>
-          </>}
+          }
         </Box>
       </Box>
     </Portal>

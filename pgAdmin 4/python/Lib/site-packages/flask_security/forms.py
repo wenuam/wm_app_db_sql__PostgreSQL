@@ -6,16 +6,19 @@
 
     :copyright: (c) 2012 by Matt Wright.
     :copyright: (c) 2017 by CERN.
-    :copyright: (c) 2019-2022 by J. Christopher Wagner (jwag).
+    :copyright: (c) 2019-2024 by J. Christopher Wagner (jwag).
     :license: MIT, see LICENSE for more details.
 """
+
+from __future__ import annotations
 
 import inspect
 import typing as t
 
-from flask import Markup, current_app, request
+from flask import current_app, request
 from flask_login import current_user
 from flask_wtf import FlaskForm as BaseForm
+from markupsafe import Markup
 from wtforms import (
     BooleanField,
     EmailField,
@@ -35,6 +38,7 @@ from wtforms.validators import Optional, StopValidation
 
 from .babel import is_lazy_string, make_lazy_string
 from .confirmable import requires_confirmation
+from .mail_util import EmailValidateException
 from .proxies import _security
 from .utils import (
     _,
@@ -87,6 +91,17 @@ _default_field_labels = {
     "sms_method": _("Set up using SMS"),
 }
 
+# translated methods for two-factor and us-signin. keyed by form 'choices'
+_setup_methods_xlate = {
+    "google_authenticator": _("Google Authenticator"),
+    "authenticator": _("authenticator"),
+    "email": _("email"),
+    "mail": _("email"),
+    "sms": _("SMS"),
+    "password": _("password"),
+    None: _("none"),
+}
+
 
 class ValidatorMixin:
     """
@@ -134,25 +149,38 @@ class Length(ValidatorMixin, validators.Length):
 class EmailValidation:
     """Simple interface to email_validator.
     N.B. Side-effect - if valid email, the field.data is set to the normalized value.
+
+    The 'verify' keyword informs the validator to perform checks to be more sure
+    that the email can actually receive an email (as well as normalize).
+    Set to False - just normalize (for use with identity purposes).
     """
+
+    def __init__(self, *args, **kwargs):
+        self.verify = kwargs.get("verify", False)
 
     def __call__(self, form, field):
         if field.data is None:  # pragma: no cover
             raise ValidationError(get_message("EMAIL_NOT_PROVIDED")[0])
 
         try:
-            field.data = _security._mail_util.validate(field.data)
-        except ValueError:
-            msg = get_message("INVALID_EMAIL_ADDRESS")[0]
+            if self.verify:
+                field.data = _security._mail_util.validate(field.data)
+            else:
+                field.data = _security._mail_util.normalize(field.data)
+        except EmailValidateException as e:
             # we stop further validators if email isn't valid.
             # TODO: email_validator provides some really nice error messages - however
             # they aren't localized. And there isn't an easy way to add multiple
             # errors at once.
+            raise StopValidation(e.msg)
+        except ValueError:
+            # Backwards compat - mail_util no longer raises this - but app subclasses
+            # might (and we're making this change in 5.4.3).
+            msg = get_message("INVALID_EMAIL_ADDRESS")[0]
             raise StopValidation(msg)
 
 
 email_required = Required(message="EMAIL_NOT_PROVIDED")
-email_validator = EmailValidation()
 password_required = Required(message="PASSWORD_NOT_PROVIDED")
 
 
@@ -220,7 +248,7 @@ def unique_username(form, field):
 
 def unique_identity_attribute(form, field):
     """A validator that checks the field data against all configured
-    SECURITY_USER_IDENTITY_ATTRIBUTES.
+    :py:data:`SECURITY_USER_IDENTITY_ATTRIBUTES`.
     This can be used as part of registration.
 
     Be aware that the "mapper" function likely also normalizes the input in addition
@@ -254,7 +282,7 @@ class Form(BaseForm):
 
 def generic_message(
     detailed_msg: str, generic_msg: str, **kwargs: t.Any
-) -> t.Tuple[str, str]:
+) -> tuple[str, str]:
     if cv("RETURN_GENERIC_RESPONSES"):
         m, c = get_message(generic_msg, **kwargs)
     else:
@@ -262,13 +290,13 @@ def generic_message(
     return m, c
 
 
-def form_errors_munge(form: Form, fields: t.Dict[str, t.Dict[str, str]]) -> None:
+def form_errors_munge(form: Form, fields: dict[str, dict[str, str]]) -> None:
     """
     To support OWASP best practice on unauthenticated endpoints to avoid
     disclosing whether a user exists or not we need to return generic error messages.
     Furthermore, WTForms really likes to place errors on the field itself - which is
     a dead giveaway. We need to move errors from fields to the form.form_errors, and
-    replace then with generic msgs.
+    (optionally) replace then with generic msgs.
     """
     if not cv("RETURN_GENERIC_RESPONSES"):  # pragma: no cover
         return
@@ -279,8 +307,7 @@ def form_errors_munge(form: Form, fields: t.Dict[str, t.Dict[str, str]]) -> None
             field.errors = []
             # If they want to replace that message with a generic message and place
             # it in the generic/form level errors - do that.
-            replace_msg = rinfo.get("replace_msg", None)
-            if replace_msg:
+            if replace_msg := rinfo.get("replace_msg"):
                 form.form_errors.append(get_message(replace_msg)[0])
 
 
@@ -288,7 +315,7 @@ class UserEmailFormMixin:
     email = EmailField(
         get_form_field_label("email"),
         render_kw={"autocomplete": "email"},
-        validators=[email_required, email_validator, valid_user_email],
+        validators=[email_required, EmailValidation(verify=True), valid_user_email],
     )
 
 
@@ -296,7 +323,7 @@ class UniqueEmailFormMixin:
     email = EmailField(
         get_form_field_label("email"),
         render_kw={"autocomplete": "email"},
-        validators=[email_required, email_validator, unique_user_email],
+        validators=[email_required, EmailValidation(verify=True), unique_user_email],
     )
 
 
@@ -409,7 +436,7 @@ class SendConfirmationForm(Form, UserEmailFormMixin):
 
     def __init__(self, *args: t.Any, **kwargs: t.Any):
         super().__init__(*args, **kwargs)
-        self.user: t.Optional["User"] = None  # set by valid_user_email
+        self.user: User | None = None  # set by valid_user_email
         if request and request.method == "GET":
             self.email.data = request.args.get("email", None)
 
@@ -431,7 +458,7 @@ class ForgotPasswordForm(Form, UserEmailFormMixin):
     def __init__(self, *args: t.Any, **kwargs: t.Any):
         super().__init__(*args, **kwargs)
         self.requires_confirmation: bool = False
-        self.user: t.Optional["User"] = None  # set by valid_user_email
+        self.user: User | None = None  # set by valid_user_email
 
     def validate(self, **kwargs: t.Any) -> bool:
         if not super().validate(**kwargs):
@@ -447,14 +474,20 @@ class ForgotPasswordForm(Form, UserEmailFormMixin):
         return True
 
 
-class PasswordlessLoginForm(Form, UserEmailFormMixin):
+class PasswordlessLoginForm(Form):
     """The passwordless login form"""
+
+    email = EmailField(
+        get_form_field_label("email"),
+        render_kw={"autocomplete": "email"},
+        validators=[email_required, EmailValidation(verify=False), valid_user_email],
+    )
 
     submit = SubmitField(get_form_field_label("send_login_link"))
 
     def __init__(self, *args: t.Any, **kwargs: t.Any):
         super().__init__(*args, **kwargs)
-        self.user: t.Optional["User"] = None  # set by valid_user_email
+        self.user: User | None = None  # set by valid_user_email
 
     def validate(self, **kwargs: t.Any) -> bool:
         if not super().validate(**kwargs):
@@ -474,7 +507,7 @@ class LoginForm(Form, PasswordFormMixin, NextFormMixin):
     email = EmailField(
         get_form_field_label("email"),
         render_kw={"autocomplete": "email"},
-        validators=[Optional(), email_validator],
+        validators=[Optional(), EmailValidation(verify=False)],
     )
 
     # username is added dynamically based on USERNAME_ENABLED.
@@ -494,9 +527,9 @@ class LoginForm(Form, PasswordFormMixin, NextFormMixin):
             )
             self.password.description = html
         self.requires_confirmation: bool = False
-        self.user: t.Optional["User"] = None
+        self.user: User | None = None
         # ifield can be set by subclasses to skip identity checks.
-        self.ifield: t.Optional[Field] = None
+        self.ifield: Field | None = None
         # If True then user has authenticated so we can show detailed errors
         self.user_authenticated = False
 
@@ -569,9 +602,9 @@ class VerifyForm(Form, PasswordFormMixin):
 
     submit = SubmitField(get_form_field_label("verify_password"))
 
-    def __init__(self, *args: t.Any, user: "User", **kwargs: t.Any):
+    def __init__(self, *args: t.Any, user: User, **kwargs: t.Any):
         super().__init__(*args, **kwargs)
-        self.user: "User" = user
+        self.user: User = user
 
     def validate(self, **kwargs: t.Any) -> bool:
         if not super().validate(**kwargs):  # pragma: no cover
@@ -671,6 +704,9 @@ class RegisterForm(ConfirmRegisterForm, NextFormMixin):
 class ResetPasswordForm(Form, NewPasswordFormMixin, PasswordConfirmFormMixin):
     """The default reset password form"""
 
+    # filled in by caller
+    user: User
+
     submit = SubmitField(get_form_field_label("reset_password"))
 
     def validate(self, **kwargs: t.Any) -> bool:
@@ -678,7 +714,7 @@ class ResetPasswordForm(Form, NewPasswordFormMixin, PasswordConfirmFormMixin):
             return False
 
         pbad, self.password.data = _security._password_util.validate(
-            self.password.data, False, user=current_user
+            self.password.data, False, user=self.user
         )
         if pbad:
             self.password.errors.extend(pbad)
@@ -741,15 +777,15 @@ class TwoFactorSetupForm(Form):
     """The Two-factor token validation form"""
 
     setup = RadioField(
-        "Available Methods",
+        get_form_field_xlate(_("Available Methods")),
         choices=[
+            ("disable", get_form_field_xlate(_("Disable two factor authentication"))),
             ("email", get_form_field_label("email_method")),
             (
                 "authenticator",
                 get_form_field_label("authapp_method"),
             ),
             ("sms", get_form_field_label("sms_method")),
-            ("disable", get_form_field_xlate(_("Disable two factor authentication"))),
         ],
         validate_choice=False,
     )
@@ -771,13 +807,9 @@ class TwoFactorSetupForm(Form):
         if "setup" not in self.data or self.data["setup"] not in choices:
             self.setup.errors.append(get_message("TWO_FACTOR_METHOD_NOT_AVAILABLE")[0])
             return False
-        if self.setup.data == "sms" and self.phone.data and len(self.phone.data) > 0:
-            # Somewhat bizarre - but this isn't required the first time around
-            # when they select "sms". Then they get a field to fill out with
-            # phone number, then Submit again.
+        if self.setup.data == "sms":
             msg = _security._phone_util.validate_phone_number(self.phone.data)
             if msg:
-                self.phone.errors = list()
                 self.phone.errors.append(msg)
                 return False
 
@@ -795,7 +827,7 @@ class TwoFactorVerifyCodeForm(Form, CodeFormMixin):
         self.window: int = 0
         self.primary_method: str = ""
         self.tf_totp_secret: str = ""
-        self.user: t.Optional["User"] = None  # set by view
+        self.user: User | None = None  # set by view
 
     def validate(self, **kwargs: t.Any) -> bool:
         if not super().validate(**kwargs):  # pragma: no cover
@@ -831,9 +863,9 @@ class TwoFactorRescueForm(Form):
 
     # rescue options - additional options are generated in set_rescue_options()
     help_setup = RadioField(
-        "Trouble Accessing Your Account?/Lost Mobile Device?",
+        get_form_field_xlate(_("Trouble Accessing Your Account?/Lost Mobile Device?")),
         choices=[
-            ("help", "Contact Administrator"),
+            ("help", get_form_field_xlate(_("Contact Administrator"))),
         ],
     )
     submit = SubmitField(get_form_field_label("submit"))
@@ -844,10 +876,10 @@ class DummyForm(Form):
 
     def __init__(self, *args: t.Any, **kwargs: t.Any):
         super().__init__(*args, **kwargs)
-        self.user: t.Optional["User"] = kwargs.get("user", None)
+        self.user: User | None = kwargs.get("user", None)
 
 
-def build_form_from_request(form_name: str, **kwargs: t.Dict[str, t.Any]) -> Form:
+def build_form_from_request(form_name: str, **kwargs: dict[str, t.Any]) -> Form:
     # helper function for views
     form_data = None
     if request.content_length:

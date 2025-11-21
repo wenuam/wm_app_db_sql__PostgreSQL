@@ -59,6 +59,8 @@ ERROR_FETCHING_ROLE_INFORMATION = gettext(
 
 ERROR_FETCHING_DATA = gettext('Unable to fetch data.')
 
+ERROR_SERVER_ID_NOT_SPECIFIED = gettext('Server ID not specified.')
+
 # Authentication Sources
 INTERNAL = 'internal'
 LDAP = 'ldap'
@@ -137,3 +139,6 @@ class MessageType:
     INFO = 'Info',
     CLOSE = 'Close',
     WARNING = 'Warning'
+
+
+DBMS_JOB_SCHEDULER_ID = 999999

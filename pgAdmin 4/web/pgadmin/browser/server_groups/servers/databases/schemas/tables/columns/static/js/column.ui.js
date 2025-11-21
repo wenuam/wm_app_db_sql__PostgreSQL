@@ -77,7 +77,7 @@ export default class ColumnSchema extends BaseUISchema {
 
   inSchemaWithColumnCheck(state) {
     // disable all fields if column is listed under view or mview
-    if (this.nodeInfo && ('view' in this.nodeInfo || 'mview' in this.nodeInfo)) {
+    if (this.nodeInfo && (('view' in this.nodeInfo && this.nodeInfo?.server?.version < 130000) || 'mview' in this.nodeInfo)) {
       return true;
     }
 
@@ -166,7 +166,7 @@ export default class ColumnSchema extends BaseUISchema {
       // Need to show this field only when creating new table
       // [in SubNode control]
       id: 'is_primary_key', label: gettext('Primary key?'),
-      cell: 'switch', type: 'switch',  width: 100, disableResizing: true, deps:['name', ['primary_key']],
+      cell: 'switch', type: 'switch',  width: 100, enableResizing: false, deps:['name', ['primary_key']],
       visible: ()=>{
         return obj.top?.nodeInfo && _.isUndefined(
           obj.top.nodeInfo['table'] || obj.top.nodeInfo['view'] ||
@@ -280,7 +280,7 @@ export default class ColumnSchema extends BaseUISchema {
       },
     },{
       id: 'attlen', label: gettext('Length/Precision'),
-      deps: ['cltype'], type: 'int', group: gettext('Definition'), width: 120, disableResizing: true,
+      deps: ['cltype'], type: 'int', group: gettext('Definition'), width: 120, enableResizing: false,
       cell: (state)=>{
         return obj.attCell(state);
       },
@@ -311,7 +311,7 @@ export default class ColumnSchema extends BaseUISchema {
     },{
       id: 'max_val_attlen', skipChange: true, visible: false, type: '',
     },{
-      id: 'attprecision', label: gettext('Scale'), width: 60, disableResizing: true,
+      id: 'attprecision', label: gettext('Scale'), width: 60, enableResizing: false,
       deps: ['cltype'], type: 'int', group: gettext('Definition'),
       cell: (state)=>{
         return obj.attCell(state);
@@ -384,17 +384,38 @@ export default class ColumnSchema extends BaseUISchema {
       group: gettext('Definition'),
     },{
       id: 'attstorage', label: gettext('Storage'), group: gettext('Definition'),
-      type: 'select', mode: ['properties', 'edit'],
+      type: 'select', mode: ['properties', 'edit', 'create'],
       cell: 'select', readonly: obj.inSchemaWithColumnCheck,
       controlProps: { placeholder: gettext('Select storage'),
         allowClear: false,
       },
-      options: [
-        {label: 'PLAIN', value: 'p'},
-        {label: 'MAIN', value: 'm'},
-        {label: 'EXTERNAL', value: 'e'},
-        {label: 'EXTENDED', value: 'x'},
-      ],
+      options: function() {
+        let options = [{
+          label: gettext('PLAIN'), value: 'p'
+        },{
+          label: gettext('MAIN'), value: 'm'
+        },{
+          label: gettext('EXTERNAL'), value: 'e'
+        },{
+          label: gettext('EXTENDED'), value: 'x'
+        }];
+
+        if (obj.getServerVersion() >= 160000) {
+          options.push({
+            label: gettext('DEFAULT'), value: 'd',
+          });
+        }
+        return options;
+      },
+      visible: (state) => {
+        if (obj.getServerVersion() >= 160000) {
+          return true;
+        } else if (obj.isNew(state)) {
+          return false;
+        } else {
+          return true;
+        }
+      },
     },{
       id: 'defval', label: gettext('Default'), cell: 'text',
       type: 'text', group: gettext('Constraints'), deps: ['cltype', 'colconstype'],
@@ -418,7 +439,7 @@ export default class ColumnSchema extends BaseUISchema {
       },
     },{
       id: 'attnotnull', label: gettext('Not NULL?'), cell: 'switch',
-      type: 'switch', width: 80, disableResizing: true,
+      type: 'switch', width: 80, enableResizing: false,
       group: gettext('Constraints'), editable: this.editableCheckForTable,
       deps: ['colconstype'],
       readonly: (state) => {

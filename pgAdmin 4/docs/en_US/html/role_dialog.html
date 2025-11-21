@@ -7,12 +7,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Login/Group Role Dialog &#8212; pgAdmin 4 8.2 documentation</title>
+    <title>Login/Group Role Dialog &#8212; pgAdmin 4 8.7 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/style.css?v=d36593c3" />
     
-    <script src="_static/documentation_options.js?v=28b929c1"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/documentation_options.js?v=70b0b77f"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     
     <script src="_static/sidebar.js"></script>
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="resource_group_dialog.html" title="Resource Group Dialog"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="managing_cluster_objects.html" accesskey="U">Managing Cluster Objects</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Login/Group Role Dialog</a></li> 
       </ul>
@@ -87,15 +87,13 @@ role is permitted to create roles. A role with this privilege can alter and
 drop roles. The default value is <em>No</em>.</p></li>
 <li><p>Move the <em>Create databases</em> switch to the <em>Yes</em> position to control whether a
 role can create databases. The default value is <em>No</em>.</p></li>
-<li><p>The <em>Update catalog?</em> switch is disabled until the role is given superuser
-privileges. Move the <em>Update catalogs?</em> switch to the <em>No</em> position to control
-whether a role can update catalogs. The default value is <em>Yes</em> when the
-<em>Superuser</em> switch is in the <em>Yes</em> position.</p></li>
 <li><p>Move the <em>Inherit rights from the parent roles?</em> switch to the <em>No</em> position
 if a role does not inherit privileges. The default value is <em>Yes</em>.</p></li>
 <li><p>Move the <em>Can initiate streaming replication and backups?</em> switch to the <em>Yes</em>
 position to control whether a role can initiate streaming replication or put
 the system in and out of backup mode. The default value is <em>No</em>.</p></li>
+<li><p>Move the <em>Bypass RLS?</em> switch to the <em>Yes</em> position to control whether a
+role can bypasses every row-level security (RLS) policy. The default value is <em>No</em>.</p></li>
 </ul>
 <img alt="Role dialog membership tab" class="align-center" src="_images/role_membership.png" />
 <ul class="simple">
@@ -181,6 +179,8 @@ role can make unlimited connections to the server at any given time.</p>
 <li class="toctree-l2"><a class="reference internal" href="resource_group_dialog.html">Resource Group Dialog</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Login/Group Role Dialog</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tablespace_dialog.html">Tablespace Dialog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="replica_nodes_dialog.html">Replica Node Dialog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pgd_replication_group_dialog.html">PGD Replication Group Node Dialog</a></li>
 <li class="toctree-l2"><a class="reference internal" href="role_reassign_dialog.html">Role Reassign/Drop Own Dialog</a></li>
 </ul>
 </li>
@@ -196,7 +196,7 @@ role can make unlimited connections to the server at any given time.</p>
 <li class="toctree-l1"><a class="reference internal" href="licence.html">Licence</a></li>
 </ul>
 
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -204,7 +204,7 @@ role can make unlimited connections to the server at any given time.</p>
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
 <div id="sidebarbutton" title="Collapse sidebar">
@@ -226,7 +226,7 @@ role can make unlimited connections to the server at any given time.</p>
         <li class="right" >
           <a href="resource_group_dialog.html" title="Resource Group Dialog"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="managing_cluster_objects.html" >Managing Cluster Objects</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Login/Group Role Dialog</a></li> 
       </ul>

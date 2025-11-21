@@ -7,12 +7,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Preferences Dialog &#8212; pgAdmin 4 8.2 documentation</title>
+    <title>Preferences Dialog &#8212; pgAdmin 4 8.7 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/style.css?v=d36593c3" />
     
-    <script src="_static/documentation_options.js?v=28b929c1"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/documentation_options.js?v=70b0b77f"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     
     <script src="_static/sidebar.js"></script>
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="tree_control.html" title="Tree Control"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="getting_started.html" accesskey="U">Getting Started</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Preferences Dialog</a></li> 
       </ul>
@@ -77,7 +77,8 @@ are any unsaved changes. On user confirmation, the properties dialog will close.
 attempt to catch browser close or refresh events and prompt before allowing
 them to continue.</p></li>
 <li><p>When the <em>Hide shared servers?</em> switch is set to <em>True</em>, the client will hide
-all the shared servers from the object explorer.</p></li>
+all the shared servers from the object explorer. <strong>Note:</strong> This option is visible only when
+pgAdmin is running in server mode.</p></li>
 <li><p>When the <em>Show empty object collections?</em> switch is turned off, then all object
 collections which are empty will be hidden from browser tree.</p></li>
 <li><p>When the <em>Show system objects?</em> switch is set to <em>True</em>, the client will
@@ -156,10 +157,27 @@ dashboards.</p></li>
 <p>Use the fields on the <em>Refresh rates</em> panel to specify your refersh rates
 preferences for the graphs on the <em>Dashboard</em> tab:</p>
 <ul class="simple">
+<li><p>Use the <em>Average load statistics refresh rate</em> field to specify the number of
+seconds between average load statistics samples displayed in graphs.</p></li>
 <li><p>Use the <em>Block I/O statistics refresh rate</em> field to specify the number of
 seconds between block I/O statistic samples displayed in graphs.</p></li>
+<li><p>Use the <em>CPU usage per process statistics refresh rate</em> field to specify the number of
+seconds between CPU usage per process statistics samples displayed in graphs.</p></li>
+<li><p>Use the <em>Handle &amp; Process count statistics refresh rate</em> field to specify the number
+of seconds between handle &amp; process count statistics samples displayed in graphs.</p></li>
+<li><p>Use the <em>I/O analysis statistics refresh rate</em> field to specify the number
+of seconds between I/O analysis statistics samples displayed in graphs.</p></li>
+<li><p>Use the <em>Memory usage per process statistics refresh rate</em> field to specify the number
+of seconds between memory usage per process statistics samples displayed in graphs.</p></li>
+<li><p>Use the <em>Memory usage statistics refresh rate</em> field to specify the number
+of seconds between memory usage statistics samples displayed in graphs.</p></li>
+<li><p>Use the <em>Percentage of CPU time used by different process modes statistics refresh rate</em>
+field to specify the number of seconds between Percentage of CPU time used by different
+process modes samples displayed in graphs.</p></li>
 <li><p>Use the <em>Session statistics refresh rate</em> field to specify the number of
 seconds between session statistic samples displayed in graphs.</p></li>
+<li><p>Use the <em>Swap memory usage statistics refresh rate</em> field to specify the number of
+seconds between swap memory usage statistics samples displayed in graphs.</p></li>
 <li><p>Use the <em>Transaction throughput refresh rate</em> field to specify the number of
 seconds between transaction throughput samples displayed in graphs.</p></li>
 <li><p>Use the <em>Tuples in refresh rate</em> field to specify the number of seconds
@@ -184,6 +202,8 @@ ERD Tool window navigation:</p>
 <p>Use the fields on the <em>Options</em> panel to manage ERD preferences.</p>
 <img alt="Preferences dialog erd options section" class="align-center" src="_images/preferences_erd_options.png" />
 <ul class="simple">
+<li><p>Use <em>Cardinality Notation</em> to change the cardinality notation format
+used to present relationship links.</p></li>
 <li><p>When the <em>SQL With DROP Table</em> switch is set to <em>True</em>, the SQL
 generated by the ERD Tool will add DROP table DDL before each CREATE
 table DDL.</p></li>
@@ -218,8 +238,8 @@ the client.</p></li>
 <img alt="Preferences dialog themes section" class="align-center" src="_images/preferences_misc_themes.png" />
 <ul class="simple">
 <li><p>Use the <em>Themes</em> drop-down listbox to select the theme for pgAdmin. You’ll also get a preview just below the
-drop down. Note that, to apply the theme you need to refresh the pgAdmin page. You can also submit your
-own themes, check <a class="reference external" href="https://github.com/pgadmin-org/pgadmin4/blob/master/README.md">here</a> how.
+drop down. You can also submit your own themes,
+check <a class="reference external" href="https://github.com/pgadmin-org/pgadmin4/blob/master/README.md">here</a> how.
 Currently we support Standard, Dark and High Contrast theme.</p></li>
 </ul>
 </section>
@@ -248,8 +268,6 @@ programs (pg_dump, pg_dumpall, pg_restore and psql) and there respective version
 <img alt="Preferences dialog binary path help section" class="align-center" src="_images/preferences_paths_help.png" />
 <p>Use the fields on the <em>Help</em> panel to specify the location of help files.</p>
 <ul class="simple">
-<li><p>Use the <em>EDB Advanced Server Help Path</em> to specify the path to EDB Postgres
-Advanced Server documentation.</p></li>
 <li><p>Use the <em>PostgreSQL Help Path</em> to specify the path to PostgreSQL
 documentation.</p></li>
 </ul>
@@ -289,11 +307,8 @@ Tool display.</p>
 Query Tool will display connection and transaction status.</p></li>
 <li><p>Use the <em>Connection status refresh rate</em> field to specify the number of
 seconds between connection/transaction status updates.</p></li>
-<li><p>Use the <em>Query info notifier timeout</em> field to control the behaviour of the
-notifier that is displayed when query execution completes. A value of <em>-1</em>
-will disable the notifier, and a value of 0 will display it until clicked. If
-a positive value above zero is specified, the notifier will be displayed for
-the specified number of seconds. The default is <em>5</em>.</p></li>
+<li><p>When the <em>Show query success notification?</em> switch is set to <em>True</em>, the Query Tool
+will show notifications on successful query execution.</p></li>
 </ul>
 <img alt="Preferences dialog sqleditor editor settings" class="align-center" src="_images/preferences_sql_editor.png" />
 <p>Use the fields on the <em>Editor</em> panel to change settings of the query editor.</p>
@@ -362,6 +377,13 @@ exiting the Query Tool while the current transaction is not committed.</p></li>
 data returned when using the View/Edit Data - All Rows option will be sorted
 by the Primary Key columns by default. When using the First/Last 100 Rows options,
 data is always sorted.</p></li>
+<li><p>When the <em>Show View/Edit Data Promotion Warning?</em> switch is set to <em>True</em>
+View/Edit Data tool will show promote to Query tool confirm dialog on query edit.</p></li>
+<li><p>When the <em>Underline query at cursor?</em> switch is set to <em>True</em>, query tool will
+parse and underline the query at the cursor position.</p></li>
+<li><p>When the <em>Underlined query execute warning?</em> switch is set to <em>True</em>, query tool
+will warn upon clicking the <em>Execute Query</em> button in the query tool.  The warning
+will appear only if <em>Underline query at cursor?</em> is set to <em>False</em>.</p></li>
 </ul>
 <img alt="Preferences dialog sql results grid section" class="align-center" src="_images/preferences_sql_results_grid.png" />
 <p>Use the fields on the <em>Results grid</em> panel to specify your formatting
@@ -386,31 +408,32 @@ require quoting; select <em>All</em>, <em>None</em>, or <em>Strings</em>.</p></l
 </ul>
 <img alt="Preferences dialog sql keyboard shortcuts section" class="align-center" src="_images/preferences_sql_keyboard_shortcuts.png" />
 <p>Use the fields on the <em>Keyboard shortcuts</em> panel to configure shortcuts for the
-Query Tool window navigation:</p>
+Query Tool window navigation.</p>
 <img alt="Preferences dialog SQL Formatting section" class="align-center" src="_images/preferences_sql_formatting.png" />
 <p>Use the fields on the <em>SQL formatting</em> panel to specify your preferences for
 reformatting of SQL.</p>
 <ul class="simple">
-<li><p>Use the <em>Comma-first notation</em> option to specify whether to place commas
-before or after column names.</p></li>
+<li><p>Use the <em>Data type case</em> option to specify whether to change data types
+into upper, lower, or preserve case.</p></li>
+<li><p>Use the <em>Expression width</em> option to specify maximum number of characters
+in parenthesized expressions to be kept on single line.</p></li>
+<li><p>Use the <em>Function case</em> option to specify whether to change function
+names into upper, lower, or preserve case.</p></li>
 <li><p>Use the <em>Identifier case</em> option to specify whether to change identifiers
 (object names) into upper, lower, or capitalized case.</p></li>
 <li><p>Use the <em>Keyword case</em> option to specify whether to change keywords into
-upper, lower, or capitalized case.</p></li>
-<li><p>Use the <em>Re-indent aligned?</em> option to specify that indentations of statements
-should be changed, aligned by keywords.</p></li>
-<li><p>Use the <em>Re-indent?</em> option to specify that indentations of statements should
-be changed.</p></li>
+upper, lower, or preserve case.</p></li>
+<li><p>Use <em>Lines between queries</em> to specify how many empty lines to leave
+between SQL statements. If set to zero it puts no new line.</p></li>
+<li><p>Use <em>Logical operator new line</em> to specify newline placement before or
+after logical operators (AND, OR, XOR).</p></li>
+<li><p>Use <em>New line before semicolon?</em> to specify whether to place query
+separator (;) on a separate line.</p></li>
 <li><p>Use the <em>Spaces around operators?</em> option to specify whether or not to include
 spaces on either side of operators.</p></li>
-<li><p>Use the <em>Strip comments?</em> option to specify whether or not comments should be
-removed.</p></li>
 <li><p>Use the <em>Tab size</em> option to specify the number of spaces per tab or indent.</p></li>
 <li><p>Use the <em>Use spaces?</em> option to select whether to use spaces or tabs when
 indenting.</p></li>
-<li><p>Use the <em>Wrap after N characters</em> option to specify the column limit for
-wrapping column separated lists (e.g. of column names in a table). If set to
-0 (zero), each item will be on it’s own line.</p></li>
 </ul>
 </section>
 <section id="the-schema-diff-node">
@@ -478,6 +501,32 @@ If auth_source is not given, Internal authentication will be consider by default
 </pre></div>
 </div>
 </section>
+<section id="updating-preferences-preferences-json">
+<h2>Updating Preferences preferences.json<a class="headerlink" href="#updating-preferences-preferences-json" title="Link to this heading">¶</a></h2>
+<p>To update preferences defined in json file, simply run <code class="docutils literal notranslate"><span class="pre">setup.py</span> <span class="pre">``</span> <span class="pre">with</span> <span class="pre">``set-prefs</span></code> command followed by username
+and JSON file containing the preferences.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/path/to/python<span class="w"> </span>/path/to/setup.py<span class="w"> </span>set-prefs<span class="w"> </span>user1@gmail.com<span class="w"> </span>--input-file<span class="w"> </span>/Users/yogeshmahajan/Desktop/pref.json
+</pre></div>
+</div>
+</section>
+<section id="json-format">
+<h2>JSON format<a class="headerlink" href="#json-format" title="Link to this heading">¶</a></h2>
+<p>The JSON file simply contains preference_key=value. Preference key value mapping can be obtained by hovering the
+individual preference in the Preference UI dialog.</p>
+<p>The following is an typical example for preferences.json :</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;preferences&quot;</span><span class="p">:</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;browser:display:show_system_objects&quot;</span><span class="p">:</span>  <span class="n">true</span><span class="p">,</span>
+            <span class="s2">&quot;browser:display:show_user_defined_templates&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+            <span class="s2">&quot;browser:display:confirm_on_refresh_close&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+            <span class="s2">&quot;misc:themes:theme&quot;</span><span class="p">:</span> <span class="s2">&quot;dark&quot;</span><span class="p">,</span>
+
+        <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
 </section>
 
 
@@ -507,6 +556,8 @@ If auth_source is not given, Internal authentication will be consider by default
 <li><a class="reference internal" href="#manage-preferences">Manage Preferences</a></li>
 <li><a class="reference internal" href="#get-preferences">Get Preferences</a></li>
 <li><a class="reference internal" href="#save-preferences">Save Preferences</a></li>
+<li><a class="reference internal" href="#updating-preferences-preferences-json">Updating Preferences preferences.json</a></li>
+<li><a class="reference internal" href="#json-format">JSON format</a></li>
 </ul>
 </li>
 </ul>
@@ -551,7 +602,7 @@ If auth_source is not given, Internal authentication will be consider by default
 <li class="toctree-l1"><a class="reference internal" href="licence.html">Licence</a></li>
 </ul>
 
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -559,7 +610,7 @@ If auth_source is not given, Internal authentication will be consider by default
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
 <div id="sidebarbutton" title="Collapse sidebar">
@@ -581,7 +632,7 @@ If auth_source is not given, Internal authentication will be consider by default
         <li class="right" >
           <a href="tree_control.html" title="Tree Control"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="getting_started.html" >Getting Started</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Preferences Dialog</a></li> 
       </ul>

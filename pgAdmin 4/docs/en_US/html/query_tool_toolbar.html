@@ -7,12 +7,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Query Tool Toolbar &#8212; pgAdmin 4 8.2 documentation</title>
+    <title>Query Tool Toolbar &#8212; pgAdmin 4 8.7 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/style.css?v=d36593c3" />
     
-    <script src="_static/documentation_options.js?v=28b929c1"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/documentation_options.js?v=70b0b77f"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     
     <script src="_static/sidebar.js"></script>
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="query_tool.html" title="Query Tool"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="developer_tools.html" >Developer Tools</a> &#187;</li>
           <li class="nav-item nav-item-2"><a href="query_tool.html" accesskey="U">Query Tool</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Query Tool Toolbar</a></li> 
@@ -77,7 +77,7 @@ functionality.</p>
 <tbody>
 <tr class="row-even"><td><p><em>Open File</em></p></td>
 <td><p>Click the <em>Open File</em> icon to display a previously saved query in the SQL Editor.</p></td>
-<td><p>Accesskey + O</p></td>
+<td><p>Cmd/Ctrl + O</p></td>
 </tr>
 <tr class="row-odd"><td><p><em>Save File</em></p></td>
 <td><p>Click the <em>Save</em> icon to perform a quick-save of a previously saved query, or to access the
@@ -90,7 +90,7 @@ selected content of the SQL Editor panel.</p></li>
 </ul>
 </div></blockquote>
 </td>
-<td><p>Accesskey + S</p></td>
+<td><p>Cmd/Ctrl + S</p></td>
 </tr>
 </tbody>
 </table>
@@ -124,11 +124,11 @@ selected cells.</p></li>
 </ul>
 </div></blockquote>
 </td>
-<td><p>Accesskey + F</p></td>
+<td><p>Option/Alt + F</p></td>
 </tr>
 <tr class="row-odd"><td><p>Limit Selector</p></td>
 <td><p>Select a value in the <em>Limit Selector</em> to limit the size of the dataset to a number of rows.</p></td>
-<td><p>Accesskey + R</p></td>
+<td><p>Option/Alt + R</p></td>
 </tr>
 </tbody>
 </table>
@@ -151,32 +151,33 @@ selected cells.</p></li>
 <tbody>
 <tr class="row-even"><td rowspan="9"><p><em>Edit</em></p></td>
 <td><p>Use the <em>Edit</em> menu to search, replace, or navigate the code displayed in the SQL Editor:</p></td>
-<td></td>
+<td><p>Option/Alt + Shift + N</p></td>
 </tr>
 <tr class="row-odd"><td><p>Select <em>Find</em> to provide a search target, and search the SQL Editor contents.</p></td>
-<td><p>Cmd+F</p></td>
+<td><p>Cmd/Ctrl + F</p></td>
 </tr>
 <tr class="row-even"><td><p>Select <em>Replace</em> to locate and replace (with prompting) individual occurrences of the target.</p></td>
-<td><p>Option+Cmd+F (MAC)
-Ctrl+Shift+F (Others)</p></td>
+<td><p>Option + Cmd + F (MAC)
+Ctrl + Shift + F
+(Others)</p></td>
 </tr>
-<tr class="row-odd"><td><p>Select <em>Jump</em> to navigate to the next occurrence of the search target.</p></td>
-<td><p>Alt+G</p></td>
+<tr class="row-odd"><td><p>Select <em>Go to Line/Column</em> to go to specified line number and column position</p></td>
+<td><p>Cmd/Ctrl + L</p></td>
 </tr>
 <tr class="row-even"><td><p>Select <em>Indent Selection</em> to indent the currently selected text.</p></td>
 <td><p>Tab</p></td>
 </tr>
 <tr class="row-odd"><td><p>Select <em>Unindent Selection</em> to remove indentation from the currently selected text.</p></td>
-<td><p>Shift+Tab</p></td>
+<td><p>Shift + Tab</p></td>
 </tr>
 <tr class="row-even"><td><p>Select <em>Toggle Comment</em> to comment/uncomment any lines that contain the selection in SQL style.</p></td>
-<td><p>Cmd+/</p></td>
+<td><p>Cmd/Ctrl + /</p></td>
 </tr>
 <tr class="row-odd"><td><p>Select <em>Clear Query</em> to clear the query editor window.</p></td>
-<td><p>Cmd+.</p></td>
+<td><p>Option/Alt + Ctrl + L</p></td>
 </tr>
 <tr class="row-even"><td><p>Select <em>Format SQL</em> to format the selected SQL or all the SQL if none is selected</p></td>
-<td><p>Shift+Cmd+K</p></td>
+<td><p>Cmd/Ctrl + K</p></td>
 </tr>
 </tbody>
 </table>
@@ -199,7 +200,8 @@ Ctrl+Shift+F (Others)</p></td>
 <tbody>
 <tr class="row-even"><td><p><em>Stop</em></p></td>
 <td><p>Click the <em>Stop</em> icon to cancel the execution of the currently running query.</p></td>
-<td><p>Accesskey + Q</p></td>
+<td><p>Option + Shift +
+Q</p></td>
 </tr>
 <tr class="row-odd"><td><p><em>Execute script</em></p></td>
 <td><p>Click the <em>Execute script</em> icon to either execute or refresh the query highlighted in the SQL
@@ -216,13 +218,19 @@ durable in the event of a crash.</p></li>
 </td>
 <td><p>F5</p></td>
 </tr>
-<tr class="row-even"><td><p><em>Explain</em></p></td>
+<tr class="row-even"><td><p><em>Execute query</em></p></td>
+<td><p>Click the <em>Execute query</em> icon to either execute the query where the cursor is present or
+refresh the query highlighted in the SQL editor panel.</p></td>
+<td><p>Option+F5 (MAC)
+Alt+F5 (Others)</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>Explain</em></p></td>
 <td><p>Click the <em>Explain</em> icon to view an explanation plan for the current query. The result of the
 EXPLAIN is displayed graphically on the <em>Explain</em> tab of the output panel, and in text
 form on the <em>Data Output</em> tab.</p></td>
 <td><p>F7</p></td>
 </tr>
-<tr class="row-odd"><td><p><em>Explain analyze</em></p></td>
+<tr class="row-even"><td><p><em>Explain analyze</em></p></td>
 <td><p>Click the <em>Explain analyze</em> icon to invoke an EXPLAIN ANALYZE command on the current query.</p>
 <p>Navigate through the <em>Explain Options</em> menu to select options for the EXPLAIN command:</p>
 <blockquote>
@@ -240,17 +248,17 @@ spent in each node of the query.</p></li>
 </ul>
 </div></blockquote>
 </td>
-<td><p>Shift+F7</p></td>
+<td><p>Shift + F7</p></td>
 </tr>
-<tr class="row-even"><td><p><em>Commit</em></p></td>
+<tr class="row-odd"><td><p><em>Commit</em></p></td>
 <td><p>Click the <em>Commit</em> icon to commit the transaction.</p></td>
-<td><p>Shift+CTRL+M</p></td>
+<td><p>Shift + Ctrl + M</p></td>
 </tr>
-<tr class="row-odd"><td><p><em>Rollback</em></p></td>
+<tr class="row-even"><td><p><em>Rollback</em></p></td>
 <td><p>Click the <em>Rollback</em> icon to rollback the transaction.</p></td>
-<td><p>Shift+CTRL+R</p></td>
+<td><p>Shift + Ctrl + R</p></td>
 </tr>
-<tr class="row-even"><td><p><em>Macros</em></p></td>
+<tr class="row-odd"><td><p><em>Macros</em></p></td>
 <td><p>Click the <em>Macros</em> icon to manage the macros. You can create, edit or clear the macros through
 the <em>Manage Macros</em> option.</p></td>
 <td></td>
@@ -291,7 +299,7 @@ the <em>Manage Macros</em> option.</p></td>
 </ul>
 </div></blockquote>
 </td>
-<td><p>Accesskey + C</p></td>
+<td><p>Cmd/Ctrl + C</p></td>
 </tr>
 <tr class="row-even"><td><p><em>Paste</em></p></td>
 <td><p>Click the <em>Paste</em> icon to paste a previously copied row with or without serial/identity values:</p>
@@ -303,12 +311,15 @@ in the serial/identity columns.</p></li>
 </ul>
 </div></blockquote>
 </td>
-<td><p>Accesskey + P</p></td>
+<td><p>Option/Alt +
+Shift + P</p></td>
 </tr>
 <tr class="row-odd"><td><p><em>Delete</em></p></td>
-<td><p>Click the <em>Delete</em> icon to mark the selected rows for deletion. These marked rows get deleted
-when you click the <em>Save Data Changes</em> icon.</p></td>
-<td><p>Accesskey + D</p></td>
+<td><p>Click the <em>Delete</em> icon to mark the selected rows for deletion. These marked rows get deleted</p>
+<p>when you click the <em>Save Data Changes</em> icon.</p>
+</td>
+<td><p>Option/Alt +
+Shift + D</p></td>
 </tr>
 <tr class="row-even"><td><p><em>Save Data Changes</em></p></td>
 <td><p>Click the <em>Save Data Changes</em> icon to save data changes (insert, update, or delete) in the Data
@@ -325,6 +336,10 @@ settings in the Preference Dialogue under SQL Editor -&gt; CSV/TXT output.</p></
 </tr>
 <tr class="row-even"><td><p>Graph Visualiser</p></td>
 <td><p>Use the Graph Visualiser button to generate graphs of the query results.</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>SQL</p></td>
+<td><p>Use the SQL button to check the current query that gave the data.</p></td>
 <td></td>
 </tr>
 </tbody>
@@ -393,7 +408,7 @@ settings in the Preference Dialogue under SQL Editor -&gt; CSV/TXT output.</p></
 <li class="toctree-l1"><a class="reference internal" href="licence.html">Licence</a></li>
 </ul>
 
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -401,7 +416,7 @@ settings in the Preference Dialogue under SQL Editor -&gt; CSV/TXT output.</p></
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
 <div id="sidebarbutton" title="Collapse sidebar">
@@ -423,7 +438,7 @@ settings in the Preference Dialogue under SQL Editor -&gt; CSV/TXT output.</p></
         <li class="right" >
           <a href="query_tool.html" title="Query Tool"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="developer_tools.html" >Developer Tools</a> &#187;</li>
           <li class="nav-item nav-item-2"><a href="query_tool.html" >Query Tool</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Query Tool Toolbar</a></li> 

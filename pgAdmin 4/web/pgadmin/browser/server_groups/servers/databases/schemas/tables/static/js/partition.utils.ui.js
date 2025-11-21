@@ -113,7 +113,7 @@ export class PartitionKeysSchema extends BaseUISchema {
   }
 }
 export class PartitionsSchema extends BaseUISchema {
-  constructor(nodeInfo, getCollations, getOperatorClass, getAttachTables=()=>[], table_amname_list) {
+  constructor(nodeInfo, getCollations, getOperatorClass, table_amname_list, getAttachTables=()=>[]) {
     super({
       oid: undefined,
       is_attach: false,
@@ -156,7 +156,7 @@ export class PartitionsSchema extends BaseUISchema {
       mode: ['properties'],
     },{
       id: 'is_attach', label:gettext('Operation'), cell: 'select', type: 'select',
-      width: 120, disableResizing: true, options: [
+      width: 120, enableResizing: false, options: [
         {label: gettext('Attach'), value: true},
         {label: gettext('Create'), value: false},
       ], controlProps: {allowClear: false},
@@ -206,7 +206,7 @@ export class PartitionsSchema extends BaseUISchema {
         return {
           type: 'select', options: this.table_amname_list,
           controlProps: {
-            allowClear: obj.isNew(state) ? true : false,
+            allowClear: obj.isNew(state),
           }
         };
       }, min_version: 120000, disabled: state => {
@@ -225,7 +225,7 @@ export class PartitionsSchema extends BaseUISchema {
       },
     },{
       id: 'is_default', label: gettext('Default'), type: 'switch', cell:'switch',
-      width: 55, disableResizing: true, min_version: 110000,
+      width: 55, enableResizing: false, min_version: 110000,
       editable: function(state) {
         return (obj.top && (obj.top.sessData.partition_type == 'range' ||
             obj.top.sessData.partition_type == 'list') && obj.isNew(state)

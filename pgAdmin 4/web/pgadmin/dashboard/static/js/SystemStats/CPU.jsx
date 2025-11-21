@@ -11,16 +11,17 @@ import React, { useState, useEffect, useRef, useReducer, useMemo } from 'react';
 import PgTable from 'sources/components/PgTable';
 import gettext from 'sources/gettext';
 import PropTypes from 'prop-types';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@mui/styles';
 import {getGCD, getEpoch} from 'sources/utils';
-import ChartContainer from '../ChartContainer';
-import { Box, Grid } from '@material-ui/core';
+import ChartContainer from '../components/ChartContainer';
+import { Box, Grid } from '@mui/material';
 import { DATA_POINT_SIZE } from 'sources/chartjs';
 import StreamingChart from '../../../../static/js/components/PgChart/StreamingChart';
 import {useInterval, usePrevious} from 'sources/custom_hooks';
 import axios from 'axios';
 import { getStatsUrl, transformData, statsReducer, X_AXIS_LENGTH } from './utility.js';
 import { toPrettySize } from '../../../../static/js/utils';
+import SectionContainer from '../components/SectionContainer.jsx';
 
 const useStyles = makeStyles((theme) => ({
   autoResizer: {
@@ -70,8 +71,6 @@ export default function CPU({preferences, sid, did, pageVisible, enablePoll=true
   const [loadAvgInfo, loadAvgInfoReduce] = useReducer(statsReducer, chartsDefault['la_stats']);
   const [processCpuUsageStats, setProcessCpuUsageStats] = useState([]);
 
-  const [, setCounterData] = useState({});
-
   const [pollDelay, setPollDelay] = useState(5000);
 
   const [errorMsg, setErrorMsg] = useState(null);
@@ -79,25 +78,25 @@ export default function CPU({preferences, sid, did, pageVisible, enablePoll=true
 
   const tableHeader = [
     {
-      Header: gettext('PID'),
-      accessor: 'pid',
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
+      header: gettext('PID'),
+      accessorKey: 'pid',
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
     },
     {
-      Header: gettext('Name'),
-      accessor: 'name',
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
+      header: gettext('Name'),
+      accessorKey: 'name',
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
     },
     {
-      Header: gettext('CPU usage'),
-      accessor: 'cpu_usage',
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
+      header: gettext('CPU usage'),
+      accessorKey: 'cpu_usage',
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
     },
   ];
 
@@ -196,20 +195,12 @@ export default function CPU({preferences, sid, did, pageVisible, enablePoll=true
 
           setProcessCpuUsageStats(pcu_info_list);
         }
-
-        setCounterData((prevCounterData)=>{
-          return {
-            ...prevCounterData,
-            ...data,
-          };
-        });
       })
       .catch((error)=>{
         if(!errorMsg) {
           cpuUsageInfoReduce({reset:chartsDefault['cpu_stats']});
           loadAvgInfoReduce({reset:chartsDefault['la_stats']});
           setProcessCpuUsageStats([]);
-          setCounterData({});
           if(error.response) {
             if (error.response.status === 428) {
               setErrorMsg(gettext('Please connect to the selected server to view the graph.'));
@@ -239,7 +230,6 @@ export default function CPU({preferences, sid, did, pageVisible, enablePoll=true
           showTooltip={preferences['graph_mouse_track']}
           showDataPoints={preferences['graph_data_points']}
           lineBorderWidth={preferences['graph_line_border_width']}
-          isDatabase={did > 0}
           isTest={false}
         />
       }
@@ -263,35 +253,33 @@ export function CPUWrapper(props) {
     lineBorderWidth: props.lineBorderWidth,
   }), [props.showTooltip, props.showDataPoints, props.lineBorderWidth]);
   return (
-    <>
-      <Grid container spacing={1} className={classes.container}>
-        <Grid item md={6} sm={12}>
+    <Box display="flex" flexDirection="column" height="100%">
+      <Grid container spacing={0.5} className={classes.container}>
+        <Grid item md={6}>
           <ChartContainer id='cu-graph' title={gettext('CPU usage')} datasets={props.cpuUsageInfo.datasets}  errorMsg={props.errorMsg} isTest={props.isTest}>
             <StreamingChart data={props.cpuUsageInfo} dataPointSize={DATA_POINT_SIZE} xRange={X_AXIS_LENGTH} options={options} />
           </ChartContainer>
         </Grid>
-        <Grid item md={6} sm={12}>
+        <Grid item md={6} >
           <ChartContainer id='la-graph' title={gettext('Load average')} datasets={props.loadAvgInfo.datasets}  errorMsg={props.errorMsg} isTest={props.isTest}>
             <StreamingChart data={props.loadAvgInfo} dataPointSize={DATA_POINT_SIZE} xRange={X_AXIS_LENGTH} options={options} />
           </ChartContainer>
         </Grid>
       </Grid>
-      <Grid container spacing={1} className={classes.fixedContainer}>
-        <div className={classes.tableContainer}>
+      <Box flexGrow={1} minHeight={0}>
+        <SectionContainer title={gettext('Process CPU usage')}>
           <PgTable
             className={classes.autoResizer}
-            CustomHeader={() => {
-              return <div className={classes.containerHeader}>{gettext('Process CPU usage')}</div>;
-            }}
             columns={props.tableHeader}
             data={props.processCpuUsageStats}
             msg={props.errorMsg}
             type={'panel'}
             caveTable={false}
+            tableNoBorder={false}
           ></PgTable>
-        </div>
-      </Grid>
-    </>
+        </SectionContainer>
+      </Box>
+    </Box>
   );
 }
 
@@ -308,6 +296,5 @@ CPUWrapper.propTypes = {
   showTooltip: PropTypes.bool.isRequired,
   showDataPoints: PropTypes.bool.isRequired,
   lineBorderWidth: PropTypes.number.isRequired,
-  isDatabase: PropTypes.bool.isRequired,
   isTest: PropTypes.bool,
 };

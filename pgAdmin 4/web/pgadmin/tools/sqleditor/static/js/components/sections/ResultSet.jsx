@@ -15,7 +15,7 @@ import getApiInstance, { parseApiError } from '../../../../../../static/js/api_i
 import { QueryToolContext, QueryToolEventsContext } from '../QueryToolComponent';
 import gettext from 'sources/gettext';
 import Loader from 'sources/components/Loader';
-import { Box } from '@material-ui/core';
+import { Box } from '@mui/material';
 import { ResultSetToolbar } from './ResultSetToolbar';
 import { LayoutDockerContext } from '../../../../../../static/js/helpers/Layout';
 import { GeometryViewer } from './GeometryViewer';
@@ -25,7 +25,7 @@ import { getBrowser } from '../../../../../../static/js/utils';
 import CopyData from '../QueryToolDataGrid/CopyData';
 import moment from 'moment';
 import ConfirmSaveContent from '../../../../../../static/js/Dialogs/ConfirmSaveContent';
-import { makeStyles } from '@material-ui/styles';
+import { makeStyles } from '@mui/styles';
 import EmptyPanelMessage from '../../../../../../static/js/components/EmptyPanelMessage';
 import { GraphVisualiser } from './GraphVisualiser';
 import { usePgAdmin } from '../../../../../../static/js/BrowserComponent';
@@ -82,8 +82,7 @@ export class ResultSetUtils {
 
   static extractErrorMessage(httpMessage) {
     let msg = httpMessage.errormsg;
-    if (httpMessage.responseJSON !== undefined &&
-      httpMessage.responseJSON.errormsg !== undefined)
+    if (httpMessage.responseJSON?.errormsg !== undefined)
       msg = httpMessage.responseJSON.errormsg;
 
     return msg;
@@ -182,7 +181,7 @@ export class ResultSetUtils {
   }
 
   async startExecution(query, explainObject, onIncorrectSQL, flags={
-    isQueryTool: true, external: false, reconnect: false
+    isQueryTool: true, external: false, reconnect: false, executeCursor: false
   }) {
     let startTime = new Date();
     this.eventBus.fireEvent(QUERY_TOOL_EVENTS.SET_MESSAGE, '');
@@ -203,7 +202,6 @@ export class ResultSetUtils {
     }
     try {
       let {data: httpMessageData} = await this.postExecutionApi(query, explainObject, flags.isQueryTool, flags.reconnect);
-      this.eventBus.fireEvent(QUERY_TOOL_EVENTS.SET_CONNECTION_STATUS, httpMessageData.data.transaction_status);
 
       if (ResultSetUtils.isSqlCorrect(httpMessageData)) {
         this.setStartData(httpMessageData.data);
@@ -234,7 +232,7 @@ export class ResultSetUtils {
           is_pgadmin_query: false,
         });
         if(!flags.external) {
-          this.eventBus.fireEvent(QUERY_TOOL_EVENTS.HIGHLIGHT_ERROR, httpMessageData.data.result);
+          this.eventBus.fireEvent(QUERY_TOOL_EVENTS.HIGHLIGHT_ERROR, httpMessageData.data.result, flags.executeCursor);
         }
       }
     } catch(e) {
@@ -243,7 +241,7 @@ export class ResultSetUtils {
         e,
         {
           connectionLostCallback: ()=>{
-            this.eventBus.fireEvent(QUERY_TOOL_EVENTS.EXECUTION_START, query, explainObject, flags.external, true);
+            this.eventBus.fireEvent(QUERY_TOOL_EVENTS.EXECUTION_START, query, explainObject, flags.external, true, flags.executeCursor);
           },
           checkTransaction: true,
         }
@@ -282,9 +280,9 @@ export class ResultSetUtils {
   handlePollError(error, explainObject, flags) {
     this.eventBus.fireEvent(QUERY_TOOL_EVENTS.EXECUTION_END);
     this.eventBus.fireEvent(QUERY_TOOL_EVENTS.FOCUS_PANEL, PANELS.MESSAGES);
-    this.eventBus.fireEvent(QUERY_TOOL_EVENTS.SET_CONNECTION_STATUS, CONNECTION_STATUS.TRANSACTION_STATUS_INERROR);
+    this.eventBus.fireEvent(QUERY_TOOL_EVENTS.SET_CONNECTION_STATUS, error.response.data.data?.transaction_status);
     if (!flags.external) {
-      this.eventBus.fireEvent(QUERY_TOOL_EVENTS.HIGHLIGHT_ERROR, parseApiError(error, true));
+      this.eventBus.fireEvent(QUERY_TOOL_EVENTS.HIGHLIGHT_ERROR, parseApiError(error, true), flags.executeCursor);
     }
     this.eventBus.fireEvent(QUERY_TOOL_EVENTS.PUSH_HISTORY, {
       status: false,
@@ -298,7 +296,7 @@ export class ResultSetUtils {
     });
     this.eventBus.fireEvent(QUERY_TOOL_EVENTS.HANDLE_API_ERROR, error, {
       connectionLostCallback: ()=>{
-        this.eventBus.fireEvent(QUERY_TOOL_EVENTS.EXECUTION_START, this.query, explainObject, flags.external, true);
+        this.eventBus.fireEvent(QUERY_TOOL_EVENTS.EXECUTION_START, this.query, explainObject, flags.external, true, flags.executeCursor);
       },
       checkTransaction: true,
     });
@@ -633,7 +631,7 @@ export class ResultSetUtils {
       && data.types[0] && data.types[0].typname === 'json') {
       /* json is sent as text, parse it */
       let planJson = JSON.parse(data.result[0][0]);
-      if (planJson && planJson[0] && planJson[0].hasOwnProperty('Plan') &&
+      if (planJson?.[0] && planJson?.[0].hasOwnProperty('Plan') &&
             _.isObject(planJson[0]['Plan'])
       ) {
         return planJson;
@@ -753,6 +751,7 @@ export function ResultSet() {
   const queryToolCtx = useContext(QueryToolContext);
   const layoutDocker = useContext(LayoutDockerContext);
   const [loaderText, setLoaderText] = useState('');
+  const [dataOutputQuery,setDataOutputQuery] = useState('');
   const [queryData, setQueryData] = useState(null);
   const [rows, setRows] = useState([]);
   const [columns, setColumns] = useState([]);
@@ -793,7 +792,7 @@ export function ResultSet() {
     eventBus.fireEvent(QUERY_TOOL_EVENTS.SELECTED_ROWS_COLS_CELL_CHANGED, selectedRows.size, selectedColumns.size, selectedRange.current, selectedCell.current?.length);
   };
 
-  const executionStartCallback = async (query, explainObject, external=false, reconnect=false)=>{
+  const executionStartCallback = async (query, explainObject, external=false, reconnect=false, executeCursor=false)=>{
     const yesCallback = async ()=>{
       /* Reset */
       eventBus.fireEvent(QUERY_TOOL_EVENTS.HIGHLIGHT_ERROR, null);
@@ -802,13 +801,14 @@ export function ResultSet() {
       setSelectedColumns(new Set());
       rsu.current.resetClientPKIndex();
       setLoaderText(gettext('Waiting for the query to complete...'));
+      setDataOutputQuery(query);
       return await rsu.current.startExecution(
         query, explainObject,
         ()=>{
           setColumns([]);
           setRows([]);
         },
-        {isQueryTool: queryToolCtx.params.is_query_tool, external: external, reconnect: reconnect}
+        {isQueryTool: queryToolCtx.params.is_query_tool, external: external, reconnect: reconnect, executeCursor: executeCursor}
       );
     };
 
@@ -837,7 +837,7 @@ export function ResultSet() {
           setRows([]);
         },
         explainObject,
-        {isQueryTool: queryToolCtx.params.is_query_tool, external: external, reconnect: reconnect}
+        {isQueryTool: queryToolCtx.params.is_query_tool, external: external, reconnect: reconnect, executeCursor: executeCursor}
       );
     };
 
@@ -1188,17 +1188,15 @@ export function ResultSet() {
       let clientPK = row[rsu.current.clientPK];
       if(clientPK in dataChangeStore.deleted) {
         remove.push(clientPK);
-      } else {
+      } else if(clientPK in dataChangeStore.added) {
         /* If deleted from newly added */
-        if(clientPK in dataChangeStore.added) {
-          removeNewlyAdded.push(clientPK);
-        } else {
-          let primaryKeys = {};
-          Object.keys(queryData.primary_keys).forEach((k)=>{
-            primaryKeys[k] = row[k];
-          });
-          add[clientPK] = primaryKeys;
-        }
+        removeNewlyAdded.push(clientPK);
+      } else {
+        let primaryKeys = {};
+        Object.keys(queryData.primary_keys).forEach((k)=>{
+          primaryKeys[k] = row[k];
+        });
+        add[clientPK] = primaryKeys;
       }
     }
     if(removeNewlyAdded.length > 0) {
@@ -1390,7 +1388,7 @@ export function ResultSet() {
         <EmptyPanelMessage text={gettext('No data output. Execute a query to get output.')}/>
       }
       {queryData && <>
-        <ResultSetToolbar containerRef={containerRef} canEdit={queryData.can_edit} totalRowCount={queryData?.rows_affected}/>
+        <ResultSetToolbar containerRef={containerRef} query={dataOutputQuery} canEdit={queryData.can_edit} totalRowCount={queryData?.rows_affected}/>
         <Box flexGrow="1" minHeight="0">
           <QueryToolDataGrid
             columns={columns}

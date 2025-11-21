@@ -7,12 +7,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Tabbed Browser &#8212; pgAdmin 4 8.2 documentation</title>
+    <title>Tabbed Browser &#8212; pgAdmin 4 8.7 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/style.css?v=d36593c3" />
     
-    <script src="_static/documentation_options.js?v=28b929c1"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/documentation_options.js?v=70b0b77f"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     
     <script src="_static/sidebar.js"></script>
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="toolbar.html" title="Toolbar"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="getting_started.html" accesskey="U">Getting Started</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Tabbed Browser</a></li> 
       </ul>
@@ -51,9 +51,10 @@
 display information about the object currently selected in the <em>pgAdmin</em> tree
 control in the left window.  Select a tab to access information about the
 highlighted object in the tree control.</p>
-<img alt="Dashboard panel" class="align-center" src="_images/main_dashboard.png" />
-<p>The graphs on the <em>Dashboard</em> tab provides an active analysis of the usage
-statistics for the selected server or database:</p>
+<img alt="Dashboard panel" class="align-center" src="_images/main_dashboard_general.png" />
+<p>The graphs and tables on the <em>Dashboard</em> tab provides an active analysis of system statistics and the usage
+statistics for the selected server or database.</p>
+<p>Click the <em>General</em> tab to get the usage statistics for the selected server or database:</p>
 <ul class="simple">
 <li><p>The <em>Server sessions</em> or <em>Database sessions</em> graph displays the interactions
 with the server or database.</p></li>
@@ -72,6 +73,7 @@ transactions, and server configuration (if applicable). The information is
 presented in context-sensitive tables.  Use controls located above the table to:</p>
 <ul class="simple">
 <li><p>Click the <em>Refresh</em> button to update the information displayed in each table.</p></li>
+<li><p>Select <em>Active sessions only</em> checkbox to get the information about active sessions only from the list of all the sessions.</p></li>
 <li><p>Enter a value in the <em>Search</em> box to restrict the table content to one or more
 sessions that satisfy the search criteria.  For example, you can enter a
 process ID to locate a specific session, or a session state (such as <em>idle</em>)
@@ -91,6 +93,40 @@ value displayed in the <em>State</em> column of the table will be updated from
 terminated.</p></li>
 <li><p>Use the <em>Details</em> icon (located in the third column) to open the <em>Details</em>
 tab; the tab displays information about the selected session.</p></li>
+</ul>
+<p>Click the <em>System Statistics</em> tab to get the statistics for the system:</p>
+<img alt="Summary panel" class="align-center" src="_images/main_dashboard_sys_statistics_summary.png" />
+<p>Click the <em>Summary</em> tab to get the summary of the system:</p>
+<ul class="simple">
+<li><p>The <em>OS Information</em> table displays the basic information about the operating system.</p></li>
+<li><p>The <em>CPU Information</em> table displays the information about system CPU.</p></li>
+<li><p>The <em>Process &amp; Handle Count</em> graph displays the total count of processes running and handles opened for the system.</p></li>
+</ul>
+<img alt="CPU panel" class="align-center" src="_images/main_dashboard_sys_statistics_cpu.png" />
+<p>Click the <em>CPU</em> tab to get the detailed usage statistics of the system CPU:</p>
+<ul class="simple">
+<li><p>The <em>CPU Usage</em> graph displays the percentage of time spent by CPU for user normal process, user niced process, kernel mode process, idle mode.</p></li>
+<li><p>The <em>Load average</em> graph displays the average load of the system over 1, 5, 10, and 15 minute intervals.</p></li>
+<li><p>The <em>Process CPU Usage</em> table displays information about CPU for each process ID. Enter a value like process ID or name in the Search box to restrict the table content to one or more processes that satisfy the search criteria.</p></li>
+</ul>
+<img alt="Memory panel" class="align-center" src="_images/main_dashboard_sys_statistics_memory.png" />
+<p>Click the <em>Memory</em> tab to get the detailed usage statistics of the system memory:</p>
+<ul class="simple">
+<li><p>The <em>Memory Usage</em> graph displays the size of total, free and used memory per seconds in Gigabytes.</p></li>
+<li><p>The <em>Swap Memory</em> graph displays the size of total, free and used swap memory per seconds in Gigabytes.</p></li>
+<li><p>The <em>Process Memory Usage</em> table displays information about memory for each process ID. Enter a value like process ID or name in the Search box to restrict the table content to one or more processes that satisfy the search criteria.</p></li>
+</ul>
+<img alt="Storage panel" class="align-center" src="_images/main_dashboard_sys_statistics_storage.png" />
+<p>Click the <em>Storage</em> tab to get the detailed information of the system storage:</p>
+<ul class="simple">
+<li><p>The <em>Disk Information</em> table displays the information about the disk, such as file system type, mount point, total space, used space and free space and count of total, free, used inodes. The pie graph shows the total spaces in Gigabytes and stacked bar graph shows the used and available space in Gigabytes, for different mount points for file system.</p></li>
+<li><p>The <em>Swap Memory</em> graph displays the size of total, free and used swap memory per seconds in Gigabytes.</p></li>
+</ul>
+<p>The <em>disk0</em> panel displays statistics about the only I/O block device of system:</p>
+<ul class="simple">
+<li><p>The <em>I/O Operations Count</em> graph displays the count of read and write operations per second.</p></li>
+<li><p>The <em>Data Transfer</em> graph displays the size of read and writes happened in Gigabytes per second.</p></li>
+<li><p>The <em>Time spent in I/O operations</em> graph displays the time spent by the device for reading and writing in minutes per second.</p></li>
 </ul>
 <img alt="Properties panel" class="align-center" src="_images/main_properties_table.png" />
 <p>The <em>Properties</em> tab displays information about the object selected.</p>
@@ -301,7 +337,7 @@ from the <em>File</em> menu.</p>
 <li class="toctree-l1"><a class="reference internal" href="licence.html">Licence</a></li>
 </ul>
 
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -309,7 +345,7 @@ from the <em>File</em> menu.</p>
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
 <div id="sidebarbutton" title="Collapse sidebar">
@@ -331,7 +367,7 @@ from the <em>File</em> menu.</p>
         <li class="right" >
           <a href="toolbar.html" title="Toolbar"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="getting_started.html" >Getting Started</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Tabbed Browser</a></li> 
       </ul>

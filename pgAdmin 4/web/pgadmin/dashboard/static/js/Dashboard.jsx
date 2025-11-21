@@ -12,19 +12,16 @@ import PropTypes from 'prop-types';
 import getApiInstance from 'sources/api_instance';
 import PgTable from 'sources/components/PgTable';
 import { InputCheckbox } from '../../../static/js/components/FormComponents';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@mui/styles';
 import url_for from 'sources/url_for';
 import Graphs from './Graphs';
-import { Box, Tab, Tabs } from '@material-ui/core';
+import { Box, Tab, Tabs } from '@mui/material';
 import { PgIconButton } from '../../../static/js/components/Buttons';
-import CancelIcon from '@material-ui/icons/Cancel';
-import StopSharpIcon from '@material-ui/icons/StopSharp';
-import ArrowRightOutlinedIcon from '@material-ui/icons/ArrowRightOutlined';
-import ArrowDropDownOutlinedIcon from '@material-ui/icons/ArrowDropDownOutlined';
+import CancelIcon from '@mui/icons-material/Cancel';
+import StopSharpIcon from '@mui/icons-material/StopSharp';
 import WelcomeDashboard from './WelcomeDashboard';
 import ActiveQuery from './ActiveQuery.ui';
 import _ from 'lodash';
-import CachedOutlinedIcon from '@material-ui/icons/CachedOutlined';
 import EmptyPanelMessage from '../../../static/js/components/EmptyPanelMessage';
 import TabPanel from '../../../static/js/components/TabPanel';
 import Summary from './SystemStats/Summary';
@@ -36,6 +33,11 @@ import { BROWSER_PANELS } from '../../../browser/static/js/constants';
 import { usePgAdmin } from '../../../static/js/BrowserComponent';
 import usePreferences from '../../../preferences/static/js/store';
 import ErrorBoundary from '../../../static/js/helpers/ErrorBoundary';
+import { parseApiError } from '../../../static/js/api_instance';
+import SectionContainer from './components/SectionContainer';
+import Replication from './Replication';
+import RefreshButton from './components/RefreshButtons';
+import { getExpandCell } from '../../../static/js/components/PgReactTableStyled';
 
 function parseData(data) {
   let res = [];
@@ -54,18 +56,13 @@ const useStyles = makeStyles((theme) => ({
     padding: '8px',
     display: 'flex',
   },
-  fixedSizeList: {
-    overflowX: 'hidden !important',
-    overflow: 'overlay !important',
-    height: 'auto !important',
-  },
   dashboardPanel: {
     height: '100%',
     background: theme.palette.grey[400],
   },
   cardHeader: {
     padding: '0.25rem 0.5rem',
-    fontWeight: 'bold',
+    fontWeight: 'bold !important',
     backgroundColor: theme.otherVars.tableBg,
     borderBottom: '1px solid',
     borderBottomColor: theme.otherVars.borderColor,
@@ -99,7 +96,7 @@ const useStyles = makeStyles((theme) => ({
     height: '100%',
     width: '100%',
     minHeight: '400px',
-    padding: '8px'
+    padding: '4px'
   },
   mainTabs: {
     ...theme.mixins.panelBorder.all,
@@ -107,21 +104,8 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     flexDirection: 'column'
   },
-  arrowButton: {
-    fontSize: '2rem !important',
-    margin: '-7px'
-  },
   terminateButton: {
     color: theme.palette.error.main
-  },
-  buttonClick: {
-    backgroundColor: theme.palette.grey[400]
-  },
-  refreshButton: {
-    marginLeft: 'auto',
-    height:  '1.9rem',
-    width:  '2.2rem',
-    ...theme.mixins.panelBorder,
   },
   chartCard: {
     border: '1px solid '+theme.otherVars.borderColor,
@@ -148,6 +132,8 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
+let activeQSchemaObj = new ActiveQuery();
+
 function Dashboard({
   nodeItem, nodeData, node, treeNodeInfo,
   ...props
@@ -155,15 +141,17 @@ function Dashboard({
   const classes = useStyles();
   let tabs = [gettext('Sessions'), gettext('Locks'), gettext('Prepared Transactions')];
   let mainTabs = [gettext('General'), gettext('System Statistics')];
+  if(treeNodeInfo?.server?.replication_type) {
+    mainTabs.push(gettext('Replication'));
+  }
   let systemStatsTabs = [gettext('Summary'), gettext('CPU'), gettext('Memory'), gettext('Storage')];
-  const [dashData, setdashData] = useState([]);
+  const [dashData, setDashData] = useState([]);
   const [msg, setMsg] = useState('');
   const [ssMsg, setSsMsg] = useState('');
   const [tabVal, setTabVal] = useState(0);
   const [mainTabVal, setMainTabVal] = useState(0);
   const [refresh, setRefresh] = useState(false);
   const [activeOnly, setActiveOnly] = useState(false);
-  const [schemaDict, setSchemaDict] = React.useState({});
   const [systemStatsTabVal, setSystemStatsTabVal] = useState(0);
   const [ldid, setLdid] = useState(0);
 
@@ -178,7 +166,8 @@ function Dashboard({
   const prefStore = usePreferences();
   const preferences = _.merge(
     usePreferences().getPreferencesForModule('dashboards'),
-    usePreferences().getPreferencesForModule('graphs')
+    usePreferences().getPreferencesForModule('graphs'),
+    usePreferences().getPreferencesForModule('misc')
   );
 
   if (!did) {
@@ -195,62 +184,62 @@ function Dashboard({
 
   const serverConfigColumns = [
     {
-      accessor: 'name',
-      Header: gettext('Name'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
-      minWidth: 50,
-      width: 100,
-      minResizeWidth: 150,
+      accessorKey: 'name',
+      header: gettext('Name'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      minSize: 100,
+      size: 100,
     },
     {
-      accessor: 'category',
-      Header: gettext('Category'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
-      minWidth: 50,
+      accessorKey: 'category',
+      header: gettext('Category'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      minSize: 50,
+      size: 50,
     },
     {
-      accessor: 'setting',
-      Header: gettext('Value'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
-      minWidth: 50,
-      width: 100,
+      accessorKey: 'setting',
+      header: gettext('Value'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      minSize: 50,
+      size: 100,
     },
     {
-      accessor: 'unit',
-      Header: gettext('Unit'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
-      minWidth: 26,
-      width: 30,
+      accessorKey: 'unit',
+      header: gettext('Unit'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      minSize: 30,
+      size: 30,
     },
     {
-      accessor: 'short_desc',
-      Header: gettext('Description'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
+      accessorKey: 'short_desc',
+      header: gettext('Description'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
     },
   ];
 
   const activityColumns = [
     {
-      accessor: 'terminate_query',
-      Header: () => null,
-      sortable: true,
-      resizable: false,
-      disableGlobalFilter: false,
-      width: 35,
-      minWidth: 0,
+      header: () => null,
+      enableSorting: true,
+      enableResizing: false,
+      enableFilters: false,
+      size: 35,
+      maxSize: 35,
+      minSize: 35,
       id: 'btn-terminate',
       // eslint-disable-next-line react/display-name
-      Cell: ({ row }) => {
+      cell: ({ row }) => {
         let terminate_session_url =
           url_for('dashboard.index') + 'terminate_session' + '/' + sid,
           title = gettext('Terminate Session?'),
@@ -278,7 +267,7 @@ function Dashboard({
                 !canTakeAction(row, 'terminate')
               )
                 return;
-              let url = action_url + '/' + row.values.pid;
+              let url = action_url + '/' + row.original.pid;
               pgAdmin.Browser.notifier.confirm(
                 title,
                 txtConfirm,
@@ -295,8 +284,8 @@ function Dashboard({
                     })
                     .catch(function (error) {
                       pgAdmin.Browser.notifier.alert(
-                        gettext('Failed to retrieve data from the server.'),
-                        error.message
+                        gettext('Failed to perform the operation.'),
+                        parseApiError(error)
                       );
                     });
                 },
@@ -305,7 +294,6 @@ function Dashboard({
                 }
               );
             }}
-            color="default"
             aria-label="Terminate Session?"
             title={gettext('Terminate Session?')}
           ></PgIconButton>
@@ -313,15 +301,15 @@ function Dashboard({
       },
     },
     {
-      accessor: 'cancel_Query',
-      Header: () => null,
-      sortable: true,
-      resizable: false,
-      disableGlobalFilter: false,
-      width: 35,
-      minWidth: 0,
+      header: () => null,
+      enableSorting: true,
+      enableResizing: false,
+      enableFilters: false,
+      size: 35,
+      maxSize: 35,
+      minSize: 35,
       id: 'btn-cancel',
-      Cell: ({ row }) => {
+      cell: ({ row }) => {
         let cancel_query_url =
           url_for('dashboard.index') + 'cancel_query' + '/' + sid,
           title = gettext('Cancel Active Query?'),
@@ -345,7 +333,7 @@ function Dashboard({
             onClick={() => {
               if (!canTakeAction(row, 'cancel'))
                 return;
-              let url = action_url + '/' + row.values.pid;
+              let url = action_url + '/' + row.original.pid;
               pgAdmin.Browser.notifier.confirm(
                 title,
                 txtConfirm,
@@ -364,8 +352,8 @@ function Dashboard({
                     })
                     .catch(function (error) {
                       pgAdmin.Browser.notifier.alert(
-                        gettext('Failed to retrieve data from the server.'),
-                        error.message
+                        gettext('Failed to perform the operation.'),
+                        parseApiError(error)
                       );
                     });
                 },
@@ -374,7 +362,6 @@ function Dashboard({
                 }
               );
             }}
-            color="default"
             aria-label="Cancel the query"
             title={gettext('Cancel the active query')}
           ></PgIconButton>
@@ -382,299 +369,272 @@ function Dashboard({
       },
     },
     {
-      accessor: 'view_active_query',
-      Header: () => null,
-      sortable: true,
-      resizable: false,
-      disableGlobalFilter: false,
-      width: 35,
-      minWidth: 0,
+      header: () => null,
+      enableSorting: true,
+      enableResizing: false,
+      enableFilters: false,
+      size: 35,
+      maxSize: 35,
+      minSize: 35,
       id: 'btn-edit',
-      Cell: ({ row }) => {
-        let canEditRow = true;
-        return (
-          <PgIconButton
-            size="xs"
-            className={row.isExpanded ?classes.buttonClick : ''}
-            icon={
-              row.isExpanded ? (
-                <ArrowDropDownOutlinedIcon  className={classes.arrowButton}/>
-              ) : (
-                <ArrowRightOutlinedIcon className={classes.arrowButton}/>
-              )
-            }
-            noBorder
-            onClick={(e) => {
-              e.preventDefault();
-              row.toggleRowExpanded(!row.isExpanded);
-              let schema = new ActiveQuery({
-                query: row.original.query,
-                backend_type: row.original.backend_type,
-                state_change: row.original.state_change,
-                query_start: row.original.query_start,
-              });
-              setSchemaDict(prevState => ({
-                ...prevState,
-                [row.id]: schema
-              }));
-            }}
-            disabled={!canEditRow}
-            aria-label="View the active session details"
-            title={gettext('View the active session details')}
-          />
-        );
-      },
+      cell: getExpandCell({
+        title: gettext('View the active session details')
+      }),
     },
     {
-      accessor: 'pid',
-      Header: gettext('PID'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
-      minWidth: 26,
-      width: 60,
+      accessorKey: 'pid',
+      header: gettext('PID'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      minSize: 50,
+      size: 60,
     },
     {
-      accessor: 'datname',
-      Header: gettext('Database'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
-      minWidth: 26,
-      width: 80,
-      isVisible: !did ? true: false
+      accessorKey: 'datname',
+      header: gettext('Database'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      enableVisibility: !did,
+      minSize: 50,
+      size: 80,
     },
     {
-      accessor: 'usename',
-      Header: gettext('User'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
-      minWidth: 26,
-      width: 60
+      accessorKey: 'usename',
+      header: gettext('User'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      minSize: 50,
+      size: 60,
     },
     {
-      accessor: 'application_name',
-      Header: gettext('Application'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
-      minWidth: 26,
+      accessorKey: 'application_name',
+      header: gettext('Application'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      minSize: 50,
     },
     {
-      accessor: 'client_addr',
-      Header: gettext('Client'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
-      minWidth: 26,
+      accessorKey: 'client_addr',
+      header: gettext('Client'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      minSize: 50,
+      size: 100
     },
     {
-      accessor: 'backend_start',
-      Header: gettext('Backend start'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
-      minWidth: 100,
+      accessorKey: 'backend_start',
+      header: gettext('Backend start'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      minSize: 100,
     },
     {
-      accessor: 'xact_start',
-      Header: gettext('Transaction start'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
-      minWidth: 26,
+      accessorKey: 'xact_start',
+      header: gettext('Transaction start'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      minSize: 100,
     },
     {
-      accessor: 'state',
-      Header: gettext('State'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
-      minWidth: 26,
-      width:40
+      accessorKey: 'state',
+      header: gettext('State'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      minSize: 50,
+      size: 50,
     },
 
     {
-      accessor: 'waiting',
-      Header: gettext('Waiting'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
-      isVisible: treeNodeInfo?.server?.version < 90600
+      accessorKey: 'waiting',
+      header: gettext('Waiting'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      enableVisibility: treeNodeInfo?.server?.version < 90600
     },
     {
-      accessor: 'wait_event',
-      Header: gettext('Wait event'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
+      accessorKey: 'wait_event',
+      header: gettext('Wait event'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
     },
     {
-      accessor: 'blocking_pids',
-      Header: gettext('Blocking PIDs'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
+      accessorKey: 'blocking_pids',
+      header: gettext('Blocking PIDs'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
     },
   ];
 
   const databaseLocksColumns = [
     {
-      accessor: 'pid',
-      Header: gettext('PID'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
-      minWidth: 26,
-      width: 50,
+      accessorKey: 'pid',
+      header: gettext('PID'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      minSize: 50,
+      size: 50,
     },
     {
-      accessor: 'datname',
-      Header: gettext('Database'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
-      minWidth: 26,
-      isVisible: !did ? true: false,
-      width: 80
+      accessorKey: 'datname',
+      header: gettext('Database'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      enableVisibility: !did,
+      minSize: 50,
+      size: 80,
     },
     {
-      accessor: 'locktype',
-      Header: gettext('Lock type'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
-      minWidth: 26,
-      width: 80,
+      accessorKey: 'locktype',
+      header: gettext('Lock type'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      minSize: 50,
+      size: 80,
     },
     {
-      accessor: 'relation',
-      Header: gettext('Target relation'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
+      accessorKey: 'relation',
+      header: gettext('Target relation'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
     },
     {
-      accessor: 'page',
-      Header: gettext('Page'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
-      minWidth: 26,
-      width: 80,
+      accessorKey: 'page',
+      header: gettext('Page'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      minSize: 50,
+      size: 80,
     },
     {
-      accessor: 'tuple',
-      Header: gettext('Tuple'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
-      minWidth: 26,
+      accessorKey: 'tuple',
+      header: gettext('Tuple'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      minSize: 50,
+      size: 50,
     },
     {
-      accessor: 'virtualxid',
-      Header: gettext('vXID (target)'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
-      minWidth: 50,
-      width: 80
+      accessorKey: 'virtualxid',
+      header: gettext('vXID (target)'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      minSize: 50,
+      size: 50,
     },
     {
-      accessor: 'transactionid',
-      Header: gettext('XID (target)'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
-      minWidth: 50,
-      width: 80,
+      accessorKey: 'transactionid',
+      header: gettext('XID (target)'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      minSize: 50,
+      size: 80,
     },
     {
-      accessor: 'classid',
-      Header: gettext('Class'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
-      minWidth: 26,
-      width: 80,
+      accessorKey: 'classid',
+      header: gettext('Class'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      minSize: 50,
+      size: 80,
     },
     {
-      accessor: 'objid',
-      Header: gettext('Object ID'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
-      minWidth: 50,
-      width: 80,
-
+      accessorKey: 'objid',
+      header: gettext('Object ID'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      minSize: 50,
+      size: 80,
     },
     {
-      accessor: 'virtualtransaction',
-      Header: gettext('vXID (owner)'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
-      minWidth: 50,
+      accessorKey: 'virtualtransaction',
+      header: gettext('vXID (owner)'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      minSize: 50,
+      size: 50,
     },
     {
-      accessor: 'mode',
-      Header: gettext('Mode'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
+      accessorKey: 'mode',
+      header: gettext('Mode'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      minSize: 50,
+      size: 50,
     },
     {
       id: 'granted',
-      accessor: 'granted',
-      Header: gettext('Granted?'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
-      minWidth: 30,
-      width: 80,
-      Cell: ({ value }) => String(value)
+      accessorKey: 'granted',
+      header: gettext('Granted?'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
+      minSize: 50,
+      size: 80,
+      cell: ({ value }) => String(value)
     },
   ];
 
   const databasePreparedColumns = [
     {
-      accessor: 'git',
-      Header: gettext('Name'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
+      accessorKey: 'git',
+      header: gettext('Name'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
     },
     {
-      accessor: 'datname',
-      Header: gettext('Database'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
+      accessorKey: 'datname',
+      header: gettext('Database'),
+      enableSorting: true,
+      enableResizing: true,
+      enableVisibility: !did,
+      enableFilters: true,
       minWidth: 26,
       width: 80,
-      isVisible: !did ? true: false
     },
     {
-      accessor: 'Owner',
-      Header: gettext('Owner'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
+      accessorKey: 'Owner',
+      header: gettext('Owner'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
     },
     {
-      accessor: 'transaction',
-      Header: gettext('XID'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
+      accessorKey: 'transaction',
+      header: gettext('XID'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
     },
     {
-      accessor: 'prepared',
-      Header: gettext('Prepared at'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: false,
+      accessorKey: 'prepared',
+      header: gettext('Prepared at'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: true,
     },
   ];
 
@@ -686,30 +646,10 @@ function Dashboard({
     let pg_version = treeNodeInfo.server.version || null,
       is_cancel_session = cellAction === 'cancel',
       txtMessage,
-      maintenance_database = treeNodeInfo.server.db,
-      is_super_user,
-      current_user;
-
-    let can_signal_backend =
-      treeNodeInfo.server && treeNodeInfo.server.user
-        ? treeNodeInfo.server.user.can_signal_backend
-        : false;
+      maintenance_database = treeNodeInfo.server.db;
 
     let maintenanceActiveSessions = dashData.filter((data) => data.state === 'active'&&
       maintenance_database === data.datname);
-    if (
-      treeNodeInfo.server &&
-      treeNodeInfo.server.user &&
-      treeNodeInfo.server.user.is_superuser
-    ) {
-      is_super_user = true;
-    } else {
-      is_super_user = false;
-      current_user =
-        treeNodeInfo.server && treeNodeInfo.server.user
-          ? treeNodeInfo.server.user.name
-          : null;
-    }
 
     // With PG10, We have background process showing on dashboard
     // We will not allow user to cancel them as they will fail with error
@@ -747,28 +687,10 @@ function Dashboard({
       // If this session is already idle then do nothing
       pgAdmin.Browser.notifier.info(gettext('The session is already in idle state.'));
       return false;
-    } else if (can_signal_backend) {
-      // user with membership of 'pg_signal_backend' can terminate the session of non admin user.
-      return true;
-    } else if (is_super_user) {
-      // Super user can do anything
-      return true;
-    } else if (current_user && current_user == row.original.usename) {
-      // Non-super user can cancel only their active queries
-      return true;
     } else {
-      // Do not allow to cancel someone else session to non-super user
-      if (is_cancel_session) {
-        txtMessage = gettext(
-          'Superuser privileges are required to cancel another users query.'
-        );
-      } else {
-        txtMessage = gettext(
-          'Superuser privileges are required to terminate another users query.'
-        );
-      }
-      pgAdmin.Browser.notifier.error(txtMessage);
-      return false;
+      // Will return true and let the backend handle all the cases.
+      // Added as fix of #7217
+      return true;
     }
   };
   useEffect(() => {
@@ -777,6 +699,11 @@ function Dashboard({
   },[nodeData]);
 
   useEffect(() => {
+    // disable replication tab
+    if(!treeNodeInfo?.server?.replication_type && mainTabVal == 2) {
+      setMainTabVal(0);
+    }
+
     let url,
       ssExtensionCheckUrl = url_for('dashboard.check_system_statistics'),
       message = gettext(
@@ -815,7 +742,7 @@ function Dashboard({
             type: 'GET',
           })
             .then((res) => {
-              setdashData(parseData(res.data));
+              setDashData(parseData(res.data));
             })
             .catch((error) => {
               pgAdmin.Browser.notifier.alert(
@@ -833,8 +760,8 @@ function Dashboard({
           })
             .then((res) => {
               const data = res.data;
-              if(data['ss_present'] == false){
-                setSsMsg(gettext('System stats extension is not installed. You can install the extension in a database using the "CREATE EXTENSION system_stats;" SQL command. Reload the pgAdmin once you installed.'));
+              if(!data['ss_present']){
+                setSsMsg(gettext('The system_stats extension is not installed. You can install the extension in a database using the "CREATE EXTENSION system_stats;" SQL command. Reload pgAdmin once it is installed.'));
                 setLdid(0);
               } else {
                 setSsMsg('installed');
@@ -865,24 +792,6 @@ function Dashboard({
     }
     return dashData;
   }, [dashData, activeOnly, tabVal]);
-
-  const RefreshButton = () =>{
-    return(
-      <PgIconButton
-        size="xs"
-        noBorder
-        className={classes.refreshButton}
-        icon={<CachedOutlinedIcon />}
-        onClick={(e) => {
-          e.preventDefault();
-          setRefresh(!refresh);
-        }}
-        color="default"
-        aria-label="Refresh"
-        title={gettext('Refresh')}
-      ></PgIconButton>
-    );
-  };
 
   const showDefaultContents = () => {
     return (
@@ -952,57 +861,56 @@ function Dashboard({
                   ></Graphs>
                 )}
                 {!_.isUndefined(preferences) && preferences.show_activity && (
-                  <Box className={classes.panelContent}>
-                    <Box
-                      className={classes.cardHeader}
-                      title={dbConnected ?  gettext('Database activity') : gettext('Server activity')}
-                    >
-                      {dbConnected ?  gettext('Database activity') : gettext('Server activity')}{' '}
+                  <SectionContainer title={dbConnected ?  gettext('Database activity') : gettext('Server activity')}>
+                    <Box>
+                      <Tabs
+                        value={tabVal}
+                        onChange={tabChanged}
+                      >
+                        {tabs.map((tabValue) => {
+                          return <Tab key={tabValue} label={tabValue} />;
+                        })}
+                        <RefreshButton onClick={(e) => {
+                          e.preventDefault();
+                          setRefresh(!refresh);
+                        }}/>
+                      </Tabs>
                     </Box>
-                    <Box height="100%" display="flex" flexDirection="column">
-                      <Box>
-                        <Tabs
-                          value={tabVal}
-                          onChange={tabChanged}
-                        >
-                          {tabs.map((tabValue) => {
-                            return <Tab key={tabValue} label={tabValue} />;
-                          })}
-                          <RefreshButton/>
-                        </Tabs>
-                      </Box>
-                      <TabPanel value={tabVal} index={0} classNameRoot={classes.tabPanel}>
-                        <PgTable
-                          caveTable={false}
-                          CustomHeader={CustomActiveOnlyHeader}
-                          columns={activityColumns}
-                          data={filteredDashData}
-                          schema={schemaDict}
-                        ></PgTable>
-                      </TabPanel>
-                      <TabPanel value={tabVal} index={1} classNameRoot={classes.tabPanel}>
-                        <PgTable
-                          caveTable={false}
-                          columns={databaseLocksColumns}
-                          data={dashData}
-                        ></PgTable>
-                      </TabPanel>
-                      <TabPanel value={tabVal} index={2} classNameRoot={classes.tabPanel}>
-                        <PgTable
-                          caveTable={false}
-                          columns={databasePreparedColumns}
-                          data={dashData}
-                        ></PgTable>
-                      </TabPanel>
-                      <TabPanel value={tabVal} index={3} classNameRoot={classes.tabPanel}>
-                        <PgTable
-                          caveTable={false}
-                          columns={serverConfigColumns}
-                          data={dashData}
-                        ></PgTable>
-                      </TabPanel>
-                    </Box>
-                  </Box>
+                    <TabPanel value={tabVal} index={0} classNameRoot={classes.tabPanel}>
+                      <PgTable
+                        caveTable={false}
+                        tableNoBorder={false}
+                        CustomHeader={CustomActiveOnlyHeader}
+                        columns={activityColumns}
+                        data={filteredDashData}
+                        schema={activeQSchemaObj}
+                      ></PgTable>
+                    </TabPanel>
+                    <TabPanel value={tabVal} index={1} classNameRoot={classes.tabPanel}>
+                      <PgTable
+                        caveTable={false}
+                        tableNoBorder={false}
+                        columns={databaseLocksColumns}
+                        data={dashData}
+                      ></PgTable>
+                    </TabPanel>
+                    <TabPanel value={tabVal} index={2} classNameRoot={classes.tabPanel}>
+                      <PgTable
+                        caveTable={false}
+                        tableNoBorder={false}
+                        columns={databasePreparedColumns}
+                        data={dashData}
+                      ></PgTable>
+                    </TabPanel>
+                    <TabPanel value={tabVal} index={3} classNameRoot={classes.tabPanel}>
+                      <PgTable
+                        caveTable={false}
+                        tableNoBorder={false}
+                        columns={serverConfigColumns}
+                        data={dashData}
+                      ></PgTable>
+                    </TabPanel>
+                  </SectionContainer>
                 )}
               </TabPanel>
               {/* System Statistics */}
@@ -1067,6 +975,11 @@ function Dashboard({
                     </div>
                   }
                 </Box>
+              </TabPanel>
+              {/* Replication */}
+              <TabPanel value={mainTabVal} index={2} classNameRoot={classes.tabPanel}>
+                <Replication key={sid} sid={sid} node={node}
+                  preferences={preferences} treeNodeInfo={treeNodeInfo} nodeData={nodeData} pageVisible={props.isActive} />
               </TabPanel>
             </Box>
           </Box>

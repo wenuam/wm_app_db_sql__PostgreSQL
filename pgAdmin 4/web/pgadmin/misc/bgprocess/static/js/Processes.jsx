@@ -11,15 +11,15 @@ import React, { useCallback, useEffect, useMemo } from 'react';
 import PgTable from 'sources/components/PgTable';
 import gettext from 'sources/gettext';
 import PropTypes from 'prop-types';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@mui/styles';
 import { BgProcessManagerEvents, BgProcessManagerProcessState } from './BgProcessConstants';
 import { PgButtonGroup, PgIconButton } from '../../../../static/js/components/Buttons';
-import CancelIcon from '@material-ui/icons/Cancel';
-import DescriptionOutlinedIcon from '@material-ui/icons/DescriptionOutlined';
-import DeleteIcon from '@material-ui/icons/Delete';
-import HelpIcon from '@material-ui/icons/HelpRounded';
+import CancelIcon from '@mui/icons-material/Cancel';
+import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
+import DeleteIcon from '@mui/icons-material/Delete';
+import HelpIcon from '@mui/icons-material/HelpRounded';
 import url_for from 'sources/url_for';
-import { Box } from '@material-ui/core';
+import { Box } from '@mui/material';
 import { usePgAdmin } from '../../../../static/js/BrowserComponent';
 import { BROWSER_PANELS } from '../../../../browser/static/js/constants';
 import ErrorBoundary from '../../../../static/js/helpers/ErrorBoundary';
@@ -99,7 +99,8 @@ export default function Processes() {
   const classes = useStyles();
   const pgAdmin = usePgAdmin();
   const [tableData, setTableData] = React.useState([]);
-  const [selectedRows, setSelectedRows] = React.useState([]);
+  const [selectedRows, setSelectedRows] = React.useState({});
+  const selectedRowIDs = useMemo(()=>Object.keys(selectedRows).filter((k)=>selectedRows[k]), [selectedRows]);
 
   const onViewDetailsClick = useCallback((p)=>{
     const panelTitle = gettext('Process Watcher - %s', p.type_desc);
@@ -111,9 +112,6 @@ export default function Processes() {
         <ErrorBoundary>
           <ProcessDetails
             data={p}
-            closeModal={()=>{
-              pgAdmin.Browser.docker.close(panelId);
-            }}
           />
         </ErrorBoundary>
       )
@@ -121,133 +119,145 @@ export default function Processes() {
   }, []);
 
 
-  const columns = useMemo(()=>[
-    {
-      accessor: 'stop_process',
-      Header: () => null,
-      sortable: false,
-      resizable: false,
-      disableGlobalFilter: true,
-      width: 35,
-      maxWidth: 35,
-      minWidth: 35,
+  const columns = useMemo(()=>{
+    const cellPropTypes = {
+      row: PropTypes.any,
+    };
+
+    const CancelCell = ({row}) => {
+      return (
+        <PgIconButton
+          size="xs"
+          noBorder
+          icon={<CancelIcon />}
+          className={classes.stopButton}
+          disabled={row.original.process_state != BgProcessManagerProcessState.PROCESS_STARTED
+            || row.original.server_id != null}
+          onClick={(e) => {
+            e.preventDefault();
+            pgAdmin.Browser.BgProcessManager.stopProcess(row.original.id);
+          }}
+          aria-label="Stop Process"
+          title={gettext('Stop Process')}
+        ></PgIconButton>
+      );
+    };
+    CancelCell.displayName = 'CancelCell';
+    CancelCell.propTypes = cellPropTypes;
+
+    const LogsCell = ({ row }) => {
+      return (
+        <PgIconButton
+          size="xs"
+          icon={<DescriptionOutlinedIcon />}
+          noBorder
+          onClick={(e) => {
+            e.preventDefault();
+            onViewDetailsClick(row.original);
+          }}
+          aria-label="View details"
+          title={gettext('View details')}
+        />
+      );
+    };
+    LogsCell.displayName = 'LogsCell';
+    LogsCell.propTypes = cellPropTypes;
+
+    const StatusCell = ({row})=>{
+      const [text, bgcolor] = ProcessStateTextAndColor[row.original.process_state];
+      return <Box className={classes[bgcolor]}>{text}</Box>;
+    };
+    StatusCell.displayName = 'StatusCell';
+    StatusCell.propTypes = cellPropTypes;
+
+    return [{
+      header: () => null,
+      enableSorting: false,
+      enableResizing: false,
+      enableFilters: false,
+      size: 35,
+      maxSize: 35,
+      minSize: 35,
       id: 'btn-stop',
-      // eslint-disable-next-line react/display-name
-      Cell: ({ row }) => {
-        return (
-          <PgIconButton
-            size="xs"
-            noBorder
-            icon={<CancelIcon />}
-            className={classes.stopButton}
-            disabled={row.original.process_state != BgProcessManagerProcessState.PROCESS_STARTED
-              || row.original.server_id != null}
-            onClick={(e) => {
-              e.preventDefault();
-              pgAdmin.Browser.BgProcessManager.stopProcess(row.original.id);
-            }}
-            aria-label="Stop Process"
-            title={gettext('Stop Process')}
-          ></PgIconButton>
-        );
-      },
+      cell: CancelCell,
     },
     {
-      accessor: 'view_details',
-      Header: () => null,
-      sortable: false,
-      resizable: false,
-      disableGlobalFilter: true,
-      width: 35,
-      maxWidth: 35,
-      minWidth: 35,
+      header: () => null,
+      enableSorting: false,
+      enableResizing: false,
+      enableFilters: false,
+      size: 35,
+      maxSize: 35,
+      minSize: 35,
       id: 'btn-logs',
-      // eslint-disable-next-line react/display-name
-      Cell: ({ row }) => {
-        return (
-          <PgIconButton
-            size="xs"
-            icon={<DescriptionOutlinedIcon />}
-            noBorder
-            onClick={(e) => {
-              e.preventDefault();
-              onViewDetailsClick(row.original);
-            }}
-            aria-label="View details"
-            title={gettext('View details')}
-          />
-        );
-      },
+      cell: LogsCell,
     },
     {
-      Header: gettext('PID'),
-      accessor: 'utility_pid',
-      sortable: true,
-      resizable: false,
+      header: gettext('PID'),
+      accessorKey: 'utility_pid',
+      enableSorting: true,
+      enableResizing: false,
       width: 70,
       minWidth: 70,
-      disableGlobalFilter: false,
+      enableFilters: true,
     },
     {
-      Header: gettext('Type'),
-      accessor: (row)=>row.details?.type,
-      sortable: true,
-      resizable: true,
+      header: gettext('Type'),
+      accessorFn: (row)=>row.details?.type,
+      enableSorting: true,
+      enableResizing: true,
       width: 100,
       minWidth: 70,
-      disableGlobalFilter: false,
+      enableFilters: true,
     },
     {
-      Header: gettext('Server'),
-      accessor: (row)=>row.details?.server,
-      sortable: true,
-      resizable: true,
+      header: gettext('Server'),
+      accessorFn: (row)=>row.details?.server,
+      enableSorting: true,
+      enableResizing: true,
       width: 200,
       minWidth: 120,
-      disableGlobalFilter: false,
+      enableFilters: true,
     },
     {
-      Header: gettext('Object'),
-      accessor: (row)=>row.details?.object,
-      sortable: true,
-      resizable: true,
+      header: gettext('Object'),
+      accessorFn: (row)=>row.details?.object,
+      enableSorting: true,
+      enableResizing: true,
       width: 200,
       minWidth: 120,
-      disableGlobalFilter: false,
+      enableFilters: true,
     },
     {
       id: 'stime',
-      Header: gettext('Start Time'),
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: true,
+      header: gettext('Start Time'),
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: false,
       width: 150,
       minWidth: 150,
-      accessor: (row)=>(new Date(row.stime)),
-      Cell: ({row})=>(new Date(row.original.stime).toLocaleString()),
+      accessorFn: (row)=>(new Date(row.stime)),
+      cell: (info)=>(info.getValue().toLocaleString()),
     },
     {
-      Header: gettext('Status'),
-      sortable: true,
-      resizable: false,
-      disableGlobalFilter: false,
+      header: gettext('Status'),
+      enableSorting: true,
+      enableResizing: false,
+      enableFilters: true,
       width: 120,
       minWidth: 120,
-      accessor: (row)=>ProcessStateTextAndColor[row.process_state][0],
+      accessorFn: (row)=>ProcessStateTextAndColor[row.process_state][0],
       dataClassName: classes.noPadding,
-      Cell: ({row})=>{
-        const [text, bgcolor] = ProcessStateTextAndColor[row.original.process_state];
-        return <Box className={classes[bgcolor]}>{text}</Box>;
-      },
+      cell: StatusCell,
     },
     {
-      Header: gettext('Time Taken (sec)'),
-      accessor: 'execution_time',
-      sortable: true,
-      resizable: true,
-      disableGlobalFilter: true,
-    },
-  ], []);
+      header: gettext('Time Taken (sec)'),
+      accessorKey: 'execution_time',
+      enableSorting: true,
+      enableResizing: true,
+      enableFilters: false,
+    }];
+  }, []);
 
   const updateList = ()=>{
     if(pgAdmin.Browser.BgProcessManager.procList) {
@@ -264,58 +274,48 @@ export default function Processes() {
   }, []);
 
   return (
-    <>
-      <PgTable
-        data-test="processes"
-        className={classes.autoResizer}
-        columns={columns}
-        data={tableData}
-        sortOptions={[{id: 'stime', desc: true}]}
-        getSelectedRows={(rows)=>{setSelectedRows(rows);}}
-        isSelectRow={true}
-        tableProps={{
-          autoResetSelectedRows: false,
-          getRowId: (row)=>{
-            return row.id;
-          }
-        }}
-        CustomHeader={()=>{
-          return (
-            <Box>
-              <PgButtonGroup>
-                <PgIconButton
-                  icon={<DeleteIcon style={{height: '1.4rem'}}/>}
-                  aria-label="Acknowledge and Remove"
-                  title={gettext('Acknowledge and Remove')}
-                  onClick={() => {
-                    pgAdmin.Browser.notifier.confirm(gettext('Remove Processes'), gettext('Are you sure you want to remove the selected processes?'), ()=>{
-                      pgAdmin.Browser.BgProcessManager.acknowledge(selectedRows.map((p)=>p.original.id));
-                    });
-                  }}
-                  disabled={selectedRows.length <= 0}
-                ></PgIconButton>
-                <PgIconButton
-                  icon={<HelpIcon style={{height: '1.4rem'}}/>}
-                  aria-label="Help"
-                  title={gettext('Help')}
-                  onClick={() => {
-                    window.open(url_for('help.static', {'filename': 'processes.html'}));
-                  }}
-                ></PgIconButton>
-              </PgButtonGroup>
-            </Box>
-          );
-        }}
-      ></PgTable>
-    </>
+    <PgTable
+      data-test="processes"
+      className={classes.autoResizer}
+      columns={columns}
+      data={tableData}
+      sortOptions={[{id: 'stime', desc: true}]}
+      selectedRows={selectedRows}
+      setSelectedRows={setSelectedRows}
+      hasSelectRow={true}
+      tableProps={{
+        getRowId: (row)=>{
+          return row.id;
+        }
+      }}
+      CustomHeader={()=>{
+        return (
+          <Box>
+            <PgButtonGroup>
+              <PgIconButton
+                icon={<DeleteIcon style={{height: '1.4rem'}}/>}
+                aria-label="Acknowledge and Remove"
+                title={gettext('Acknowledge and Remove')}
+                onClick={() => {
+                  pgAdmin.Browser.notifier.confirm(gettext('Remove Processes'), gettext('Are you sure you want to remove the selected processes?'), ()=>{
+                    pgAdmin.Browser.BgProcessManager.acknowledge(selectedRowIDs);
+                    setSelectedRows({});
+                  });
+                }}
+                disabled={selectedRowIDs.length <= 0}
+              ></PgIconButton>
+              <PgIconButton
+                icon={<HelpIcon style={{height: '1.4rem'}}/>}
+                aria-label="Help"
+                title={gettext('Help')}
+                onClick={() => {
+                  window.open(url_for('help.static', {'filename': 'processes.html'}));
+                }}
+              ></PgIconButton>
+            </PgButtonGroup>
+          </Box>
+        );
+      }}
+    ></PgTable>
   );
 }
-
-Processes.propTypes = {
-  res: PropTypes.array,
-  nodeData: PropTypes.object,
-  treeNodeInfo: PropTypes.object,
-  node: PropTypes.func,
-  item: PropTypes.object,
-  row: PropTypes.object,
-};

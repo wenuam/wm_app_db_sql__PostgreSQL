@@ -12,20 +12,19 @@ import _ from 'lodash';
 import url_for from 'sources/url_for';
 import React, { useEffect, useMemo } from 'react';
 import { FileType } from 'react-aspen';
-import { Box } from '@material-ui/core';
+import { Box } from '@mui/material';
 import PropTypes from 'prop-types';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@mui/styles';
 import SchemaView from '../../../../static/js/SchemaView';
 import getApiInstance from '../../../../static/js/api_instance';
-import CloseSharpIcon from '@material-ui/icons/CloseSharp';
-import HelpIcon from '@material-ui/icons/HelpRounded';
-import SaveSharpIcon from '@material-ui/icons/SaveSharp';
+import CloseSharpIcon from '@mui/icons-material/CloseSharp';
+import HelpIcon from '@mui/icons-material/HelpRounded';
+import SaveSharpIcon from '@mui/icons-material/SaveSharp';
 import clsx from 'clsx';
 import pgAdmin from 'sources/pgadmin';
 import { DefaultButton, PgIconButton, PrimaryButton } from '../../../../static/js/components/Buttons';
 import BaseUISchema from 'sources/SchemaView/base_schema.ui';
 import { getBinaryPathSchema } from '../../../../browser/server_groups/servers/static/js/binary_path.ui';
-import { getBrowserAccesskey } from '../../../../static/js/components/ShortcutTitle';
 import usePreferences from '../store';
 
 class PreferencesSchema extends BaseUISchema {
@@ -185,7 +184,7 @@ export default function PreferencesComponent({ ...props }) {
           'id': id.toString(),
           'label': node.label,
           '_label': node.label,
-          'name': node.label,
+          'name': node.name,
           'icon': '',
           'inode': true,
           'type': 2,
@@ -340,8 +339,6 @@ export default function PreferencesComponent({ ...props }) {
     // Check and add the note for the element.
     if (subNode.label == gettext('Nodes') && node.label == gettext('Browser')) {
       note = [gettext('This settings is to Show/Hide nodes in the object explorer.')].join('');
-    } if(nodeData.name == 'keyboard_shortcuts') {
-      note = gettext('The Accesskey here is %s.', getBrowserAccesskey().join(' + '));
     } else {
       note = [note].join('');
     }
@@ -378,7 +375,7 @@ export default function PreferencesComponent({ ...props }) {
           if(field.visible && _.isNull(firstElement)) {
             firstElement = field;
           }
-          field.tooltip = item._parent._metadata.data.name + ':' + item._metadata.data.name + ':' + field.name;
+          field.labelTooltip = item._parent._metadata.data.name.toLowerCase() + ':' + item._metadata.data.name + ':' + field.name;
         });
         setLoadTree(crypto.getRandomValues(new Uint16Array(1)));
         initTreeTimeout = setTimeout(() => {
@@ -455,7 +452,7 @@ export default function PreferencesComponent({ ...props }) {
     case 'threshold':
       return 'threshold';
     default:
-      if (console && console.warn) {
+      if (console?.warn) {
         // Warning for developer only.
         console.warn(
           'Hmm.. We don\'t know how to render this type - \'\'' + type + '\' of control.'
@@ -528,10 +525,6 @@ export default function PreferencesComponent({ ...props }) {
   }
 
   function checkRefreshRequired(pref, requires_refresh) {
-    if (pref.name == 'theme') {
-      requires_refresh = true;
-    }
-
     if (pref.name == 'user_language') {
       requires_refresh = true;
     }
@@ -559,11 +552,12 @@ export default function PreferencesComponent({ ...props }) {
           gettext('Object explorer refresh required'),
           gettext('An object explorer refresh is required. Do you wish to refresh it now?'),
           function () {
-            pgAdmin.Browser.tree.destroy({
-              success: function () {
+            pgAdmin.Browser.tree.destroy().then(
+              () => {
+                pgAdmin.Browser.Events.trigger('pgadmin-browser:tree:destroyed', undefined, undefined);
                 return true;
-              },
-            });
+              }
+            );
           },
           function () {
             return true;

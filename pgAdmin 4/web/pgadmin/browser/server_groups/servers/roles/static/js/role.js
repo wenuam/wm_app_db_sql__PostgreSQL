@@ -25,7 +25,7 @@ define('pgadmin.node.role', [
         type: 'coll-role',
         columns: [
           'rolname', 'rolvaliduntil', 'rolconnlimit', 'rolcanlogin',
-          'rolsuper', 'rolcreaterole', 'rolcreatedb', 'rolcatupdate',
+          'rolsuper', 'rolcreaterole', 'rolcreatedb',
           'rolinherit', 'rolreplication',
         ],
         canDrop: true,
@@ -78,7 +78,7 @@ define('pgadmin.node.role', [
         return gettext('Group Role') + ' - ' + d.label;
       },
       Init: function() {
-        /* Avoid mulitple registration of menus */
+        /* Avoid multiple registration of menus */
         if (this.initialized)
           return;
 

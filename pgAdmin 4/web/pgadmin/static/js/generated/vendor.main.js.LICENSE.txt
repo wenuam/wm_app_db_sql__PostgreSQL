@@ -1,23 +1,15 @@
-/** @license Material-UI v4.0.0-alpha.61
+/**
+ * @mui/material v5.15.19
  *
+ * @license MIT
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
-/** @license Material-UI v4.11.3
+/**
+ * @mui/x-date-pickers v6.20.0
  *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
-/** @license Material-UI v4.11.5
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
-/** @license Material-UI v4.12.4
- *
+ * @license MIT
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */

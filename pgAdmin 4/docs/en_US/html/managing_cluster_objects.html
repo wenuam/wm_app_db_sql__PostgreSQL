@@ -7,12 +7,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Managing Cluster Objects &#8212; pgAdmin 4 8.2 documentation</title>
+    <title>Managing Cluster Objects &#8212; pgAdmin 4 8.7 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/style.css?v=d36593c3" />
     
-    <script src="_static/documentation_options.js?v=28b929c1"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/documentation_options.js?v=70b0b77f"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     
     <script src="_static/sidebar.js"></script>
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="import_export_servers.html" title="Import/Export Servers"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Managing Cluster Objects</a></li> 
       </ul>
     </div>  
@@ -54,10 +54,27 @@ and select the <em>Create</em> option for that object.  For example, to create a
 database, right-click on the <em>Databases</em> node, and select <em>Create Database…</em></p>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="database_dialog.html">Database Dialog</a></li>
-<li class="toctree-l1"><a class="reference internal" href="resource_group_dialog.html">Resource Group Dialog</a></li>
-<li class="toctree-l1"><a class="reference internal" href="role_dialog.html">Login/Group Role Dialog</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tablespace_dialog.html">Tablespace Dialog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="database_dialog.html">Database Dialog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="database_dialog.html#example">Example</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="resource_group_dialog.html">Resource Group Dialog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="resource_group_dialog.html#example">Example</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="role_dialog.html">Login/Group Role Dialog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="role_dialog.html#example">Example</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tablespace_dialog.html">Tablespace Dialog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tablespace_dialog.html#example">Example</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="replica_nodes_dialog.html">Replica Node Dialog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pgd_replication_group_dialog.html">PGD Replication Group Node Dialog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pgd_replication_server_dialog.html">PGD Replication Server Node Dialog</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="role_reassign_dialog.html">Role Reassign/Drop Own Dialog</a></li>
 </ul>
 </div>
@@ -80,6 +97,8 @@ database, right-click on the <em>Databases</em> node, and select <em>Create Data
 <li class="toctree-l2"><a class="reference internal" href="resource_group_dialog.html">Resource Group Dialog</a></li>
 <li class="toctree-l2"><a class="reference internal" href="role_dialog.html">Login/Group Role Dialog</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tablespace_dialog.html">Tablespace Dialog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="replica_nodes_dialog.html">Replica Node Dialog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pgd_replication_group_dialog.html">PGD Replication Group Node Dialog</a></li>
 <li class="toctree-l2"><a class="reference internal" href="role_reassign_dialog.html">Role Reassign/Drop Own Dialog</a></li>
 </ul>
 </li>
@@ -95,7 +114,7 @@ database, right-click on the <em>Databases</em> node, and select <em>Create Data
 <li class="toctree-l1"><a class="reference internal" href="licence.html">Licence</a></li>
 </ul>
 
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -103,7 +122,7 @@ database, right-click on the <em>Databases</em> node, and select <em>Create Data
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
 <div id="sidebarbutton" title="Collapse sidebar">
@@ -125,7 +144,7 @@ database, right-click on the <em>Databases</em> node, and select <em>Create Data
         <li class="right" >
           <a href="import_export_servers.html" title="Import/Export Servers"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Managing Cluster Objects</a></li> 
       </ul>
     </div>

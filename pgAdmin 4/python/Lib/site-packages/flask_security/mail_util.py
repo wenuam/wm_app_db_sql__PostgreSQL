@@ -4,21 +4,34 @@
 
     Utility class providing methods for validating, normalizing and sending emails.
 
-    :copyright: (c) 2020-2022 by J. Christopher Wagner (jwag).
+    :copyright: (c) 2020-2024 by J. Christopher Wagner (jwag).
     :license: MIT, see LICENSE for more details.
 
     While this default implementation uses Flask-Mailman - we want to make sure that
     Flask-Mailman isn't REQUIRED (if this implementation isn't used).
 """
+
+from __future__ import annotations
+
 import typing as t
 
 import email_validator
 from flask import current_app
 
-from .utils import config_value
+from .utils import config_value, get_message
 
 if t.TYPE_CHECKING:  # pragma: no cover
     import flask
+
+
+class EmailValidateException(ValueError):
+    """This is raised for any email validation errors.
+    This can be used by custom MailUtil implementations to provide
+    custom error messages.
+    """
+
+    def __init__(self, message: str) -> None:
+        self.msg = message
 
 
 class MailUtil:
@@ -34,7 +47,7 @@ class MailUtil:
     .. versionadded:: 4.0.0
     """
 
-    def __init__(self, app: "flask.Flask"):
+    def __init__(self, app: flask.Flask):
         """Instantiate class.
 
         :param app: The Flask application being initialized.
@@ -46,9 +59,9 @@ class MailUtil:
         template: str,
         subject: str,
         recipient: str,
-        sender: t.Union[str, tuple],
+        sender: str | tuple,
         body: str,
-        html: t.Optional[str],
+        html: str | None,
         **kwargs: t.Any,
     ) -> None:
         """Send an email via the Flask-Mailman or Flask-Mail or other mail extension.
@@ -111,25 +124,42 @@ class MailUtil:
 
     def normalize(self, email: str) -> str:
         """
-        Given an input email - return a normalized version.
+        Given an input email - return a normalized version or
+        raise EmailValidateException if field value isn't syntactically valid.
+
+        This is called by forms that use email as an identity to be looked up.
+
         Must be called in app context and uses :py:data:`SECURITY_EMAIL_VALIDATOR_ARGS`
         config variable to pass any relevant arguments to
         email_validator.validate_email() method.
 
-        Will throw email_validator.EmailNotValidError if email isn't even valid.
+        This defaults to NOT checking for deliverability (i.e. DNS checks).
         """
         validator_args = config_value("EMAIL_VALIDATOR_ARGS") or {}
-        valid = email_validator.validate_email(email, **validator_args)
-        return valid.email
+        validator_args["check_deliverability"] = False
+        try:
+            valid = email_validator.validate_email(email, **validator_args)
+            return valid.normalized
+        except ValueError:
+            raise EmailValidateException(get_message("INVALID_EMAIL_ADDRESS")[0])
 
     def validate(self, email: str) -> str:
         """
         Validate the given email.
         If valid, the normalized version is returned.
+        This is used by forms/views that require an email that likely can have an
+        actual email sent to it.
 
-        ValueError is thrown if not valid.
+        Must be called in app context and uses :py:data:`SECURITY_EMAIL_VALIDATOR_ARGS`
+        config variable to pass any relevant arguments to
+        email_validator.validate_email() method.
+
+        EmailValidationException is thrown on invalid email.
         """
 
         validator_args = config_value("EMAIL_VALIDATOR_ARGS") or {}
-        valid = email_validator.validate_email(email, **validator_args)
-        return valid.email
+        try:
+            valid = email_validator.validate_email(email, **validator_args)
+            return valid.normalized
+        except ValueError:
+            raise EmailValidateException(get_message("INVALID_EMAIL_ADDRESS")[0])
