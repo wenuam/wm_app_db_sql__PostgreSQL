@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>29.3. Logical Replication Failover</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="logical-replication-subscription.html" title="29.2. Subscription" /><link rel="next" href="logical-replication-row-filter.html" title="29.4. Row Filters" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">29.3. Logical Replication Failover</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="logical-replication-subscription.html" title="29.2. Subscription">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="logical-replication.html" title="Chapter 29. Logical Replication">Up</a></td><th width="60%" align="center">Chapter 29. Logical Replication</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="logical-replication-row-filter.html" title="29.4. Row Filters">Next</a></td></tr></table><hr /></div><div class="sect1" id="LOGICAL-REPLICATION-FAILOVER"><div class="titlepage"><div><div><h2 class="title" style="clear: both">29.3. Logical Replication Failover <a href="#LOGICAL-REPLICATION-FAILOVER" class="id_link">#</a></h2></div></div></div><p>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>29.3. Logical Replication Failover</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="logical-replication-subscription.html" title="29.2. Subscription" /><link rel="next" href="logical-replication-row-filter.html" title="29.4. Row Filters" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">29.3. Logical Replication Failover</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="logical-replication-subscription.html" title="29.2. Subscription">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="logical-replication.html" title="Chapter 29. Logical Replication">Up</a></td><th width="60%" align="center">Chapter 29. Logical Replication</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="logical-replication-row-filter.html" title="29.4. Row Filters">Next</a></td></tr></table><hr /></div><div class="sect1" id="LOGICAL-REPLICATION-FAILOVER"><div class="titlepage"><div><div><h2 class="title" style="clear: both">29.3. Logical Replication Failover <a href="#LOGICAL-REPLICATION-FAILOVER" class="id_link">#</a></h2></div></div></div><p>
    To allow subscriber nodes to continue replicating data from the publisher
    node even when the publisher node goes down, there must be a physical standby
    corresponding to the publisher node. The logical slots on the primary server
@@ -28,7 +28,7 @@
      will return the relevant replication slots associated with the
      failover-enabled subscriptions.
 </p><pre class="programlisting">
-test_sub=# SELECT
+/* sub # */ SELECT
                array_agg(quote_literal(s.subslotname)) AS slots
            FROM  pg_subscription s
            WHERE s.subfailover AND
@@ -43,12 +43,12 @@ test_sub=# SELECT
      This query needs to be run on each database that includes the failover-enabled
      subscription(s). Note that the table sync slot should be synced to the standby
      server only if the table copy is finished
-     (See <a class="xref" href="catalog-pg-subscription-rel.html" title="51.55. pg_subscription_rel">Section 51.55</a>).
+     (See <a class="xref" href="catalog-pg-subscription-rel.html" title="52.55. pg_subscription_rel">Section 52.55</a>).
      We don't need to ensure that the table sync slots are synced in other scenarios
      as they will either be dropped or re-created on the new primary server in those
      cases.
 </p><pre class="programlisting">
-test_sub=# SELECT
+/* sub # */ SELECT
                array_agg(quote_literal(slot_name)) AS slots
            FROM
            (
@@ -64,7 +64,7 @@ test_sub=# SELECT
      Check that the logical replication slots identified above exist on
      the standby server and are ready for failover.
 </p><pre class="programlisting">
-test_standby=# SELECT slot_name, (synced AND NOT temporary AND invalidation_reason IS NULL) AS failover_ready
+/* standby # */ SELECT slot_name, (synced AND NOT temporary AND invalidation_reason IS NULL) AS failover_ready
                FROM pg_replication_slots
                WHERE slot_name IN
                    ('sub1','sub2','sub3', 'pg_16394_sync_16385_7394666715149055164');
@@ -107,4 +107,4 @@ test_standby=# SELECT slot_name, (synced AND NOT temporary AND invalidation_reas
 -------
  {'sub1','sub2','sub3', 'pg_16394_sync_16385_7394666715149055164'}
 (1 row)
-</pre></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="logical-replication-subscription.html" title="29.2. Subscription">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="logical-replication.html" title="Chapter 29. Logical Replication">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="logical-replication-row-filter.html" title="29.4. Row Filters">Next</a></td></tr><tr><td width="40%" align="left" valign="top">29.2. Subscription </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 29.4. Row Filters</td></tr></table></div></body></html>
+</pre></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="logical-replication-subscription.html" title="29.2. Subscription">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="logical-replication.html" title="Chapter 29. Logical Replication">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="logical-replication-row-filter.html" title="29.4. Row Filters">Next</a></td></tr><tr><td width="40%" align="left" valign="top">29.2. Subscription </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 29.4. Row Filters</td></tr></table></div></body></html>

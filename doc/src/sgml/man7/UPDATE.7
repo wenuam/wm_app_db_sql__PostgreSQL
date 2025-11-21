@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "UPDATE" "7" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "UPDATE" "7" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -40,7 +40,8 @@ UPDATE [ ONLY ] \fItable_name\fR [ * ] [ [ AS ] \fIalias\fR ]
         } [, \&.\&.\&.]
     [ FROM \fIfrom_item\fR [, \&.\&.\&.] ]
     [ WHERE \fIcondition\fR | WHERE CURRENT OF \fIcursor_name\fR ]
-    [ RETURNING { * | \fIoutput_expression\fR [ [ AS ] \fIoutput_name\fR ] } [, \&.\&.\&.] ]
+    [ RETURNING [ WITH ( { OLD | NEW } AS \fIoutput_alias\fR [, \&.\&.\&.] ) ]
+                { * | \fIoutput_expression\fR [ [ AS ] \fIoutput_name\fR ] } [, \&.\&.\&.] ]
 .fi
 .SH "DESCRIPTION"
 .PP
@@ -58,7 +59,7 @@ RETURNING
 clause causes
 \fBUPDATE\fR
 to compute and return value(s) based on each row actually updated\&. Any expression using the table\*(Aqs columns, and/or columns of other tables mentioned in
-FROM, can be computed\&. The new (post\-update) values of the table\*(Aqs columns are used\&. The syntax of the
+FROM, can be computed\&. By default, the new (post\-update) values of the table\*(Aqs columns are used, but it is also possible to request the old (pre\-update) values\&. The syntax of the
 RETURNING
 list is identical to that of the output list of
 \fBSELECT\fR\&.
@@ -168,6 +169,26 @@ for more information about using cursors with
 WHERE CURRENT OF\&.
 .RE
 .PP
+\fIoutput_alias\fR
+.RS 4
+An optional substitute name for
+OLD
+or
+NEW
+rows in the
+RETURNING
+list\&.
+.sp
+By default, old values from the target table can be returned by writing
+OLD\&.\fIcolumn_name\fR
+or
+OLD\&.*, and new values can be returned by writing
+NEW\&.\fIcolumn_name\fR
+or
+NEW\&.*\&. When an alias is provided, these names are hidden and the old or new rows must be referred to using the alias\&. For example
+RETURNING WITH (OLD AS o, NEW AS n) o\&.*, n\&.*\&.
+.RE
+.PP
 \fIoutput_expression\fR
 .RS 4
 An expression to be computed and returned by the
@@ -178,6 +199,21 @@ or table(s) listed in
 FROM\&. Write
 *
 to return all columns\&.
+.sp
+A column name or
+*
+may be qualified using
+OLD
+or
+NEW, or the corresponding
+\fIoutput_alias\fR
+for
+OLD
+or
+NEW, to cause old or new values to be returned\&. An unqualified column name, or
+*, or a column name or
+*
+qualified using the target table name or alias will return new values\&.
 .RE
 .PP
 \fIoutput_name\fR
@@ -295,7 +331,7 @@ UPDATE weather SET temp_lo = temp_lo+1, temp_hi = temp_lo+15, prcp = DEFAULT
 .RE
 .\}
 .PP
-Perform the same operation and return the updated entries:
+Perform the same operation and return the updated entries, and the old precipitation value:
 .sp
 .if n \{\
 .RS 4
@@ -303,7 +339,7 @@ Perform the same operation and return the updated entries:
 .nf
 UPDATE weather SET temp_lo = temp_lo+1, temp_hi = temp_lo+15, prcp = DEFAULT
   WHERE city = \*(AqSan Francisco\*(Aq AND date = \*(Aq2003\-07\-03\*(Aq
-  RETURNING temp_lo, temp_hi, prcp;
+  RETURNING temp_lo, temp_hi, prcp, old\&.prcp AS old_prcp;
 .fi
 .if n \{\
 .RE

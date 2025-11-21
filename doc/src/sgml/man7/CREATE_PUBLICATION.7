@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "CREATE PUBLICATION" "7" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "CREATE PUBLICATION" "7" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -77,7 +77,10 @@ evaluates to false or null will not be published\&. Note that parentheses are re
 TRUNCATE
 commands\&.
 .sp
-When a column list is specified, only the named columns are replicated\&. If no column list is specified, all columns of the table are replicated through this publication, including any columns added later\&. It has no effect on
+When a column list is specified, only the named columns are replicated\&. The column list can contain stored generated columns as well\&. If the column list is omitted, the publication will replicate all non\-generated columns (including any added in the future) by default\&. Stored generated columns can also be replicated if
+publish_generated_columns
+is set to
+stored\&. Specifying a column list has no effect on
 TRUNCATE
 commands\&. See
 Section\ \&29.5
@@ -122,7 +125,44 @@ truncate\&. The default is to publish all actions, and so the default value for 
 \*(Aqinsert, update, delete, truncate\*(Aq\&.
 .sp
 This parameter only affects DML operations\&. In particular, the initial data synchronization (see
-Section\ \&29.8.1) for logical replication does not take this parameter into account when copying existing table data\&.
+Section\ \&29.9.1) for logical replication does not take this parameter into account when copying existing table data\&.
+.RE
+.PP
+publish_generated_columns (enum)
+.RS 4
+Specifies whether the generated columns present in the tables associated with the publication should be replicated\&. Possible values are
+none
+and
+stored\&.
+.sp
+The default is
+none
+meaning the generated columns present in the tables associated with publication will not be replicated\&.
+.sp
+If set to
+stored, the stored generated columns present in the tables associated with publication will be replicated\&.
+.if n \{\
+.sp
+.\}
+.RS 4
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBNote\fR
+.ps -1
+.br
+If the subscriber is from a release prior to 18, then initial table synchronization won\*(Aqt copy generated columns even if parameter
+publish_generated_columns
+is
+stored
+in the publisher\&.
+.sp .5v
+.RE
+See
+Section\ \&29.6
+for more details about logical replication of generated columns\&.
 .RE
 .PP
 publish_via_partition_root (boolean)
@@ -197,6 +237,16 @@ operations to be published\&. For publication of
 operations, any column may be used in the
 WHERE
 expression\&. The row filter allows simple expressions that don\*(Aqt have user\-defined functions, user\-defined operators, user\-defined types, user\-defined collations, non\-immutable built\-in functions, or references to system columns\&.
+.PP
+The generated columns that are part of
+REPLICA IDENTITY
+must be published explicitly either by listing them in the column list or by enabling the
+publish_generated_columns
+option, in order for
+\fBUPDATE\fR
+and
+\fBDELETE\fR
+operations to be published\&.
 .PP
 The row filter on a table becomes redundant if
 FOR TABLES IN SCHEMA

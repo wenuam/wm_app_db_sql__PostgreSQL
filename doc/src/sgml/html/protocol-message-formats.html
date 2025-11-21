@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>53.7. Message Formats</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="protocol-message-types.html" title="53.6. Message Data Types" /><link rel="next" href="protocol-error-fields.html" title="53.8. Error and Notice Message Fields" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">53.7. Message Formats</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="protocol-message-types.html" title="53.6. Message Data Types">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="protocol.html" title="Chapter 53. Frontend/Backend Protocol">Up</a></td><th width="60%" align="center">Chapter 53. Frontend/Backend Protocol</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="protocol-error-fields.html" title="53.8. Error and Notice Message Fields">Next</a></td></tr></table><hr /></div><div class="sect1" id="PROTOCOL-MESSAGE-FORMATS"><div class="titlepage"><div><div><h2 class="title" style="clear: both">53.7. Message Formats <a href="#PROTOCOL-MESSAGE-FORMATS" class="id_link">#</a></h2></div></div></div><p>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>54.7. Message Formats</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="protocol-message-types.html" title="54.6. Message Data Types" /><link rel="next" href="protocol-error-fields.html" title="54.8. Error and Notice Message Fields" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">54.7. Message Formats</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="protocol-message-types.html" title="54.6. Message Data Types">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="protocol.html" title="Chapter 54. Frontend/Backend Protocol">Up</a></td><th width="60%" align="center">Chapter 54. Frontend/Backend Protocol</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="protocol-error-fields.html" title="54.8. Error and Notice Message Fields">Next</a></td></tr></table><hr /></div><div class="sect1" id="PROTOCOL-MESSAGE-FORMATS"><div class="titlepage"><div><div><h2 class="title" style="clear: both">54.7. Message Formats <a href="#PROTOCOL-MESSAGE-FORMATS" class="id_link">#</a></h2></div></div></div><p>
    This section describes the detailed format of each message.  Each is marked to
    indicate that it can be sent by a frontend (F), a backend (B), or both
    (F &amp; B).
    Notice that although each message includes a byte count at the beginning,
-   the message format is defined so that the message end can be found without
-   reference to the byte count.  This aids validity checking.  (The CopyData
-   message is an exception, because it forms part of a data stream; the contents
-   of any individual CopyData message cannot be interpretable on their own.)
+   most messages are defined so that the message end can be found without
+   reference to the byte count.  This is for historical reasons, as the
+   original, now-obsolete protocol version 2 did not have an explicit length
+   field.  It also aids validity checking though.
   </p><div class="variablelist"><dl class="variablelist"><dt id="PROTOCOL-MESSAGE-FORMATS-AUTHENTICATIONOK"><span class="term">AuthenticationOk (B)</span> <a href="#PROTOCOL-MESSAGE-FORMATS-AUTHENTICATIONOK" class="id_link">#</a></dt><dd><div class="variablelist"><dl class="variablelist"><dt><span class="term">Byte1('R')</span></dt><dd><p>
          Identifies the message as an authentication request.
         </p></dd><dt><span class="term">Int32(8)</span></dt><dd><p>
@@ -90,13 +90,26 @@
          Identifies the message as cancellation key data.
          The frontend must save these values if it wishes to be
          able to issue CancelRequest messages later.
-        </p></dd><dt><span class="term">Int32(12)</span></dt><dd><p>
+        </p></dd><dt><span class="term">Int32</span></dt><dd><p>
          Length of message contents in bytes, including self.
         </p></dd><dt><span class="term">Int32</span></dt><dd><p>
          The process ID of this backend.
-        </p></dd><dt><span class="term">Int32</span></dt><dd><p>
-         The secret key of this backend.
-        </p></dd></dl></div></dd><dt id="PROTOCOL-MESSAGE-FORMATS-BIND"><span class="term">Bind (F)</span> <a href="#PROTOCOL-MESSAGE-FORMATS-BIND" class="id_link">#</a></dt><dd><div class="variablelist"><dl class="variablelist"><dt><span class="term">Byte1('B')</span></dt><dd><p>
+        </p></dd><dt><span class="term">Byte<em class="replaceable"><code>n</code></em></span></dt><dd><p>
+         The secret key of this backend. This field extends to the end of the
+         message, indicated by the length field.
+        </p><p>
+          The minimum and maximum key length are 4 and 256 bytes, respectively. The
+          <span class="productname">PostgreSQL</span> server only sends keys up to
+          32 bytes, but the larger maximum size allows for future server
+          versions, as well as connection poolers and other middleware, to use
+          longer keys. One possible use case is augmenting the server's key
+          with extra information. Middleware is therefore also encouraged to
+          not use up all of the bytes, in case multiple middleware
+          applications are layered on top of each other, each of which may
+          wrap the key with extra data.
+        </p></dd></dl></div><p>
+      Before protocol version 3.2, the secret key was always 4 bytes long.
+     </p></dd><dt id="PROTOCOL-MESSAGE-FORMATS-BIND"><span class="term">Bind (F)</span> <a href="#PROTOCOL-MESSAGE-FORMATS-BIND" class="id_link">#</a></dt><dd><div class="variablelist"><dl class="variablelist"><dt><span class="term">Byte1('B')</span></dt><dd><p>
          Identifies the message as a Bind command.
         </p></dd><dt><span class="term">Int32</span></dt><dd><p>
          Length of message contents in bytes, including self.
@@ -158,9 +171,12 @@
          must not be the same as any protocol version number.)
         </p></dd><dt><span class="term">Int32</span></dt><dd><p>
          The process ID of the target backend.
-        </p></dd><dt><span class="term">Int32</span></dt><dd><p>
-         The secret key for the target backend.
-        </p></dd></dl></div></dd><dt id="PROTOCOL-MESSAGE-FORMATS-CLOSE"><span class="term">Close (F)</span> <a href="#PROTOCOL-MESSAGE-FORMATS-CLOSE" class="id_link">#</a></dt><dd><div class="variablelist"><dl class="variablelist"><dt><span class="term">Byte1('C')</span></dt><dd><p>
+        </p></dd><dt><span class="term">Byte<em class="replaceable"><code>n</code></em></span></dt><dd><p>
+         The secret key for the target backend. This field extends to the end of the
+         message, indicated by the length field. The maximum key length is 256 bytes.
+        </p></dd></dl></div><p>
+      Before protocol version 3.2, the secret key was always 4 bytes long.
+     </p></dd><dt id="PROTOCOL-MESSAGE-FORMATS-CLOSE"><span class="term">Close (F)</span> <a href="#PROTOCOL-MESSAGE-FORMATS-CLOSE" class="id_link">#</a></dt><dd><div class="variablelist"><dl class="variablelist"><dt><span class="term">Byte1('C')</span></dt><dd><p>
          Identifies the message as a Close command.
         </p></dd><dt><span class="term">Int32</span></dt><dd><p>
          Length of message contents in bytes, including self.
@@ -346,7 +362,7 @@
          A code identifying the field type; if zero, this is
          the message terminator and no string follows.
          The presently defined field types are listed in
-         <a class="xref" href="protocol-error-fields.html" title="53.8. Error and Notice Message Fields">Section 53.8</a>.
+         <a class="xref" href="protocol-error-fields.html" title="54.8. Error and Notice Message Fields">Section 54.8</a>.
          Since more field types might be added in future,
          frontends should silently ignore fields of unrecognized
          type.
@@ -462,7 +478,7 @@
          A code identifying the field type; if zero, this is
          the message terminator and no string follows.
          The presently defined field types are listed in
-         <a class="xref" href="protocol-error-fields.html" title="53.8. Error and Notice Message Fields">Section 53.8</a>.
+         <a class="xref" href="protocol-error-fields.html" title="54.8. Error and Notice Message Fields">Section 54.8</a>.
          Since more field types might be added in future,
          frontends should silently ignore fields of unrecognized
          type.
@@ -613,11 +629,11 @@
          must not be the same as any protocol version number.)
         </p></dd></dl></div></dd><dt id="PROTOCOL-MESSAGE-FORMATS-STARTUPMESSAGE"><span class="term">StartupMessage (F)</span> <a href="#PROTOCOL-MESSAGE-FORMATS-STARTUPMESSAGE" class="id_link">#</a></dt><dd><div class="variablelist"><dl class="variablelist"><dt><span class="term">Int32</span></dt><dd><p>
          Length of message contents in bytes, including self.
-        </p></dd><dt><span class="term">Int32(196608)</span></dt><dd><p>
+        </p></dd><dt><span class="term">Int32(196610)</span></dt><dd><p>
          The protocol version number.  The most significant 16 bits are
          the major version number (3 for the protocol described here).
          The least significant 16 bits are the minor version number
-         (0 for the protocol described here).
+         (2 for the protocol described here).
         </p></dd></dl></div><p>
       The protocol version number is followed by one or more pairs of
       parameter name and value strings.  A zero byte is required as a
@@ -647,7 +663,7 @@
              <code class="literal">true</code>, <code class="literal">false</code>, or
              <code class="literal">database</code>, and the default is
              <code class="literal">false</code>. See
-             <a class="xref" href="protocol-replication.html" title="53.4. Streaming Replication Protocol">Section 53.4</a> for details.
+             <a class="xref" href="protocol-replication.html" title="54.4. Streaming Replication Protocol">Section 54.4</a> for details.
             </p></dd></dl></div><p>
 
          In addition to the above, other parameters may be listed.
@@ -667,4 +683,4 @@
          Identifies the message as a termination.
         </p></dd><dt><span class="term">Int32(4)</span></dt><dd><p>
          Length of message contents in bytes, including self.
-        </p></dd></dl></div></dd></dl></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="protocol-message-types.html" title="53.6. Message Data Types">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="protocol.html" title="Chapter 53. Frontend/Backend Protocol">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="protocol-error-fields.html" title="53.8. Error and Notice Message Fields">Next</a></td></tr><tr><td width="40%" align="left" valign="top">53.6. Message Data Types </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 53.8. Error and Notice Message Fields</td></tr></table></div></body></html>
+        </p></dd></dl></div></dd></dl></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="protocol-message-types.html" title="54.6. Message Data Types">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="protocol.html" title="Chapter 54. Frontend/Backend Protocol">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="protocol-error-fields.html" title="54.8. Error and Notice Message Fields">Next</a></td></tr><tr><td width="40%" align="left" valign="top">54.6. Message Data Types </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 54.8. Error and Notice Message Fields</td></tr></table></div></body></html>

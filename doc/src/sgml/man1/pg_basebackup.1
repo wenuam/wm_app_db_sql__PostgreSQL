@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "PG_BASEBACKUP" "1" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "PG_BASEBACKUP" "1" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -532,7 +532,7 @@ SHA
 algorithms are significantly more CPU\-intensive than
 CRC32C, so selecting one of them may increase the time required to complete the backup\&.
 .sp
-Using a SHA hash function provides a cryptographically secure digest of each file for users who wish to verify that the backup has not been tampered with, while the CRC32C algorithm provides a checksum that is much faster to calculate; it is good at catching errors due to accidental changes but is not resistant to malicious modifications\&. Note that, to be useful against an adversary who has access to the backup, the backup manifest would need to be stored securely elsewhere or otherwise verified not to have been modified since the backup was taken\&.
+Using a SHA hash function provides a cryptographically secure digest of each file for users who wish to verify that the backup has not been tampered with, while the CRC\-32C algorithm provides a checksum that is much faster to calculate; it is good at catching errors due to accidental changes but is not resistant to malicious modifications\&. Note that, to be useful against an adversary who has access to the backup, the backup manifest would need to be stored securely elsewhere or otherwise verified not to have been modified since the backup was taken\&.
 .sp
 \fBpg_verifybackup\fR(1)
 can be used to check the integrity of a backup against the backup manifest\&.
@@ -708,7 +708,7 @@ pg_basebackup
 will appear to be idle\&.
 .PP
 The backup will include all files in the data directory and tablespaces, including the configuration files and any additional files placed in the directory by third parties, except certain temporary files managed by PostgreSQL and operating system files\&. But only regular files and directories are copied, except that symbolic links used for tablespaces are preserved\&. Symbolic links pointing to certain directories known to PostgreSQL are copied as empty directories\&. Other symbolic links and special device files are skipped\&. See
-Section\ \&53.4
+Section\ \&54.4
 for the precise details\&.
 .PP
 In plain format, tablespaces will be backed up to the same path they have on the source server, unless the option

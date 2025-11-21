@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "PG_RESETWAL" "1" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "PG_RESETWAL" "1" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -230,34 +230,6 @@ pg_multixact/members
 under the data directory, adding one, and then multiplying by 52352 (0xCC80)\&. The file names are in hexadecimal\&. There is no simple recipe such as the ones for other options of appending zeroes\&.
 .RE
 .PP
-\fB\-\-wal\-segsize=\fR\fB\fIwal_segment_size\fR\fR
-.RS 4
-Set the new WAL segment size, in megabytes\&. The value must be set to a power of 2 between 1 and 1024 (megabytes)\&. See the same option of
-\fBinitdb\fR(1)
-for more information\&.
-.sp
-This option can also be used to change the WAL segment size of an existing database cluster, avoiding the need to re\-\fBinitdb\fR\&.
-.if n \{\
-.sp
-.\}
-.RS 4
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.ps +1
-\fBNote\fR
-.ps -1
-.br
-While
-\fBpg_resetwal\fR
-will set the WAL starting address beyond the latest existing WAL segment file, some segment size changes can cause previous WAL file names to be reused\&. It is recommended to use
-\fB\-l\fR
-together with this option to manually set the WAL starting address if WAL file name overlap will cause problems with your archiving strategy\&.
-.sp .5v
-.RE
-.RE
-.PP
 \fB\-u \fR\fB\fIxid\fR\fR
 .br
 \fB\-\-oldest\-transaction\-id=\fR\fB\fIxid\fR\fR
@@ -288,6 +260,54 @@ is the largest entry in
 pg_xact,
 \-x 0x1200000
 will work (five trailing zeroes provide the proper multiplier)\&.
+.RE
+.PP
+\fB\-\-char\-signedness=\fR\fB\fIoption\fR\fR
+.RS 4
+Manually set the default char signedness\&. Possible values are
+signed
+and
+unsigned\&.
+.sp
+For a database cluster that
+\fBpg_upgrade\fR
+upgraded from a
+PostgreSQL
+version before 18, the safe value would be the default
+char
+signedness of the platform that ran the cluster before that upgrade\&. For all other clusters,
+signed
+would be the safe value\&. However, this option is exclusively for use with
+\fBpg_upgrade\fR
+and should not normally be used manually\&.
+.RE
+.PP
+\fB\-\-wal\-segsize=\fR\fB\fIwal_segment_size\fR\fR
+.RS 4
+Set the new WAL segment size, in megabytes\&. The value must be set to a power of 2 between 1 and 1024 (megabytes)\&. See the same option of
+\fBinitdb\fR(1)
+for more information\&.
+.sp
+This option can also be used to change the WAL segment size of an existing database cluster, avoiding the need to re\-\fBinitdb\fR\&.
+.if n \{\
+.sp
+.\}
+.RS 4
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBNote\fR
+.ps -1
+.br
+While
+\fBpg_resetwal\fR
+will set the WAL starting address beyond the latest existing WAL segment file, some segment size changes can cause previous WAL file names to be reused\&. It is recommended to use
+\fB\-l\fR
+together with this option to manually set the WAL starting address if WAL file name overlap will cause problems with your archiving strategy\&.
+.sp .5v
+.RE
 .RE
 .SH "ENVIRONMENT"
 .PP

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>pg_resetwal</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="app-pg-ctl.html" title="pg_ctl" /><link rel="next" href="app-pgrewind.html" title="pg_rewind" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center"><span class="application">pg_resetwal</span></th></tr><tr><td width="10%" align="left"><a accesskey="p" href="app-pg-ctl.html" title="pg_ctl">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="reference-server.html" title="PostgreSQL Server Applications">Up</a></td><th width="60%" align="center">PostgreSQL Server Applications</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="app-pgrewind.html" title="pg_rewind">Next</a></td></tr></table><hr /></div><div class="refentry" id="APP-PGRESETWAL"><div class="titlepage"></div><a id="id-1.9.5.9.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle"><span class="application">pg_resetwal</span></span></h2><p>pg_resetwal — reset the write-ahead log and other control information of a <span class="productname">PostgreSQL</span> database cluster</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><div class="cmdsynopsis"><p id="id-1.9.5.9.4.1"><code class="command">pg_resetwal</code> [ <code class="option">-f</code>  |   <code class="option">--force</code> ] [ <code class="option">-n</code>  |   <code class="option">--dry-run</code> ] [<em class="replaceable"><code>option</code></em>...]  [ <code class="option">-D</code>  |   <code class="option">--pgdata</code> ]<em class="replaceable"><code>datadir</code></em> </p></div></div><div class="refsect1" id="R1-APP-PGRESETWAL-1"><h2>Description</h2><p>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>pg_resetwal</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="app-pg-ctl.html" title="pg_ctl" /><link rel="next" href="app-pgrewind.html" title="pg_rewind" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center"><span class="application">pg_resetwal</span></th></tr><tr><td width="10%" align="left"><a accesskey="p" href="app-pg-ctl.html" title="pg_ctl">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="reference-server.html" title="PostgreSQL Server Applications">Up</a></td><th width="60%" align="center">PostgreSQL Server Applications</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="app-pgrewind.html" title="pg_rewind">Next</a></td></tr></table><hr /></div><div class="refentry" id="APP-PGRESETWAL"><div class="titlepage"></div><a id="id-1.9.5.9.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle"><span class="application">pg_resetwal</span></span></h2><p>pg_resetwal — reset the write-ahead log and other control information of a <span class="productname">PostgreSQL</span> database cluster</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><div class="cmdsynopsis"><p id="id-1.9.5.9.4.1"><code class="command">pg_resetwal</code> [ <code class="option">-f</code>  |   <code class="option">--force</code> ] [ <code class="option">-n</code>  |   <code class="option">--dry-run</code> ] [<em class="replaceable"><code>option</code></em>...]  [ <code class="option">-D</code>  |   <code class="option">--pgdata</code> ]<em class="replaceable"><code>datadir</code></em> </p></div></div><div class="refsect1" id="R1-APP-PGRESETWAL-1"><h2>Description</h2><p>
    <code class="command">pg_resetwal</code> clears the write-ahead log (WAL) and
    optionally resets some other control information stored in the
    <code class="filename">pg_control</code> file.  This function is sometimes needed
@@ -142,21 +142,7 @@
       data directory, adding one, and then multiplying by 52352 (0xCC80).
       The file names are in hexadecimal.  There is no simple recipe such as
       the ones for other options of appending zeroes.
-     </p></dd><dt><span class="term"><code class="option">--wal-segsize=<em class="replaceable"><code>wal_segment_size</code></em></code></span></dt><dd><p>
-      Set the new WAL segment size, in megabytes.  The value must be set to a
-      power of 2 between 1 and 1024 (megabytes).  See the same option of <a class="xref" href="app-initdb.html" title="initdb"><span class="refentrytitle"><span class="application">initdb</span></span></a> for more information.
-     </p><p>
-      This option can also be used to change the WAL segment size of an
-      existing database cluster, avoiding the need to
-      re-<code class="command">initdb</code>.
-     </p><div class="note"><h3 class="title">Note</h3><p>
-       While <code class="command">pg_resetwal</code> will set the WAL starting address
-       beyond the latest existing WAL segment file, some segment size changes
-       can cause previous WAL file names to be reused.  It is recommended to
-       use <code class="option">-l</code> together with this option to manually set the
-       WAL starting address if WAL file name overlap will cause problems with
-       your archiving strategy.
-      </p></div></dd><dt><span class="term"><code class="option">-u <em class="replaceable"><code>xid</code></em></code><br /></span><span class="term"><code class="option">--oldest-transaction-id=<em class="replaceable"><code>xid</code></em></code></span></dt><dd><p>
+     </p></dd><dt><span class="term"><code class="option">-u <em class="replaceable"><code>xid</code></em></code><br /></span><span class="term"><code class="option">--oldest-transaction-id=<em class="replaceable"><code>xid</code></em></code></span></dt><dd><p>
       Manually set the oldest unfrozen transaction ID.
      </p><p>
       A safe value can be determined by looking for the numerically smallest
@@ -177,7 +163,32 @@
       hexadecimal too. For example, if <code class="filename">0011</code> is the largest entry
       in <code class="filename">pg_xact</code>, <code class="literal">-x 0x1200000</code> will work (five
       trailing zeroes provide the proper multiplier).
-     </p></dd></dl></div></div><div class="refsect1" id="id-1.9.5.9.7"><h2>Environment</h2><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="envar">PG_COLOR</code></span></dt><dd><p>
+     </p></dd><dt><span class="term"><code class="option">--char-signedness=<em class="replaceable"><code>option</code></em></code></span></dt><dd><p>
+      Manually set the default char signedness. Possible values are
+      <code class="literal">signed</code> and <code class="literal">unsigned</code>.
+     </p><p>
+      For a database cluster that <code class="command">pg_upgrade</code> upgraded from
+      a <span class="productname">PostgreSQL</span> version before 18, the safe
+      value would be the default <code class="type">char</code> signedness of the platform
+      that ran the cluster before that upgrade. For all other
+      clusters, <code class="literal">signed</code> would be the safe value. However,
+      this option is exclusively for use with <code class="command">pg_upgrade</code>
+      and should not normally be used manually.
+     </p></dd><dt><span class="term"><code class="option">--wal-segsize=<em class="replaceable"><code>wal_segment_size</code></em></code></span></dt><dd><p>
+      Set the new WAL segment size, in megabytes.  The value must be set to a
+      power of 2 between 1 and 1024 (megabytes).  See the same option of <a class="xref" href="app-initdb.html" title="initdb"><span class="refentrytitle"><span class="application">initdb</span></span></a> for more information.
+     </p><p>
+      This option can also be used to change the WAL segment size of an
+      existing database cluster, avoiding the need to
+      re-<code class="command">initdb</code>.
+     </p><div class="note"><h3 class="title">Note</h3><p>
+       While <code class="command">pg_resetwal</code> will set the WAL starting address
+       beyond the latest existing WAL segment file, some segment size changes
+       can cause previous WAL file names to be reused.  It is recommended to
+       use <code class="option">-l</code> together with this option to manually set the
+       WAL starting address if WAL file name overlap will cause problems with
+       your archiving strategy.
+      </p></div></dd></dl></div></div><div class="refsect1" id="id-1.9.5.9.7"><h2>Environment</h2><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="envar">PG_COLOR</code></span></dt><dd><p>
       Specifies whether to use color in diagnostic messages. Possible values
       are <code class="literal">always</code>, <code class="literal">auto</code> and
       <code class="literal">never</code>.
@@ -192,4 +203,4 @@
   </p><p>
    <code class="command">pg_resetwal</code> works only with servers of the same
    major version.
-  </p></div><div class="refsect1" id="id-1.9.5.9.9"><h2>See Also</h2><span class="simplelist"><a class="xref" href="app-pgcontroldata.html" title="pg_controldata"><span class="refentrytitle"><span class="application">pg_controldata</span></span></a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="app-pg-ctl.html" title="pg_ctl">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="reference-server.html" title="PostgreSQL Server Applications">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="app-pgrewind.html" title="pg_rewind">Next</a></td></tr><tr><td width="40%" align="left" valign="top"><span class="application">pg_ctl</span> </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> <span class="application">pg_rewind</span></td></tr></table></div></body></html>
+  </p></div><div class="refsect1" id="id-1.9.5.9.9"><h2>See Also</h2><span class="simplelist"><a class="xref" href="app-pgcontroldata.html" title="pg_controldata"><span class="refentrytitle"><span class="application">pg_controldata</span></span></a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="app-pg-ctl.html" title="pg_ctl">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="reference-server.html" title="PostgreSQL Server Applications">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="app-pgrewind.html" title="pg_rewind">Next</a></td></tr><tr><td width="40%" align="left" valign="top"><span class="application">pg_ctl</span> </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> <span class="application">pg_rewind</span></td></tr></table></div></body></html>

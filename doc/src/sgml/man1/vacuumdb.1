@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "VACUUMDB" "1" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "VACUUMDB" "1" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -169,6 +169,28 @@ vacuumdb
 will also process the
 TOAST
 table for the relation if necessary, it does not need to be considered separately\&.
+.RE
+.PP
+\fB\-\-missing\-stats\-only\fR
+.RS 4
+Only analyze relations that are missing statistics for a column, index expression, or extended statistics object\&. When used with
+\fB\-\-analyze\-in\-stages\fR, this option prevents
+vacuumdb
+from temporarily replacing existing statistics with ones generated with lower statistics targets, thus avoiding transiently worse query optimizer choices\&.
+.sp
+This option can only be used in conjunction with
+\fB\-\-analyze\-only\fR
+or
+\fB\-\-analyze\-in\-stages\fR\&.
+.sp
+Note that
+\fB\-\-missing\-stats\-only\fR
+requires
+SELECT
+privileges on
+pg_statistic
+and
+pg_statistic_ext_data, which are restricted to superusers by default\&.
 .RE
 .PP
 \fB\-n \fR\fB\fIschema\fR\fR

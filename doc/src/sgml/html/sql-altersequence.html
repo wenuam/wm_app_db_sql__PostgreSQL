@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>ALTER SEQUENCE</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="sql-alterschema.html" title="ALTER SCHEMA" /><link rel="next" href="sql-alterserver.html" title="ALTER SERVER" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">ALTER SEQUENCE</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="sql-alterschema.html" title="ALTER SCHEMA">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><th width="60%" align="center">SQL Commands</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="sql-alterserver.html" title="ALTER SERVER">Next</a></td></tr></table><hr /></div><div class="refentry" id="SQL-ALTERSEQUENCE"><div class="titlepage"></div><a id="id-1.9.3.30.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle">ALTER SEQUENCE</span></h2><p>ALTER SEQUENCE — 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>ALTER SEQUENCE</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="sql-alterschema.html" title="ALTER SCHEMA" /><link rel="next" href="sql-alterserver.html" title="ALTER SERVER" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">ALTER SEQUENCE</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="sql-alterschema.html" title="ALTER SCHEMA">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><th width="60%" align="center">SQL Commands</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="sql-alterserver.html" title="ALTER SERVER">Next</a></td></tr></table><hr /></div><div class="refentry" id="SQL-ALTERSEQUENCE"><div class="titlepage"></div><a id="id-1.9.3.30.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle">ALTER SEQUENCE</span></h2><p>ALTER SEQUENCE — 
    change the definition of a sequence generator
   </p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><pre class="synopsis">
 ALTER SEQUENCE [ IF EXISTS ] <em class="replaceable"><code>name</code></em>
     [ AS <em class="replaceable"><code>data_type</code></em> ]
     [ INCREMENT [ BY ] <em class="replaceable"><code>increment</code></em> ]
     [ MINVALUE <em class="replaceable"><code>minvalue</code></em> | NO MINVALUE ] [ MAXVALUE <em class="replaceable"><code>maxvalue</code></em> | NO MAXVALUE ]
+    [ [ NO ] CYCLE ]
     [ START [ WITH ] <em class="replaceable"><code>start</code></em> ]
     [ RESTART [ [ WITH ] <em class="replaceable"><code>restart</code></em> ] ]
-    [ CACHE <em class="replaceable"><code>cache</code></em> ] [ [ NO ] CYCLE ]
+    [ CACHE <em class="replaceable"><code>cache</code></em> ]
     [ OWNED BY { <em class="replaceable"><code>table_name</code></em>.<em class="replaceable"><code>column_name</code></em> | NONE } ]
 ALTER SEQUENCE [ IF EXISTS ] <em class="replaceable"><code>name</code></em> SET { LOGGED | UNLOGGED }
 ALTER SEQUENCE [ IF EXISTS ] <em class="replaceable"><code>name</code></em> OWNER TO { <em class="replaceable"><code>new_owner</code></em> | CURRENT_ROLE | CURRENT_USER | SESSION_USER }
@@ -69,6 +70,24 @@ ALTER SEQUENCE [ IF EXISTS ] <em class="replaceable"><code>name</code></em> SET 
         the maximum value of the data type and -1 for ascending and descending
         sequences, respectively, will be used.  If neither option is
         specified, the current maximum value will be maintained.
+       </p></dd><dt><span class="term"><code class="literal">CYCLE</code></span></dt><dd><p>
+        The optional <code class="literal">CYCLE</code> key word can be used to enable
+        the sequence to wrap around when the
+        <em class="replaceable"><code>maxvalue</code></em> or
+        <em class="replaceable"><code>minvalue</code></em> has been
+        reached by
+        an ascending or descending sequence respectively. If the limit is
+        reached, the next number generated will be the
+        <em class="replaceable"><code>minvalue</code></em> or
+        <em class="replaceable"><code>maxvalue</code></em>,
+        respectively.
+       </p></dd><dt><span class="term"><code class="literal">NO CYCLE</code></span></dt><dd><p>
+        If the optional <code class="literal">NO CYCLE</code> key word is
+        specified, any calls to <code class="function">nextval</code> after the
+        sequence has reached its maximum value will return an error.
+        If neither <code class="literal">CYCLE</code> or <code class="literal">NO
+        CYCLE</code> are specified, the old cycle behavior will be
+        maintained.
        </p></dd><dt><span class="term"><em class="replaceable"><code>start</code></em></span></dt><dd><p>
         The optional clause <code class="literal">START WITH <em class="replaceable"><code>start</code></em></code> changes the
         recorded start value of the sequence.  This has no effect on the
@@ -95,24 +114,6 @@ ALTER SEQUENCE [ IF EXISTS ] <em class="replaceable"><code>name</code></em> SET 
         faster access. The minimum value is 1 (only one value can be
         generated at a time, i.e., no cache).  If unspecified, the old
         cache value will be maintained.
-       </p></dd><dt><span class="term"><code class="literal">CYCLE</code></span></dt><dd><p>
-        The optional <code class="literal">CYCLE</code> key word can be used to enable
-        the sequence to wrap around when the
-        <em class="replaceable"><code>maxvalue</code></em> or
-        <em class="replaceable"><code>minvalue</code></em> has been
-        reached by
-        an ascending or descending sequence respectively. If the limit is
-        reached, the next number generated will be the
-        <em class="replaceable"><code>minvalue</code></em> or
-        <em class="replaceable"><code>maxvalue</code></em>,
-        respectively.
-       </p></dd><dt><span class="term"><code class="literal">NO CYCLE</code></span></dt><dd><p>
-        If the optional <code class="literal">NO CYCLE</code> key word is
-        specified, any calls to <code class="function">nextval</code> after the
-        sequence has reached its maximum value will return an error.
-        If neither <code class="literal">CYCLE</code> or <code class="literal">NO
-        CYCLE</code> are specified, the old cycle behavior will be
-        maintained.
        </p></dd><dt><span class="term"><code class="literal">SET { LOGGED | UNLOGGED }</code></span></dt><dd><p>
         This form changes the sequence from unlogged to logged or vice-versa
         (see <a class="xref" href="sql-createsequence.html" title="CREATE SEQUENCE"><span class="refentrytitle">CREATE SEQUENCE</span></a>).  It cannot be applied to a
@@ -163,4 +164,4 @@ ALTER SEQUENCE serial RESTART WITH 105;
    <code class="literal">OWNED BY</code>, <code class="literal">OWNER TO</code>, <code class="literal">RENAME TO</code>, and
    <code class="literal">SET SCHEMA</code> clauses, which are
    <span class="productname">PostgreSQL</span> extensions.
-  </p></div><div class="refsect1" id="id-1.9.3.30.10"><h2>See Also</h2><span class="simplelist"><a class="xref" href="sql-createsequence.html" title="CREATE SEQUENCE"><span class="refentrytitle">CREATE SEQUENCE</span></a>, <a class="xref" href="sql-dropsequence.html" title="DROP SEQUENCE"><span class="refentrytitle">DROP SEQUENCE</span></a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="sql-alterschema.html" title="ALTER SCHEMA">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="sql-alterserver.html" title="ALTER SERVER">Next</a></td></tr><tr><td width="40%" align="left" valign="top">ALTER SCHEMA </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> ALTER SERVER</td></tr></table></div></body></html>
+  </p></div><div class="refsect1" id="id-1.9.3.30.10"><h2>See Also</h2><span class="simplelist"><a class="xref" href="sql-createsequence.html" title="CREATE SEQUENCE"><span class="refentrytitle">CREATE SEQUENCE</span></a>, <a class="xref" href="sql-dropsequence.html" title="DROP SEQUENCE"><span class="refentrytitle">DROP SEQUENCE</span></a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="sql-alterschema.html" title="ALTER SCHEMA">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="sql-alterserver.html" title="ALTER SERVER">Next</a></td></tr><tr><td width="40%" align="left" valign="top">ALTER SCHEMA </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> ALTER SERVER</td></tr></table></div></body></html>

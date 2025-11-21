@@ -7,11 +7,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Collation Dialog &#8212; pgAdmin 4 9.6 documentation</title>
+    <title>Collation Dialog &#8212; pgAdmin 4 9.8 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/style.css?v=d36593c3" />
     
-    <script src="_static/documentation_options.js?v=a51d793f"></script>
+    <script src="_static/documentation_options.js?v=e97f5ee4"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="dbms_schedule.html" title="DBMS Schedule"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 9.8 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="managing_database_objects.html" accesskey="U">Managing Database Objects</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Collation Dialog</a></li> 
       </ul>
@@ -74,6 +74,9 @@ existing collation to copy. The new collation will have the same properties
 as the existing one, but will be an independent object. If you choose to copy
 an existing collation, you cannot modify the collation properties displayed on
 this tab.</p></li>
+<li><p>Use the drop-down listbox next to <em>Provider</em> to select a locale services associated
+with the collation. Possible values are: icu, libc and builtin.
+<strong>Note:</strong> The builtin option is available from v17 onwards.</p></li>
 <li><p>Use the <em>Locale</em> field to specify a locale; a locale specifies language and
 language formatting characteristics. If you specify this, you cannot specify
 either of the following parameters. To view a list of locales supported by
@@ -84,8 +87,6 @@ CREATE DATABASE for details.)</p></li>
 <li><p>Use the <em>LC_CTYPE</em> field to specify a locale with specified character
 classification. The locale must be applicable to the current database encoding.
 (See CREATE DATABASE for details.)</p></li>
-<li><p>Use the drop-down listbox next to <em>Locale Provider</em> to select a locale services associated
-with the collation. Possible values are: icu, libc. libc is the default.</p></li>
 <li><p>Move the switch next to <em>Deterministic</em> to <em>YES</em> to specify whether the collation should use
 deterministic comparisons. By default, this option is set to true. In a
 deterministic comparison, strings that are not byte-wise equal are considered
@@ -217,7 +218,7 @@ documentation:</p>
         <li class="right" >
           <a href="dbms_schedule.html" title="DBMS Schedule"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 9.8 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="managing_database_objects.html" >Managing Database Objects</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Collation Dialog</a></li> 
       </ul>

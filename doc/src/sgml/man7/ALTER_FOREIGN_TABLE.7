@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "ALTER FOREIGN TABLE" "7" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "ALTER FOREIGN TABLE" "7" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -138,11 +138,16 @@ ADD \fItable_constraint\fR [ NOT VALID ]
 This form adds a new constraint to a foreign table, using the same syntax as
 \fBCREATE FOREIGN TABLE\fR\&. Currently only
 CHECK
+and
+NOT NULL
 constraints are supported\&.
 .sp
 Unlike the case when adding a constraint to a regular table, nothing is done to verify the constraint is correct; rather, this action simply declares that some new condition should be assumed to hold for all rows in the foreign table\&. (See the discussion in
 \fBCREATE FOREIGN TABLE\fR\&.) If the constraint is marked
-NOT VALID, then it isn\*(Aqt assumed to hold, but is only recorded for possible future use\&.
+NOT VALID
+(allowed only for the
+CHECK
+case), then it isn\*(Aqt assumed to hold, but is only recorded for possible future use\&.
 .RE
 .PP
 VALIDATE CONSTRAINT

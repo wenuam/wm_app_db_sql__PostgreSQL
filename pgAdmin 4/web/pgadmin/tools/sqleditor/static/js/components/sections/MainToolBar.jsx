@@ -21,9 +21,9 @@ import AssessmentRoundedIcon from '@mui/icons-material/AssessmentRounded';
 import ExplicitRoundedIcon from '@mui/icons-material/ExplicitRounded';
 import FormatListNumberedRoundedIcon from '@mui/icons-material/FormatListNumberedRounded';
 import HelpIcon from '@mui/icons-material/HelpRounded';
-import {QUERY_TOOL_EVENTS, CONNECTION_STATUS} from '../QueryToolConstants';
+import {QUERY_TOOL_EVENTS, CONNECTION_STATUS, MODAL_DIALOGS} from '../QueryToolConstants';
 import { QueryToolConnectionContext, QueryToolContext, QueryToolEventsContext } from '../QueryToolComponent';
-import { PgMenu, PgMenuDivider, PgMenuItem, usePgMenuGroup } from '../../../../../../static/js/components/Menu';
+import { PgMenu, PgMenuDivider, PgMenuItem, usePgMenuGroup, PgSubMenu} from '../../../../../../static/js/components/Menu';
 import gettext from 'sources/gettext';
 import { useKeyboardShortcuts } from '../../../../../../static/js/custom_hooks';
 import url_for from 'sources/url_for';
@@ -34,7 +34,6 @@ import CustomPropTypes from '../../../../../../static/js/custom_prop_types';
 import ConfirmTransactionContent from '../dialogs/ConfirmTransactionContent';
 import { LayoutDocker } from '../../../../../../static/js/helpers/Layout';
 import CloseRunningDialog from '../dialogs/CloseRunningDialog';
-import { MODAL_DIALOGS } from '../QueryToolConstants';
 
 const StyledBox = styled(Box)(({theme}) => ({
   padding: '2px 4px',
@@ -84,6 +83,7 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros, onAddT
   const filterMenuRef = React.useRef(null);
 
   const queryToolPref = queryToolCtx.preferences.sqleditor;
+  const editorPref = queryToolCtx.preferences.editor;
   const setDisableButton = useCallback((name, disable=true)=>{
     setButtonsDisabled((prev)=>({...prev, [name]: disable}));
   }, []);
@@ -113,6 +113,10 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros, onAddT
       summary: Boolean(checkedMenuItems['explain_summary']),
       settings: Boolean(checkedMenuItems['explain_settings']),
       wal: analyze ? Boolean(checkedMenuItems['explain_wal']) : false,
+      generic_plan: analyze ? false: Boolean(checkedMenuItems['explain_generic_plan']),
+      memory: Boolean(checkedMenuItems['explain_memory']),
+      serialize_binary: analyze ? Boolean(checkedMenuItems['explain_serialize_binary']) : false,
+      serialize_text: analyze ? Boolean(checkedMenuItems['explain_serialize_text']) : false,
     });
   }, [checkedMenuItems]);
 
@@ -135,9 +139,18 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros, onAddT
             });
           });
       }
+
+      let otherVars = {};
+      if (e.value === 'explain_serialize_binary' && newVal) {
+        otherVars = { 'explain_serialize_text': false };
+      } else if (e.value === 'explain_serialize_text' && newVal) {
+        otherVars = { 'explain_serialize_binary': false };
+      }
+
       return {
         ...prev,
         [e.value]: newVal,
+        ...otherVars,
       };
     });
   }, []);
@@ -273,8 +286,8 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros, onAddT
   };
   useEffect(()=>{
     if(isInTxn()) {
-      setDisableButton('commit', queryToolCtx.params.server_cursor && !queryToolCtx.params.is_query_tool ? true : false);
-      setDisableButton('rollback', queryToolCtx.params.server_cursor && !queryToolCtx.params.is_query_tool ? true : false);
+      setDisableButton('commit', queryToolCtx.params.server_cursor && !queryToolCtx.params.is_query_tool);
+      setDisableButton('rollback', queryToolCtx.params.server_cursor && !queryToolCtx.params.is_query_tool);
       setDisableButton('execute-options', true);
     } else {
       setDisableButton('commit', true);
@@ -346,6 +359,8 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros, onAddT
           explain_summary: queryToolPref.explain_summary,
           explain_settings: queryToolPref.explain_settings,
           explain_wal: queryToolPref.explain_wal,
+          explain_generic_plan: queryToolPref.explain_generic_plan,
+          explain_memory: queryToolPref.explain_memory,
           open_in_new_tab: queryToolPref.open_in_new_tab,
           server_cursor: queryToolPref.server_cursor,
         });
@@ -595,25 +610,25 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros, onAddT
         onClose={onMenuClose}
         label={gettext('Edit Menu')}
       >
-        <PgMenuItem shortcut={queryToolPref.find}
+        <PgMenuItem shortcut={editorPref.find}
           onClick={()=>{eventBus.fireEvent(QUERY_TOOL_EVENTS.EDITOR_FIND_REPLACE, false);}}>{gettext('Find')}</PgMenuItem>
-        <PgMenuItem shortcut={queryToolPref.replace}
+        <PgMenuItem shortcut={editorPref.replace}
           onClick={()=>{eventBus.fireEvent(QUERY_TOOL_EVENTS.EDITOR_FIND_REPLACE, true);}}>{gettext('Replace')}</PgMenuItem>
-        <PgMenuItem shortcut={queryToolPref.goto_line_col}
+        <PgMenuItem shortcut={editorPref.goto_line_col}
           onClick={()=>{executeCmd('gotoLineCol');}}>{gettext('Go to Line/Column')}</PgMenuItem>
         <PgMenuDivider />
         <PgMenuItem shortcut={queryToolPref.indent}
           onClick={()=>{executeCmd('indentMore');}}>{gettext('Indent Selection')}</PgMenuItem>
         <PgMenuItem shortcut={queryToolPref.unindent}
           onClick={()=>{executeCmd('indentLess');}}>{gettext('Unindent Selection')}</PgMenuItem>
-        <PgMenuItem shortcut={queryToolPref.comment}
+        <PgMenuItem shortcut={editorPref.comment}
           onClick={()=>{executeCmd('toggleComment');}}>{gettext('Toggle Comment')}</PgMenuItem>
         <PgMenuItem shortcut={queryToolPref.toggle_case}
           onClick={toggleCase}>{gettext('Toggle Case Of Selected Text')}</PgMenuItem>
         <PgMenuItem shortcut={queryToolPref.clear_query}
           onClick={clearQuery}>{gettext('Clear Query')}</PgMenuItem>
         <PgMenuDivider />
-        <PgMenuItem shortcut={queryToolPref.format_sql} onClick={()=>{executeCmd('formatSql');}}>{gettext('Format SQL')}</PgMenuItem>
+        <PgMenuItem shortcut={editorPref.format_sql} onClick={()=>{executeCmd('formatSql');}}>{gettext('Format SQL')}</PgMenuItem>
       </PgMenu>
       <PgMenu
         anchorRef={filterMenuRef}
@@ -644,18 +659,28 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros, onAddT
         onClose={onMenuClose}
         label={gettext('Explain Options Menu')}
       >
-        <PgMenuItem hasCheck value="explain_verbose" checked={checkedMenuItems['explain_verbose']}
-          onClick={checkMenuClick}>{gettext('Verbose')}</PgMenuItem>
-        <PgMenuItem hasCheck value="explain_costs" checked={checkedMenuItems['explain_costs']}
-          onClick={checkMenuClick}>{gettext('Costs')}</PgMenuItem>
         <PgMenuItem hasCheck value="explain_buffers" checked={checkedMenuItems['explain_buffers']}
           onClick={checkMenuClick}>{gettext('Buffers')}</PgMenuItem>
-        <PgMenuItem hasCheck value="explain_timing" checked={checkedMenuItems['explain_timing']}
-          onClick={checkMenuClick}>{gettext('Timing')}</PgMenuItem>
-        <PgMenuItem hasCheck value="explain_summary" checked={checkedMenuItems['explain_summary']}
-          onClick={checkMenuClick}>{gettext('Summary')}</PgMenuItem>
+        <PgMenuItem hasCheck value="explain_costs" checked={checkedMenuItems['explain_costs']}
+          onClick={checkMenuClick}>{gettext('Costs')}</PgMenuItem>
+        <PgMenuItem hasCheck value="explain_generic_plan" checked={checkedMenuItems['explain_generic_plan']}
+          onClick={checkMenuClick}>{gettext('Generic Plan')}</PgMenuItem>
+        <PgMenuItem hasCheck value="explain_memory" checked={checkedMenuItems['explain_memory']}
+          onClick={checkMenuClick}>{gettext('Memory')}</PgMenuItem>
+        <PgSubMenu alignCheck key="SERIALIZE" label={gettext('Serialize')}>
+          <PgMenuItem hasCheck value="explain_serialize_text" checked={checkedMenuItems['explain_serialize_text']}
+            onClick={checkMenuClick}>{gettext('Text')}</PgMenuItem>
+          <PgMenuItem hasCheck value="explain_serialize_binary" checked={checkedMenuItems['explain_serialize_binary']}
+            onClick={checkMenuClick}>{gettext('Binary')}</PgMenuItem>
+        </PgSubMenu>
         <PgMenuItem hasCheck value="explain_settings" checked={checkedMenuItems['explain_settings']}
           onClick={checkMenuClick}>{gettext('Settings')}</PgMenuItem>
+        <PgMenuItem hasCheck value="explain_summary" checked={checkedMenuItems['explain_summary']}
+          onClick={checkMenuClick}>{gettext('Summary')}</PgMenuItem>
+        <PgMenuItem hasCheck value="explain_timing" checked={checkedMenuItems['explain_timing']}
+          onClick={checkMenuClick}>{gettext('Timing')}</PgMenuItem>
+        <PgMenuItem hasCheck value="explain_verbose" checked={checkedMenuItems['explain_verbose']}
+          onClick={checkMenuClick}>{gettext('Verbose')}</PgMenuItem>
         <PgMenuItem hasCheck value="explain_wal" checked={checkedMenuItems['explain_wal']}
           onClick={checkMenuClick}>{gettext('Wal')}</PgMenuItem>
       </PgMenu>

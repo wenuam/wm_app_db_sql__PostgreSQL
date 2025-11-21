@@ -207,6 +207,16 @@
 
 
 <row>
+<entry spanname="span12"><emphasis role="bold">Class 10 &mdash; XQuery Error</emphasis></entry>
+</row>
+
+<row>
+<entry><literal>10608</literal></entry>
+<entry><symbol>invalid_argument_for_xquery</symbol></entry>
+</row>
+
+
+<row>
 <entry spanname="span12"><emphasis role="bold">Class 20 &mdash; Case Not Found</emphasis></entry>
 </row>
 
@@ -1303,6 +1313,11 @@
 <row>
 <entry><literal>58P02</literal></entry>
 <entry><symbol>duplicate_file</symbol></entry>
+</row>
+
+<row>
+<entry><literal>58P03</literal></entry>
+<entry><symbol>file_name_too_long</symbol></entry>
 </row>
 
 

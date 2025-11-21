@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>pg_restore</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="app-pgrecvlogical.html" title="pg_recvlogical" /><link rel="next" href="app-pgverifybackup.html" title="pg_verifybackup" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center"><span class="application">pg_restore</span></th></tr><tr><td width="10%" align="left"><a accesskey="p" href="app-pgrecvlogical.html" title="pg_recvlogical">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="reference-client.html" title="PostgreSQL Client Applications">Up</a></td><th width="60%" align="center">PostgreSQL Client Applications</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="app-pgverifybackup.html" title="pg_verifybackup">Next</a></td></tr></table><hr /></div><div class="refentry" id="APP-PGRESTORE"><div class="titlepage"></div><a id="id-1.9.4.19.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle"><span class="application">pg_restore</span></span></h2><p>pg_restore — 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>pg_restore</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="app-pgrecvlogical.html" title="pg_recvlogical" /><link rel="next" href="app-pgverifybackup.html" title="pg_verifybackup" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center"><span class="application">pg_restore</span></th></tr><tr><td width="10%" align="left"><a accesskey="p" href="app-pgrecvlogical.html" title="pg_recvlogical">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="reference-client.html" title="PostgreSQL Client Applications">Up</a></td><th width="60%" align="center">PostgreSQL Client Applications</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="app-pgverifybackup.html" title="pg_verifybackup">Next</a></td></tr></table><hr /></div><div class="refentry" id="APP-PGRESTORE"><div class="titlepage"></div><a id="id-1.9.4.19.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle"><span class="application">pg_restore</span></span></h2><p>pg_restore — 
    restore a <span class="productname">PostgreSQL</span> database from an
    archive file created by <span class="application">pg_dump</span>
   </p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><div class="cmdsynopsis"><p id="id-1.9.4.19.4.1"><code class="command">pg_restore</code> [<em class="replaceable"><code>connection-option</code></em>...] [<em class="replaceable"><code>option</code></em>...] [<em class="replaceable"><code>filename</code></em>]</p></div></div><div class="refsect1" id="APP-PGRESTORE-DESCRIPTION"><h2>Description</h2><p>
@@ -46,7 +46,7 @@
        directory-format archive) to be restored.
        If not specified, the standard input is used.
        </p></dd><dt><span class="term"><code class="option">-a</code><br /></span><span class="term"><code class="option">--data-only</code></span></dt><dd><p>
-        Restore only the data, not the schema (data definitions).
+        Restore only the data, not the schema (data definitions) or statistics.
         Table data, large objects, and sequence values are restored,
         if present in the archive.
        </p><p>
@@ -91,56 +91,6 @@
         Specify output file for generated script, or for the listing
         when used with <code class="option">-l</code>. Use <code class="literal">-</code>
         for <span class="systemitem">stdout</span>.
-       </p></dd><dt><span class="term"><code class="option">--filter=<em class="replaceable"><code>filename</code></em></code></span></dt><dd><p>
-        Specify a filename from which to read patterns for objects excluded
-        or included from restore. The patterns are interpreted according to the
-        same rules as
-        <code class="option">-n</code>/<code class="option">--schema</code> for including objects in schemas,
-        <code class="option">-N</code>/<code class="option">--exclude-schema</code> for excluding objects in schemas,
-        <code class="option">-P</code>/<code class="option">--function</code> for restoring named functions,
-        <code class="option">-I</code>/<code class="option">--index</code> for restoring named indexes,
-        <code class="option">-t</code>/<code class="option">--table</code> for restoring named tables
-        or <code class="option">-T</code>/<code class="option">--trigger</code> for restoring triggers.
-        To read from <code class="literal">STDIN</code>, use <code class="filename">-</code> as the
-        filename.  The <code class="option">--filter</code> option can be specified in
-        conjunction with the above listed options for including or excluding
-        objects, and can also be specified more than once for multiple filter
-        files.
-       </p><p>
-        The file lists one database pattern per row, with the following format:
-</p><pre class="synopsis">
-{ include | exclude } { function | index | schema | table | trigger } <em class="replaceable"><code>PATTERN</code></em>
-</pre><p>
-       </p><p>
-        The first keyword specifies whether the objects matched by the pattern
-        are to be included or excluded. The second keyword specifies the type
-        of object to be filtered using the pattern:
-        </p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
-           <code class="literal">function</code>: functions, works like the
-           <code class="option">-P</code>/<code class="option">--function</code> option. This keyword
-           can only be used with the <code class="literal">include</code> keyword.
-          </p></li><li class="listitem"><p>
-           <code class="literal">index</code>: indexes, works like the
-           <code class="option">-I</code>/<code class="option">--indexes</code> option. This keyword
-           can only be used with the <code class="literal">include</code> keyword.
-          </p></li><li class="listitem"><p>
-           <code class="literal">schema</code>: schemas, works like the
-           <code class="option">-n</code>/<code class="option">--schema</code> and
-           <code class="option">-N</code>/<code class="option">--exclude-schema</code> options.
-          </p></li><li class="listitem"><p>
-           <code class="literal">table</code>: tables, works like the
-           <code class="option">-t</code>/<code class="option">--table</code> option. This keyword
-           can only be used with the <code class="literal">include</code> keyword.
-          </p></li><li class="listitem"><p>
-           <code class="literal">trigger</code>: triggers, works like the
-           <code class="option">-T</code>/<code class="option">--trigger</code> option. This keyword
-           can only be used with the <code class="literal">include</code> keyword.
-          </p></li></ul></div><p>
-       </p><p>
-        Lines starting with <code class="literal">#</code> are considered comments and
-        ignored. Comments can be placed after an object pattern row as well.
-        Blank lines are also ignored. See <a class="xref" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns">Patterns</a>
-        for how to perform quoting in patterns.
        </p></dd><dt><span class="term"><code class="option">-F <em class="replaceable"><code>format</code></em></code><br /></span><span class="term"><code class="option">--format=<em class="replaceable"><code>format</code></em></code></span></dt><dd><p>
         Specify format of the archive.  It is not necessary to specify
         the format, since <span class="application">pg_restore</span> will
@@ -235,10 +185,11 @@
         Restore only the schema (data definitions), not data,
         to the extent that schema entries are present in the archive.
        </p><p>
-        This option is the inverse of <code class="option">--data-only</code>.
+        This option cannot be used with <code class="option">--data-only</code>
+        or <code class="option">--statistics-only</code>.
         It is similar to, but for historical reasons not identical to,
         specifying
-        <code class="option">--section=pre-data --section=post-data</code>.
+        <code class="option">--section=pre-data --section=post-data --no-statistics</code>.
        </p><p>
         (Do not confuse this with the <code class="option">--schema</code> option, which
         uses the word <span class="quote">“<span class="quote">schema</span>”</span> in a different meaning.)
@@ -292,7 +243,7 @@
         changes are applied. This option implies
         <code class="option">--exit-on-error</code>.
        </p></dd><dt><span class="term"><code class="option">--disable-triggers</code></span></dt><dd><p>
-        This option is relevant only when performing a data-only restore.
+        This option is relevant only when performing a restore without schema.
         It instructs <span class="application">pg_restore</span> to execute commands
         to temporarily disable triggers on the target tables while
         the data is restored.  Use this if you have referential
@@ -318,6 +269,56 @@
        </p><p>
         Note that this option currently also requires the dump be in <code class="command">INSERT</code>
         format, as <code class="command">COPY FROM</code> does not support row security.
+       </p></dd><dt><span class="term"><code class="option">--filter=<em class="replaceable"><code>filename</code></em></code></span></dt><dd><p>
+        Specify a filename from which to read patterns for objects excluded
+        or included from restore. The patterns are interpreted according to the
+        same rules as
+        <code class="option">-n</code>/<code class="option">--schema</code> for including objects in schemas,
+        <code class="option">-N</code>/<code class="option">--exclude-schema</code> for excluding objects in schemas,
+        <code class="option">-P</code>/<code class="option">--function</code> for restoring named functions,
+        <code class="option">-I</code>/<code class="option">--index</code> for restoring named indexes,
+        <code class="option">-t</code>/<code class="option">--table</code> for restoring named tables
+        or <code class="option">-T</code>/<code class="option">--trigger</code> for restoring triggers.
+        To read from <code class="literal">STDIN</code>, use <code class="filename">-</code> as the
+        filename.  The <code class="option">--filter</code> option can be specified in
+        conjunction with the above listed options for including or excluding
+        objects, and can also be specified more than once for multiple filter
+        files.
+       </p><p>
+        The file lists one database pattern per row, with the following format:
+</p><pre class="synopsis">
+{ include | exclude } { function | index | schema | table | trigger } <em class="replaceable"><code>PATTERN</code></em>
+</pre><p>
+       </p><p>
+        The first keyword specifies whether the objects matched by the pattern
+        are to be included or excluded. The second keyword specifies the type
+        of object to be filtered using the pattern:
+        </p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+           <code class="literal">function</code>: functions, works like the
+           <code class="option">-P</code>/<code class="option">--function</code> option. This keyword
+           can only be used with the <code class="literal">include</code> keyword.
+          </p></li><li class="listitem"><p>
+           <code class="literal">index</code>: indexes, works like the
+           <code class="option">-I</code>/<code class="option">--indexes</code> option. This keyword
+           can only be used with the <code class="literal">include</code> keyword.
+          </p></li><li class="listitem"><p>
+           <code class="literal">schema</code>: schemas, works like the
+           <code class="option">-n</code>/<code class="option">--schema</code> and
+           <code class="option">-N</code>/<code class="option">--exclude-schema</code> options.
+          </p></li><li class="listitem"><p>
+           <code class="literal">table</code>: tables, works like the
+           <code class="option">-t</code>/<code class="option">--table</code> option. This keyword
+           can only be used with the <code class="literal">include</code> keyword.
+          </p></li><li class="listitem"><p>
+           <code class="literal">trigger</code>: triggers, works like the
+           <code class="option">-T</code>/<code class="option">--trigger</code> option. This keyword
+           can only be used with the <code class="literal">include</code> keyword.
+          </p></li></ul></div><p>
+       </p><p>
+        Lines starting with <code class="literal">#</code> are considered comments and
+        ignored. Comments can be placed after an object pattern row as well.
+        Blank lines are also ignored. See <a class="xref" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns">Patterns</a>
+        for how to perform quoting in patterns.
        </p></dd><dt><span class="term"><code class="option">--if-exists</code></span></dt><dd><p>
         Use <code class="literal">DROP ... IF EXISTS</code> commands to drop objects
         in <code class="option">--clean</code> mode.  This suppresses <span class="quote">“<span class="quote">does not
@@ -326,6 +327,9 @@
         specified.
        </p></dd><dt><span class="term"><code class="option">--no-comments</code></span></dt><dd><p>
         Do not output commands to restore comments, even if the archive
+        contains them.
+       </p></dd><dt><span class="term"><code class="option">--no-data</code></span></dt><dd><p>
+        Do not output commands to restore data, even if the archive
         contains them.
        </p></dd><dt><span class="term"><code class="option">--no-data-for-failed-tables</code></span></dt><dd><p>
         By default, table data is restored even if the creation command
@@ -340,12 +344,21 @@
        </p><p>
         This option is effective only when restoring directly into a
         database, not when producing SQL script output.
+       </p></dd><dt><span class="term"><code class="option">--no-policies</code></span></dt><dd><p>
+        Do not output commands to restore row security policies, even if
+        the archive contains them.
        </p></dd><dt><span class="term"><code class="option">--no-publications</code></span></dt><dd><p>
         Do not output commands to restore publications, even if the archive
         contains them.
+       </p></dd><dt><span class="term"><code class="option">--no-schema</code></span></dt><dd><p>
+        Do not output commands to restore schema (data definitions), even if
+        the archive contains them.
        </p></dd><dt><span class="term"><code class="option">--no-security-labels</code></span></dt><dd><p>
         Do not output commands to restore security labels,
         even if the archive contains them.
+       </p></dd><dt><span class="term"><code class="option">--no-statistics</code></span></dt><dd><p>
+        Do not output commands to restore statistics, even if the archive
+        contains them.
        </p></dd><dt><span class="term"><code class="option">--no-subscriptions</code></span></dt><dd><p>
         Do not output commands to restore subscriptions, even if the archive
         contains them.
@@ -382,11 +395,16 @@
           Post-data items consist of definitions of indexes, triggers, rules
           and constraints other than validated check constraints.
           Pre-data items consist of all other data definition items.
-         </p></dd><dt><span class="term"><code class="option">--strict-names</code></span></dt><dd><p>
+         </p></dd><dt><span class="term"><code class="option">--statistics</code></span></dt><dd><p>
+        Output commands to restore statistics, if the archive contains them.
+        This is the default.
+       </p></dd><dt><span class="term"><code class="option">--statistics-only</code></span></dt><dd><p>
+        Restore only the statistics, not schema (data definitions) or data.
+       </p></dd><dt><span class="term"><code class="option">--strict-names</code></span></dt><dd><p>
         Require that each schema
         (<code class="option">-n</code>/<code class="option">--schema</code>) and table
         (<code class="option">-t</code>/<code class="option">--table</code>) qualifier match at
-        least one schema/table in the backup file.
+        least one schema/table in the file to be restored.
        </p></dd><dt><span class="term"><code class="option">--transaction-size=<em class="replaceable"><code>N</code></em></code></span></dt><dd><p>
         Execute the restore as a series of transactions, each processing
         up to <em class="replaceable"><code>N</code></em> database
@@ -509,10 +527,11 @@ CREATE DATABASE foo WITH TEMPLATE template0;
    See also the <a class="xref" href="app-pgdump.html" title="pg_dump"><span class="refentrytitle"><span class="application">pg_dump</span></span></a> documentation for details on
    limitations of <span class="application">pg_dump</span>.
   </p><p>
-   Once restored, it is wise to run <code class="command">ANALYZE</code> on each
-   restored table so the optimizer has useful statistics; see
-   <a class="xref" href="routine-vacuuming.html#VACUUM-FOR-STATISTICS" title="24.1.3. Updating Planner Statistics">Section 24.1.3</a> and
-   <a class="xref" href="routine-vacuuming.html#AUTOVACUUM" title="24.1.6. The Autovacuum Daemon">Section 24.1.6</a> for more information.
+   By default, <code class="command">pg_restore</code> will restore optimizer statistics
+   if included in the dump file.  If not all statistics were restored, it may
+   be useful to run <code class="command">ANALYZE</code> on each restored table so the
+   optimizer has useful statistics; see <a class="xref" href="routine-vacuuming.html#VACUUM-FOR-STATISTICS" title="24.1.3. Updating Planner Statistics">Section 24.1.3</a> and <a class="xref" href="routine-vacuuming.html#AUTOVACUUM" title="24.1.6. The Autovacuum Daemon">Section 24.1.6</a> for more
+   information.
   </p></div><div class="refsect1" id="APP-PGRESTORE-EXAMPLES"><h2>Examples</h2><p>
    Assume we have dumped a database called <code class="literal">mydb</code> into a
    custom-format dump file:
@@ -589,4 +608,4 @@ CREATE DATABASE foo WITH TEMPLATE template0;
    items 10 and 6, in that order:
 </p><pre class="screen">
 <code class="prompt">$</code> <strong class="userinput"><code>pg_restore -L db.list db.dump</code></strong>
-</pre></div><div class="refsect1" id="id-1.9.4.19.11"><h2>See Also</h2><span class="simplelist"><a class="xref" href="app-pgdump.html" title="pg_dump"><span class="refentrytitle"><span class="application">pg_dump</span></span></a>, <a class="xref" href="app-pg-dumpall.html" title="pg_dumpall"><span class="refentrytitle"><span class="application">pg_dumpall</span></span></a>, <a class="xref" href="app-psql.html" title="psql"><span class="refentrytitle"><span class="application">psql</span></span></a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="app-pgrecvlogical.html" title="pg_recvlogical">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="reference-client.html" title="PostgreSQL Client Applications">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="app-pgverifybackup.html" title="pg_verifybackup">Next</a></td></tr><tr><td width="40%" align="left" valign="top"><span class="application">pg_recvlogical</span> </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> <span class="application">pg_verifybackup</span></td></tr></table></div></body></html>
+</pre></div><div class="refsect1" id="id-1.9.4.19.11"><h2>See Also</h2><span class="simplelist"><a class="xref" href="app-pgdump.html" title="pg_dump"><span class="refentrytitle"><span class="application">pg_dump</span></span></a>, <a class="xref" href="app-pg-dumpall.html" title="pg_dumpall"><span class="refentrytitle"><span class="application">pg_dumpall</span></span></a>, <a class="xref" href="app-psql.html" title="psql"><span class="refentrytitle"><span class="application">psql</span></span></a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="app-pgrecvlogical.html" title="pg_recvlogical">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="reference-client.html" title="PostgreSQL Client Applications">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="app-pgverifybackup.html" title="pg_verifybackup">Next</a></td></tr><tr><td width="40%" align="left" valign="top"><span class="application">pg_recvlogical</span> </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> <span class="application">pg_verifybackup</span></td></tr></table></div></body></html>

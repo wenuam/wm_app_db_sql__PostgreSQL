@@ -23,7 +23,6 @@ import PropTypes from 'prop-types';
 import gettext from 'sources/gettext';
 import PgReactDataGrid from '../../../../../../static/js/components/PgReactDataGrid';
 import { isMac } from '../../../../../../static/js/keyboard_shortcuts';
-import { measureText } from '../../../../../../static/js/utils';
 
 export const ROWNUM_KEY = '$_pgadmin_rownum_key_$';
 export const GRID_ROW_SELECT_KEY = '$_pgadmin_gridrowselect_key_$';
@@ -338,7 +337,7 @@ function formatColumns(columns, dataChangeStore, selectedColumns, onColumnSelect
   return retColumns;
 }
 
-function getColumnWidth(column, rows, canvas, columnWidthBy, maxColumnDataDisplayLength) {
+function getColumnWidth(column, rows, canvasContext, columnWidthBy, maxColumnDataDisplayLength) {
   const dataWidthReducer = (longest, nextRow) => {
     let value = nextRow[column.key];
     if(_.isNull(value) || _.isUndefined(value)) {
@@ -353,7 +352,7 @@ function getColumnWidth(column, rows, canvas, columnWidthBy, maxColumnDataDispla
   };
 
   let columnHeaderLen = column.display_name.length > column.display_type.length ?
-    measureText(column.display_name, '12px Roboto').width : measureText(column.display_type, '12px Roboto').width;
+    canvasContext.measureText(column.display_name).width : canvasContext.measureText(column.display_type).width;
   /* padding 12,  margin 4, icon-width 15, */
   columnHeaderLen += 15 + 12 + 4;
   if(column.column_type_internal == 'geometry' || column.column_type_internal == 'geography') {
@@ -362,7 +361,7 @@ function getColumnWidth(column, rows, canvas, columnWidthBy, maxColumnDataDispla
   let width = columnHeaderLen;
   if(typeof(columnWidthBy) == 'number') {
     /* padding 16, border 1px */
-    width = 16 + measureText(rows.reduce(dataWidthReducer, ''), '12px Roboto').width + 1;
+    width = 16 + canvasContext.measureText(rows.reduce(dataWidthReducer, '')).width + 1;
     if(width > columnWidthBy && columnWidthBy > 0) {
       width = columnWidthBy;
     }
@@ -370,7 +369,9 @@ function getColumnWidth(column, rows, canvas, columnWidthBy, maxColumnDataDispla
       width = columnHeaderLen;
     }
   }
-  return width;
+
+  // If column width is set in window object then use that.
+  return window.columnWidths?.[column.display_name] || width;
 }
 
 export default function QueryToolDataGrid({columns, rows, totalRowCount, dataChangeStore,
@@ -431,6 +432,12 @@ export default function QueryToolDataGrid({columns, rows, totalRowCount, dataCha
     onSelectedCellChange, handleShortcuts, startRowNum
   }), [onSelectedCellChange]);
 
+  // Save column width to window object on resize
+  const handleColumnResize = (column, width) => {
+    window.columnWidths = window.columnWidths || {};
+    window.columnWidths[column.display_name] = width;
+  };
+
   useEffect(()=>{
     let initCols = initialiseColumns(columns, rows, totalRowCount, columnWidthBy, maxColumnDataDisplayLength);
     setReadyColumns(formatColumns(initCols, dataChangeStore, selectedColumns, onColumnSelected, onSelectedColumnsChangeWrapped, props.rowKeyGetter));
@@ -454,6 +461,7 @@ export default function QueryToolDataGrid({columns, rows, totalRowCount, dataCha
         enableCellSelect={true}
         onCopy={handleCopy}
         onMultiCopy={handleCopy}
+        onColumnResize={handleColumnResize}
         renderers={{
           renderRow: renderCustomRow,
         }}

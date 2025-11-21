@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "MERGE" "7" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "MERGE" "7" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -36,7 +36,8 @@ MERGE \- conditionally insert, update, or delete rows of a table
 MERGE INTO [ ONLY ] \fItarget_table_name\fR [ * ] [ [ AS ] \fItarget_alias\fR ]
     USING \fIdata_source\fR ON \fIjoin_condition\fR
     \fIwhen_clause\fR [\&.\&.\&.]
-    [ RETURNING { * | \fIoutput_expression\fR [ [ AS ] \fIoutput_name\fR ] } [, \&.\&.\&.] ]
+    [ RETURNING [ WITH ( { OLD | NEW } AS \fIoutput_alias\fR [, \&.\&.\&.] ) ]
+                { * | \fIoutput_expression\fR [ [ AS ] \fIoutput_name\fR ] } [, \&.\&.\&.] ]
 
 where \fIdata_source\fR is:
 
@@ -116,13 +117,13 @@ clause causes
 \fBMERGE\fR
 to compute and return value(s) based on each row inserted, updated, or deleted\&. Any expression using the source or target table\*(Aqs columns, or the
 \fBmerge_action()\fR
-function can be computed\&. When an
+function can be computed\&. By default, when an
 \fBINSERT\fR
 or
 \fBUPDATE\fR
-action is performed, the new values of the target table\*(Aqs columns are used\&. When a
+action is performed, the new values of the target table\*(Aqs columns are used, and when a
 \fBDELETE\fR
-is performed, the old values of the target table\*(Aqs columns are used\&. The syntax of the
+is performed, the old values of the target table\*(Aqs columns are used, but it is also possible to explicitly request old and new values\&. The syntax of the
 RETURNING
 list is identical to that of the output list of
 \fBSELECT\fR\&.
@@ -469,6 +470,26 @@ WHEN NOT MATCHED BY SOURCE
 clause, the sub\-query can only refer to values from the original row in the target table\&.
 .RE
 .PP
+\fIoutput_alias\fR
+.RS 4
+An optional substitute name for
+OLD
+or
+NEW
+rows in the
+RETURNING
+list\&.
+.sp
+By default, old values from the target table can be returned by writing
+OLD\&.\fIcolumn_name\fR
+or
+OLD\&.*, and new values can be returned by writing
+NEW\&.\fIcolumn_name\fR
+or
+NEW\&.*\&. When an alias is provided, these names are hidden and the old or new rows must be referred to using the alias\&. For example
+RETURNING WITH (OLD AS o, NEW AS n) o\&.*, n\&.*\&.
+.RE
+.PP
 \fIoutput_expression\fR
 .RS 4
 An expression to be computed and returned by the
@@ -482,6 +503,26 @@ Writing
 will return all columns from the source table, followed by all columns from the target table\&. Often this will lead to a lot of duplication, since it is common for the source and target tables to have a lot of the same columns\&. This can be avoided by qualifying the
 *
 with the name or alias of the source or target table\&.
+.sp
+A column name or
+*
+may also be qualified using
+OLD
+or
+NEW, or the corresponding
+\fIoutput_alias\fR
+for
+OLD
+or
+NEW, to cause old or new values from the target table to be returned\&. An unqualified column name from the target table, or a column name or
+*
+qualified using the target table name or alias will return new values for
+INSERT
+and
+UPDATE
+actions, and old values for
+DELETE
+actions\&.
 .RE
 .PP
 \fIoutput_name\fR
@@ -722,27 +763,6 @@ WHEN NOT MATCHED THEN
 .RE
 .\}
 .PP
-Notice that this would be exactly equivalent to the following statement because the
-MATCHED
-result does not change during execution\&.
-.sp
-.if n \{\
-.RS 4
-.\}
-.nf
-MERGE INTO customer_account ca
-USING (SELECT customer_id, transaction_value FROM recent_transactions) AS t
-ON t\&.customer_id = ca\&.customer_id
-WHEN MATCHED THEN
-  UPDATE SET balance = balance + transaction_value
-WHEN NOT MATCHED THEN
-  INSERT (customer_id, balance)
-  VALUES (t\&.customer_id, t\&.transaction_value);
-.fi
-.if n \{\
-.RE
-.\}
-.PP
 Attempt to insert a new stock item along with the quantity of stock\&. If the item already exists, instead update the stock count of the existing item\&. Don\*(Aqt allow entries that have zero stock\&. Return details of all changes made\&.
 .sp
 .if n \{\
@@ -758,7 +778,7 @@ WHEN MATCHED AND w\&.stock + s\&.stock_delta > 0 THEN
   UPDATE SET stock = w\&.stock + s\&.stock_delta
 WHEN MATCHED THEN
   DELETE
-RETURNING merge_action(), w\&.*;
+RETURNING merge_action(), w\&.winename, old\&.stock AS old_stock, new\&.stock AS new_stock;
 .fi
 .if n \{\
 .RE

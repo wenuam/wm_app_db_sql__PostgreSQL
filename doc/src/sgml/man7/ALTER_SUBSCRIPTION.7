@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "ALTER SUBSCRIPTION" "7" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "ALTER SUBSCRIPTION" "7" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -69,9 +69,10 @@ Commands
 with
 refresh
 option as
-true
-and
+true,
 \fBALTER SUBSCRIPTION \&.\&.\&. SET (failover = true|false)\fR
+and
+\fBALTER SUBSCRIPTION \&.\&.\&. SET (two_phase = false)\fR
 cannot be executed inside a transaction block\&.
 .PP
 Commands
@@ -198,8 +199,9 @@ streaming,
 disable_on_error,
 password_required,
 run_as_owner,
-origin, and
-failover\&. Only a superuser can set
+origin,
+failover, and
+two_phase\&. Only a superuser can set
 password_required = false\&.
 .sp
 When altering the
@@ -220,6 +222,33 @@ failover
 option is disabled or could be disabled for sync even when the subscription\*(Aqs
 failover
 option is enabled\&.
+.sp
+The
+failover
+and
+two_phase
+parameters can only be altered when the subscription is disabled\&.
+.sp
+When altering
+two_phase
+from
+true
+to
+false, the backend process reports an error if any prepared transactions done by the logical replication worker (from when
+two_phase
+parameter was still
+true) are found\&. You can resolve prepared transactions on the publisher node, or manually roll back them on the subscriber, and then try again\&. The transactions prepared by logical replication worker corresponding to a particular subscription have the following pattern:
+\(lqpg_gid_%u_%u\(rq
+(parameters: subscription
+\fIoid\fR, remote transaction id
+\fIxid\fR)\&. To resolve such transactions manually, you need to roll back all the prepared transactions with corresponding subscription IDs in their names\&. Applications can check
+pg_prepared_xacts
+to find the required prepared transactions\&. After the
+two_phase
+option is changed from
+true
+to
+false, the publisher will replicate the transactions again when they are committed\&.
 .RE
 .PP
 SKIP ( \fIskip_option\fR = \fIvalue\fR )
@@ -230,7 +259,7 @@ command, the logical replication worker skips all data modification changes with
 two_phase
 on the subscriber\&. After the logical replication worker successfully skips the transaction or finishes a transaction, the LSN (stored in
 pg_subscription\&.subskiplsn) is cleared\&. See
-Section\ \&29.6
+Section\ \&29.7
 for the details of logical replication conflicts\&.
 .sp
 \fIskip_option\fR

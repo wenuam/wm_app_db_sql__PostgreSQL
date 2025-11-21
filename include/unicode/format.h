@@ -45,6 +45,7 @@
 
 U_NAMESPACE_BEGIN
 
+class CharString;
 /**
  * Base class for all formats.  This is an abstract base class which
  * specifies the protocol for classes which convert other objects or
@@ -88,7 +89,7 @@ U_NAMESPACE_BEGIN
  * 0xFFFD is returned.
  * <P>
  * If there is no match when parsing, a parse failure UErrorCode is
- * retured for methods which take no ParsePosition.  For the method
+ * returned for methods which take no ParsePosition.  For the method
  * that takes a ParsePosition, the index parameter is left unchanged.
  * <P>
  * <em>User subclasses are not supported.</em> While clients may write
@@ -111,7 +112,7 @@ public:
      *                 Objects of different subclasses are considered unequal.
      * @stable ICU 2.0
      */
-    virtual UBool operator==(const Format& other) const = 0;
+    virtual bool operator==(const Format& other) const = 0;
 
     /**
      * Return true if the given Format objects are not semantically
@@ -120,7 +121,7 @@ public:
      * @return         Return true if the given Format objects are not semantically.
      * @stable ICU 2.0
      */
-    UBool operator!=(const Format& other) const { return !operator==(other); }
+    bool operator!=(const Format& other) const { return !operator==(other); }
 
     /**
      * Clone this object polymorphically.  The caller is responsible
@@ -288,7 +289,7 @@ protected:
      * Simple function for initializing a UParseError from a UnicodeString.
      *
      * @param pattern The pattern to copy into the parseError
-     * @param pos The position in pattern where the error occured
+     * @param pos The position in pattern where the error occurred
      * @param parseError The UParseError object to fill in
      * @stable ICU 2.4
      */
@@ -297,8 +298,8 @@ protected:
                             UParseError& parseError);
 
  private:
-    char actualLocale[ULOC_FULLNAME_CAPACITY];
-    char validLocale[ULOC_FULLNAME_CAPACITY];
+    CharString* actualLocale = nullptr;
+    CharString* validLocale = nullptr;
 };
 
 U_NAMESPACE_END

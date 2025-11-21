@@ -3,7 +3,7 @@
  * pg_auth_members_d.h
  *    Macro definitions for pg_auth_members
  *
- * Portions Copyright (c) 1996-2024, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2025, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  * NOTES
@@ -17,6 +17,8 @@
  */
 #ifndef PG_AUTH_MEMBERS_D_H
 #define PG_AUTH_MEMBERS_D_H
+
+/* Macros related to the structure of pg_auth_members */
 
 #define AuthMemRelationId 1261
 #define AuthMemRelation_Rowtype_Id 2843
@@ -34,6 +36,11 @@
 #define Anum_pg_auth_members_set_option 7
 
 #define Natts_pg_auth_members 7
+
+/* Definitions copied from pg_auth_members.h */
+
+
+/* OID symbols for objects defined in pg_auth_members.dat */
 
 
 #endif							/* PG_AUTH_MEMBERS_D_H */

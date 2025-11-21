@@ -26,6 +26,16 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 const CopyPlugin = require('copy-webpack-plugin');
 const ImageMinimizerPlugin = require('image-minimizer-webpack-plugin');
 
+let isSharpAvailable = true;
+try {
+  const sharp = require('sharp');
+  // It is possible that sharp is installed but fails on running
+  sharp();
+} catch {
+  isSharpAvailable = false;
+  console.warn('Sharp is not available, image optimization will be disabled.');
+}
+
 const envType = PRODUCTION ? 'production': 'development';
 const devToolVal = PRODUCTION ? false : 'eval';
 const analyzerMode = process.env.ANALYZE=='true' ? 'static' : 'disabled';
@@ -351,6 +361,7 @@ module.exports = [{
           compress: true,
         },
       }),
+    ].concat(isSharpAvailable ? [
       new ImageMinimizerPlugin({
         test: /\.(jpe?g|png|gif)$/i,
         minimizer: {
@@ -372,7 +383,7 @@ module.exports = [{
           },
         },
       }),
-    ] : [],
+    ] : []) : [],
     splitChunks: {
       cacheGroups: {
         vendor_sqleditor: {

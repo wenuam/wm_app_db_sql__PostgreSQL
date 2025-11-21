@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>9.28. System Administration Functions</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="functions-info.html" title="9.27. System Information Functions and Operators" /><link rel="next" href="functions-trigger.html" title="9.29. Trigger Functions" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">9.28. System Administration Functions</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="functions-info.html" title="9.27. System Information Functions and Operators">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="functions.html" title="Chapter 9. Functions and Operators">Up</a></td><th width="60%" align="center">Chapter 9. Functions and Operators</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="functions-trigger.html" title="9.29. Trigger Functions">Next</a></td></tr></table><hr /></div><div class="sect1" id="FUNCTIONS-ADMIN"><div class="titlepage"><div><div><h2 class="title" style="clear: both">9.28. System Administration Functions <a href="#FUNCTIONS-ADMIN" class="id_link">#</a></h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="functions-admin.html#FUNCTIONS-ADMIN-SET">9.28.1. Configuration Settings Functions</a></span></dt><dt><span class="sect2"><a href="functions-admin.html#FUNCTIONS-ADMIN-SIGNAL">9.28.2. Server Signaling Functions</a></span></dt><dt><span class="sect2"><a href="functions-admin.html#FUNCTIONS-ADMIN-BACKUP">9.28.3. Backup Control Functions</a></span></dt><dt><span class="sect2"><a href="functions-admin.html#FUNCTIONS-RECOVERY-CONTROL">9.28.4. Recovery Control Functions</a></span></dt><dt><span class="sect2"><a href="functions-admin.html#FUNCTIONS-SNAPSHOT-SYNCHRONIZATION">9.28.5. Snapshot Synchronization Functions</a></span></dt><dt><span class="sect2"><a href="functions-admin.html#FUNCTIONS-REPLICATION">9.28.6. Replication Management Functions</a></span></dt><dt><span class="sect2"><a href="functions-admin.html#FUNCTIONS-ADMIN-DBOBJECT">9.28.7. Database Object Management Functions</a></span></dt><dt><span class="sect2"><a href="functions-admin.html#FUNCTIONS-ADMIN-INDEX">9.28.8. Index Maintenance Functions</a></span></dt><dt><span class="sect2"><a href="functions-admin.html#FUNCTIONS-ADMIN-GENFILE">9.28.9. Generic File Access Functions</a></span></dt><dt><span class="sect2"><a href="functions-admin.html#FUNCTIONS-ADVISORY-LOCKS">9.28.10. Advisory Lock Functions</a></span></dt></dl></div><p>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>9.28. System Administration Functions</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="functions-info.html" title="9.27. System Information Functions and Operators" /><link rel="next" href="functions-trigger.html" title="9.29. Trigger Functions" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">9.28. System Administration Functions</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="functions-info.html" title="9.27. System Information Functions and Operators">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="functions.html" title="Chapter 9. Functions and Operators">Up</a></td><th width="60%" align="center">Chapter 9. Functions and Operators</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="functions-trigger.html" title="9.29. Trigger Functions">Next</a></td></tr></table><hr /></div><div class="sect1" id="FUNCTIONS-ADMIN"><div class="titlepage"><div><div><h2 class="title" style="clear: both">9.28. System Administration Functions <a href="#FUNCTIONS-ADMIN" class="id_link">#</a></h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="functions-admin.html#FUNCTIONS-ADMIN-SET">9.28.1. Configuration Settings Functions</a></span></dt><dt><span class="sect2"><a href="functions-admin.html#FUNCTIONS-ADMIN-SIGNAL">9.28.2. Server Signaling Functions</a></span></dt><dt><span class="sect2"><a href="functions-admin.html#FUNCTIONS-ADMIN-BACKUP">9.28.3. Backup Control Functions</a></span></dt><dt><span class="sect2"><a href="functions-admin.html#FUNCTIONS-RECOVERY-CONTROL">9.28.4. Recovery Control Functions</a></span></dt><dt><span class="sect2"><a href="functions-admin.html#FUNCTIONS-SNAPSHOT-SYNCHRONIZATION">9.28.5. Snapshot Synchronization Functions</a></span></dt><dt><span class="sect2"><a href="functions-admin.html#FUNCTIONS-REPLICATION">9.28.6. Replication Management Functions</a></span></dt><dt><span class="sect2"><a href="functions-admin.html#FUNCTIONS-ADMIN-DBOBJECT">9.28.7. Database Object Management Functions</a></span></dt><dt><span class="sect2"><a href="functions-admin.html#FUNCTIONS-ADMIN-INDEX">9.28.8. Index Maintenance Functions</a></span></dt><dt><span class="sect2"><a href="functions-admin.html#FUNCTIONS-ADMIN-GENFILE">9.28.9. Generic File Access Functions</a></span></dt><dt><span class="sect2"><a href="functions-admin.html#FUNCTIONS-ADVISORY-LOCKS">9.28.10. Advisory Lock Functions</a></span></dt></dl></div><p>
     The functions described in this section are used to control and
     monitor a <span class="productname">PostgreSQL</span> installation.
    </p><div class="sect2" id="FUNCTIONS-ADMIN-SET"><div class="titlepage"><div><div><h3 class="title">9.28.1. Configuration Settings Functions <a href="#FUNCTIONS-ADMIN-SET" class="id_link">#</a></h3></div></div></div><a id="id-1.5.8.34.3.2" class="indexterm"></a><a id="id-1.5.8.34.3.3" class="indexterm"></a><a id="id-1.5.8.34.3.4" class="indexterm"></a><p>
-    <a class="xref" href="functions-admin.html#FUNCTIONS-ADMIN-SET-TABLE" title="Table 9.93. Configuration Settings Functions">Table 9.93</a> shows the functions
+    <a class="xref" href="functions-admin.html#FUNCTIONS-ADMIN-SET-TABLE" title="Table 9.95. Configuration Settings Functions">Table 9.95</a> shows the functions
     available to query and alter run-time configuration parameters.
-   </p><div class="table" id="FUNCTIONS-ADMIN-SET-TABLE"><p class="title"><strong>Table 9.93. Configuration Settings Functions</strong></p><div class="table-contents"><table class="table" summary="Configuration Settings Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
+   </p><div class="table" id="FUNCTIONS-ADMIN-SET-TABLE"><p class="title"><strong>Table 9.95. Configuration Settings Functions</strong></p><div class="table-contents"><table class="table" summary="Configuration Settings Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
         Function
        </p>
        <p>
@@ -48,10 +48,15 @@
         the SQL command <a class="xref" href="sql-set.html" title="SET"><span class="refentrytitle">SET</span></a>.
        </p>
        <p>
+        <code class="function">set_config</code> accepts the NULL value for
+        <em class="parameter"><code>new_value</code></em>, but as settings cannot be null, it
+        is interpreted as a request to reset the setting to its default value.
+       </p>
+       <p>
         <code class="literal">set_config('log_statement_stats', 'off', false)</code>
         → <code class="returnvalue">off</code>
        </p></td></tr></tbody></table></div></div><br class="table-break" /></div><div class="sect2" id="FUNCTIONS-ADMIN-SIGNAL"><div class="titlepage"><div><div><h3 class="title">9.28.2. Server Signaling Functions <a href="#FUNCTIONS-ADMIN-SIGNAL" class="id_link">#</a></h3></div></div></div><a id="id-1.5.8.34.4.2" class="indexterm"></a><p>
-    The functions shown in <a class="xref" href="functions-admin.html#FUNCTIONS-ADMIN-SIGNAL-TABLE" title="Table 9.94. Server Signaling Functions">Table 9.94</a> send control signals to
+    The functions shown in <a class="xref" href="functions-admin.html#FUNCTIONS-ADMIN-SIGNAL-TABLE" title="Table 9.96. Server Signaling Functions">Table 9.96</a> send control signals to
     other server processes.  Use of these functions is restricted to
     superusers by default but access may be granted to others using
     <code class="command">GRANT</code>, with noted exceptions.
@@ -59,7 +64,7 @@
     Each of these functions returns <code class="literal">true</code> if
     the signal was successfully sent and <code class="literal">false</code>
     if sending the signal failed.
-   </p><div class="table" id="FUNCTIONS-ADMIN-SIGNAL-TABLE"><p class="title"><strong>Table 9.94. Server Signaling Functions</strong></p><div class="table-contents"><table class="table" summary="Server Signaling Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
+   </p><div class="table" id="FUNCTIONS-ADMIN-SIGNAL-TABLE"><p class="title"><strong>Table 9.96. Server Signaling Functions</strong></p><div class="table-contents"><table class="table" summary="Server Signaling Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
         Function
        </p>
        <p>
@@ -75,6 +80,10 @@
         calling role is a member of the role whose backend is being canceled or
         the calling role has privileges of <code class="literal">pg_signal_backend</code>,
         however only superusers can cancel superuser backends.
+        As an exception, roles with privileges of
+        <code class="literal">pg_signal_autovacuum_worker</code> are permitted to
+        cancel autovacuum worker processes, which are otherwise considered
+        superuser backends.
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
         <a id="id-1.5.8.34.4.5.2.2.2.1.1.1" class="indexterm"></a>
         <code class="function">pg_log_backend_memory_contexts</code> ( <em class="parameter"><code>pid</code></em> <code class="type">integer</code> )
@@ -101,9 +110,9 @@
         sending a <span class="systemitem">SIGHUP</span> signal to the postmaster
         process, which in turn sends <span class="systemitem">SIGHUP</span> to each
         of its children.) You can use the
-        <a class="link" href="view-pg-file-settings.html" title="52.7. pg_file_settings"><code class="structname">pg_file_settings</code></a>,
-        <a class="link" href="view-pg-hba-file-rules.html" title="52.9. pg_hba_file_rules"><code class="structname">pg_hba_file_rules</code></a> and
-        <a class="link" href="view-pg-ident-file-mappings.html" title="52.10. pg_ident_file_mappings"><code class="structname">pg_ident_file_mappings</code></a> views
+        <a class="link" href="view-pg-file-settings.html" title="53.8. pg_file_settings"><code class="structname">pg_file_settings</code></a>,
+        <a class="link" href="view-pg-hba-file-rules.html" title="53.10. pg_hba_file_rules"><code class="structname">pg_hba_file_rules</code></a> and
+        <a class="link" href="view-pg-ident-file-mappings.html" title="53.11. pg_ident_file_mappings"><code class="structname">pg_ident_file_mappings</code></a> views
         to check the configuration files for possible errors, before reloading.
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
         <a id="id-1.5.8.34.4.5.2.2.4.1.1.1" class="indexterm"></a>
@@ -125,6 +134,10 @@
         is a member of the role whose backend is being terminated or the
         calling role has privileges of <code class="literal">pg_signal_backend</code>,
         however only superusers can terminate superuser backends.
+        As an exception, roles with privileges of
+        <code class="literal">pg_signal_autovacuum_worker</code> are permitted to
+        terminate autovacuum worker processes, which are otherwise considered
+        superuser backends.
        </p>
        <p>
         If <em class="parameter"><code>timeout</code></em> is not specified or zero, this
@@ -163,16 +176,16 @@ One message for each memory context will be logged. For example:
 </p><pre class="screen">
 LOG:  logging memory contexts of PID 10377
 STATEMENT:  SELECT pg_log_backend_memory_contexts(pg_backend_pid());
-LOG:  level: 0; TopMemoryContext: 80800 total in 6 blocks; 14432 free (5 chunks); 66368 used
-LOG:  level: 1; pgstat TabStatusArray lookup hash table: 8192 total in 1 blocks; 1408 free (0 chunks); 6784 used
-LOG:  level: 1; TopTransactionContext: 8192 total in 1 blocks; 7720 free (1 chunks); 472 used
-LOG:  level: 1; RowDescriptionContext: 8192 total in 1 blocks; 6880 free (0 chunks); 1312 used
-LOG:  level: 1; MessageContext: 16384 total in 2 blocks; 5152 free (0 chunks); 11232 used
-LOG:  level: 1; Operator class cache: 8192 total in 1 blocks; 512 free (0 chunks); 7680 used
-LOG:  level: 1; smgr relation table: 16384 total in 2 blocks; 4544 free (3 chunks); 11840 used
-LOG:  level: 1; TransactionAbortContext: 32768 total in 1 blocks; 32504 free (0 chunks); 264 used
+LOG:  level: 1; TopMemoryContext: 80800 total in 6 blocks; 14432 free (5 chunks); 66368 used
+LOG:  level: 2; pgstat TabStatusArray lookup hash table: 8192 total in 1 blocks; 1408 free (0 chunks); 6784 used
+LOG:  level: 2; TopTransactionContext: 8192 total in 1 blocks; 7720 free (1 chunks); 472 used
+LOG:  level: 2; RowDescriptionContext: 8192 total in 1 blocks; 6880 free (0 chunks); 1312 used
+LOG:  level: 2; MessageContext: 16384 total in 2 blocks; 5152 free (0 chunks); 11232 used
+LOG:  level: 2; Operator class cache: 8192 total in 1 blocks; 512 free (0 chunks); 7680 used
+LOG:  level: 2; smgr relation table: 16384 total in 2 blocks; 4544 free (3 chunks); 11840 used
+LOG:  level: 2; TransactionAbortContext: 32768 total in 1 blocks; 32504 free (0 chunks); 264 used
 ...
-LOG:  level: 1; ErrorContext: 8192 total in 1 blocks; 7928 free (3 chunks); 264 used
+LOG:  level: 2; ErrorContext: 8192 total in 1 blocks; 7928 free (3 chunks); 264 used
 LOG:  Grand total: 1651920 bytes in 201 blocks; 622360 free (88 chunks); 1029560 used
 </pre><p>
     If there are more than 100 child contexts under the same parent, the first
@@ -180,7 +193,7 @@ LOG:  Grand total: 1651920 bytes in 201 blocks; 622360 free (88 chunks); 1029560
     Note that frequent calls to this function could incur significant overhead,
     because it may generate a large number of log messages.
    </p></div><div class="sect2" id="FUNCTIONS-ADMIN-BACKUP"><div class="titlepage"><div><div><h3 class="title">9.28.3. Backup Control Functions <a href="#FUNCTIONS-ADMIN-BACKUP" class="id_link">#</a></h3></div></div></div><a id="id-1.5.8.34.5.2" class="indexterm"></a><p>
-    The functions shown in <a class="xref" href="functions-admin.html#FUNCTIONS-ADMIN-BACKUP-TABLE" title="Table 9.95. Backup Control Functions">Table 9.95</a> assist in making on-line backups.
+    The functions shown in <a class="xref" href="functions-admin.html#FUNCTIONS-ADMIN-BACKUP-TABLE" title="Table 9.97. Backup Control Functions">Table 9.97</a> assist in making on-line backups.
     These functions cannot be executed during recovery (except
     <code class="function">pg_backup_start</code>,
     <code class="function">pg_backup_stop</code>,
@@ -188,7 +201,7 @@ LOG:  Grand total: 1651920 bytes in 201 blocks; 622360 free (88 chunks); 1029560
    </p><p>
     For details about proper usage of these functions, see
     <a class="xref" href="continuous-archiving.html" title="25.3. Continuous Archiving and Point-in-Time Recovery (PITR)">Section 25.3</a>.
-   </p><div class="table" id="FUNCTIONS-ADMIN-BACKUP-TABLE"><p class="title"><strong>Table 9.95. Backup Control Functions</strong></p><div class="table-contents"><table class="table" summary="Backup Control Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
+   </p><div class="table" id="FUNCTIONS-ADMIN-BACKUP-TABLE"><p class="title"><strong>Table 9.97. Backup Control Functions</strong></p><div class="table-contents"><table class="table" summary="Backup Control Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
         Function
        </p>
        <p>
@@ -362,7 +375,7 @@ LOG:  Grand total: 1651920 bytes in 201 blocks; 622360 free (88 chunks); 1029560
         Calculates the difference in bytes (<em class="parameter"><code>lsn1</code></em> - <em class="parameter"><code>lsn2</code></em>) between two write-ahead log
         locations.  This can be used
         with <code class="structname">pg_stat_replication</code> or some of the
-        functions shown in <a class="xref" href="functions-admin.html#FUNCTIONS-ADMIN-BACKUP-TABLE" title="Table 9.95. Backup Control Functions">Table 9.95</a> to
+        functions shown in <a class="xref" href="functions-admin.html#FUNCTIONS-ADMIN-BACKUP-TABLE" title="Table 9.97. Backup Control Functions">Table 9.97</a> to
         get the replication lag.
        </p></td></tr></tbody></table></div></div><br class="table-break" /><p>
     <code class="function">pg_current_wal_lsn</code> displays the current write-ahead
@@ -408,10 +421,10 @@ postgres=# SELECT '0/0'::pg_lsn + pd.segment_number * ps.setting::int + :offset 
 (1 row)
 </pre><p>
    </p></div><div class="sect2" id="FUNCTIONS-RECOVERY-CONTROL"><div class="titlepage"><div><div><h3 class="title">9.28.4. Recovery Control Functions <a href="#FUNCTIONS-RECOVERY-CONTROL" class="id_link">#</a></h3></div></div></div><p>
-    The functions shown in <a class="xref" href="functions-admin.html#FUNCTIONS-RECOVERY-INFO-TABLE" title="Table 9.96. Recovery Information Functions">Table 9.96</a> provide information
+    The functions shown in <a class="xref" href="functions-admin.html#FUNCTIONS-RECOVERY-INFO-TABLE" title="Table 9.98. Recovery Information Functions">Table 9.98</a> provide information
     about the current status of a standby server.
     These functions may be executed both during recovery and in normal running.
-   </p><div class="table" id="FUNCTIONS-RECOVERY-INFO-TABLE"><p class="title"><strong>Table 9.96. Recovery Information Functions</strong></p><div class="table-contents"><table class="table" summary="Recovery Information Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
+   </p><div class="table" id="FUNCTIONS-RECOVERY-INFO-TABLE"><p class="title"><strong>Table 9.98. Recovery Information Functions</strong></p><div class="table-contents"><table class="table" summary="Recovery Information Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
         Function
        </p>
        <p>
@@ -477,9 +490,9 @@ postgres=# SELECT '0/0'::pg_lsn + pd.segment_number * ps.setting::int + :offset 
         built-in resource manager, or a custom resource manager loaded by an
         extension.
        </p></td></tr></tbody></table></div></div><br class="table-break" /><p>
-    The functions shown in <a class="xref" href="functions-admin.html#FUNCTIONS-RECOVERY-CONTROL-TABLE" title="Table 9.97. Recovery Control Functions">Table 9.97</a> control the progress of recovery.
+    The functions shown in <a class="xref" href="functions-admin.html#FUNCTIONS-RECOVERY-CONTROL-TABLE" title="Table 9.99. Recovery Control Functions">Table 9.99</a> control the progress of recovery.
     These functions may be executed only during recovery.
-   </p><div class="table" id="FUNCTIONS-RECOVERY-CONTROL-TABLE"><p class="title"><strong>Table 9.97. Recovery Control Functions</strong></p><div class="table-contents"><table class="table" summary="Recovery Control Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
+   </p><div class="table" id="FUNCTIONS-RECOVERY-CONTROL-TABLE"><p class="title"><strong>Table 9.99. Recovery Control Functions</strong></p><div class="table-contents"><table class="table" summary="Recovery Control Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
         Function
        </p>
        <p>
@@ -585,9 +598,9 @@ postgres=# SELECT '0/0'::pg_lsn + pd.segment_number * ps.setting::int + :offset 
     pre-existing data, but act normally for changes they make themselves.
    </p><p>
     Snapshots are exported with the <code class="function">pg_export_snapshot</code> function,
-    shown in <a class="xref" href="functions-admin.html#FUNCTIONS-SNAPSHOT-SYNCHRONIZATION-TABLE" title="Table 9.98. Snapshot Synchronization Functions">Table 9.98</a>, and
+    shown in <a class="xref" href="functions-admin.html#FUNCTIONS-SNAPSHOT-SYNCHRONIZATION-TABLE" title="Table 9.100. Snapshot Synchronization Functions">Table 9.100</a>, and
     imported with the <a class="xref" href="sql-set-transaction.html" title="SET TRANSACTION"><span class="refentrytitle">SET TRANSACTION</span></a> command.
-   </p><div class="table" id="FUNCTIONS-SNAPSHOT-SYNCHRONIZATION-TABLE"><p class="title"><strong>Table 9.98. Snapshot Synchronization Functions</strong></p><div class="table-contents"><table class="table" summary="Snapshot Synchronization Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
+   </p><div class="table" id="FUNCTIONS-SNAPSHOT-SYNCHRONIZATION-TABLE"><p class="title"><strong>Table 9.100. Snapshot Synchronization Functions</strong></p><div class="table-contents"><table class="table" summary="Snapshot Synchronization Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
         Function
        </p>
        <p>
@@ -623,7 +636,7 @@ postgres=# SELECT '0/0'::pg_lsn + pd.segment_number * ps.setting::int + :offset 
         until such a record is replayed on the standby.
        </p></td></tr></tbody></table></div></div><br class="table-break" /></div><div class="sect2" id="FUNCTIONS-REPLICATION"><div class="titlepage"><div><div><h3 class="title">9.28.6. Replication Management Functions <a href="#FUNCTIONS-REPLICATION" class="id_link">#</a></h3></div></div></div><p>
     The functions shown
-    in <a class="xref" href="functions-admin.html#FUNCTIONS-REPLICATION-TABLE" title="Table 9.99. Replication Management Functions">Table 9.99</a> are for
+    in <a class="xref" href="functions-admin.html#FUNCTIONS-REPLICATION-TABLE" title="Table 9.101. Replication Management Functions">Table 9.101</a> are for
     controlling and interacting with replication features.
     See <a class="xref" href="warm-standby.html#STREAMING-REPLICATION" title="26.2.5. Streaming Replication">Section 26.2.5</a>,
     <a class="xref" href="warm-standby.html#STREAMING-REPLICATION-SLOTS" title="26.2.6. Replication Slots">Section 26.2.6</a>, and
@@ -636,14 +649,14 @@ postgres=# SELECT '0/0'::pg_lsn + pd.segment_number * ps.setting::int + :offset 
     and users having <code class="literal">REPLICATION</code> privilege.
    </p><p>
     Many of these functions have equivalent commands in the replication
-    protocol; see <a class="xref" href="protocol-replication.html" title="53.4. Streaming Replication Protocol">Section 53.4</a>.
+    protocol; see <a class="xref" href="protocol-replication.html" title="54.4. Streaming Replication Protocol">Section 54.4</a>.
    </p><p>
     The functions described in
     <a class="xref" href="functions-admin.html#FUNCTIONS-ADMIN-BACKUP" title="9.28.3. Backup Control Functions">Section 9.28.3</a>,
     <a class="xref" href="functions-admin.html#FUNCTIONS-RECOVERY-CONTROL" title="9.28.4. Recovery Control Functions">Section 9.28.4</a>, and
     <a class="xref" href="functions-admin.html#FUNCTIONS-SNAPSHOT-SYNCHRONIZATION" title="9.28.5. Snapshot Synchronization Functions">Section 9.28.5</a>
     are also relevant for replication.
-   </p><div class="table" id="FUNCTIONS-REPLICATION-TABLE"><p class="title"><strong>Table 9.99. Replication Management Functions</strong></p><div class="table-contents"><table class="table" summary="Replication Management Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
+   </p><div class="table" id="FUNCTIONS-REPLICATION-TABLE"><p class="title"><strong>Table 9.101. Replication Management Functions</strong></p><div class="table-contents"><table class="table" summary="Replication Management Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
         Function
        </p>
        <p>
@@ -663,7 +676,7 @@ postgres=# SELECT '0/0'::pg_lsn + pd.segment_number * ps.setting::int + :offset 
         the <acronym class="acronym">LSN</acronym> is reserved on first connection from a streaming
         replication client. Streaming changes from a physical slot is only
         possible with the streaming-replication protocol —
-        see <a class="xref" href="protocol-replication.html" title="53.4. Streaming Replication Protocol">Section 53.4</a>. The optional third
+        see <a class="xref" href="protocol-replication.html" title="54.4. Streaming Replication Protocol">Section 54.4</a>. The optional third
         parameter, <em class="parameter"><code>temporary</code></em>, when set to true, specifies that
         the slot should not be permanently stored to disk and is only meant
         for use by the current session. Temporary slots are also
@@ -827,6 +840,7 @@ postgres=# SELECT '0/0'::pg_lsn + pd.segment_number * ps.setting::int + :offset 
        <p>
         Creates a replication origin with the given external
         name, and returns the internal ID assigned to it.
+        The name must be no longer than 512 bytes.
        </p></td></tr><tr><td id="PG-REPLICATION-ORIGIN-DROP" class="func_table_entry"><p class="func_signature">
         <a id="id-1.5.8.34.8.5.2.2.12.1.1.1" class="indexterm"></a>
         <code class="function">pg_replication_origin_drop</code> ( <em class="parameter"><code>node_name</code></em> <code class="type">text</code> )
@@ -921,11 +935,11 @@ postgres=# SELECT '0/0'::pg_lsn + pd.segment_number * ps.setting::int + :offset 
         flushed to disk or not.
        </p></td></tr><tr><td id="PG-LOGICAL-EMIT-MESSAGE" class="func_table_entry"><p class="func_signature">
         <a id="id-1.5.8.34.8.5.2.2.22.1.1.1" class="indexterm"></a>
-        <code class="function">pg_logical_emit_message</code> ( <em class="parameter"><code>transactional</code></em> <code class="type">boolean</code>, <em class="parameter"><code>prefix</code></em> <code class="type">text</code>, <em class="parameter"><code>content</code></em> <code class="type">text</code> [, <em class="parameter"><code>flush</code></em> <code class="type">boolean</code> <code class="literal">DEFAULT</code> <code class="literal">false</code>] )
+        <code class="function">pg_logical_emit_message</code> ( <em class="parameter"><code>transactional</code></em> <code class="type">boolean</code>, <em class="parameter"><code>prefix</code></em> <code class="type">text</code>, <em class="parameter"><code>content</code></em> <code class="type">text</code> [<span class="optional">, <em class="parameter"><code>flush</code></em> <code class="type">boolean</code> <code class="literal">DEFAULT</code> <code class="literal">false</code></span>] )
         → <code class="returnvalue">pg_lsn</code>
        </p>
        <p class="func_signature">
-        <code class="function">pg_logical_emit_message</code> ( <em class="parameter"><code>transactional</code></em> <code class="type">boolean</code>, <em class="parameter"><code>prefix</code></em> <code class="type">text</code>, <em class="parameter"><code>content</code></em> <code class="type">bytea</code> [, <em class="parameter"><code>flush</code></em> <code class="type">boolean</code> <code class="literal">DEFAULT</code> <code class="literal">false</code>] )
+        <code class="function">pg_logical_emit_message</code> ( <em class="parameter"><code>transactional</code></em> <code class="type">boolean</code>, <em class="parameter"><code>prefix</code></em> <code class="type">text</code>, <em class="parameter"><code>content</code></em> <code class="type">bytea</code> [<span class="optional">, <em class="parameter"><code>flush</code></em> <code class="type">boolean</code> <code class="literal">DEFAULT</code> <code class="literal">false</code></span>] )
         → <code class="returnvalue">pg_lsn</code>
        </p>
        <p>
@@ -975,13 +989,13 @@ postgres=# SELECT '0/0'::pg_lsn + pd.segment_number * ps.setting::int + :offset 
           server, resulting in the synchronized slot becoming invalidated.
         </p></div>
       </td></tr></tbody></table></div></div><br class="table-break" /></div><div class="sect2" id="FUNCTIONS-ADMIN-DBOBJECT"><div class="titlepage"><div><div><h3 class="title">9.28.7. Database Object Management Functions <a href="#FUNCTIONS-ADMIN-DBOBJECT" class="id_link">#</a></h3></div></div></div><p>
-    The functions shown in <a class="xref" href="functions-admin.html#FUNCTIONS-ADMIN-DBSIZE" title="Table 9.100. Database Object Size Functions">Table 9.100</a> calculate
+    The functions shown in <a class="xref" href="functions-admin.html#FUNCTIONS-ADMIN-DBSIZE" title="Table 9.102. Database Object Size Functions">Table 9.102</a> calculate
     the disk space usage of database objects, or assist in presentation
     or understanding of usage results.  <code class="literal">bigint</code> results
     are measured in bytes.  If an OID that does
     not represent an existing object is passed to one of these
     functions, <code class="literal">NULL</code> is returned.
-   </p><div class="table" id="FUNCTIONS-ADMIN-DBSIZE"><p class="title"><strong>Table 9.100. Database Object Size Functions</strong></p><div class="table-contents"><table class="table" summary="Database Object Size Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
+   </p><div class="table" id="FUNCTIONS-ADMIN-DBSIZE"><p class="title"><strong>Table 9.102. Database Object Size Functions</strong></p><div class="table-contents"><table class="table" summary="Database Object Size Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
         Function
        </p>
        <p>
@@ -1013,7 +1027,7 @@ postgres=# SELECT '0/0'::pg_lsn + pd.segment_number * ps.setting::int + :offset 
         Shows the <code class="structfield">chunk_id</code> of an on-disk
         <acronym class="acronym">TOAST</acronym>ed value.  Returns <code class="literal">NULL</code>
         if the value is un-<acronym class="acronym">TOAST</acronym>ed or not on-disk.  See
-        <a class="xref" href="storage-toast.html" title="65.2. TOAST">Section 65.2</a> for more information about
+        <a class="xref" href="storage-toast.html" title="66.2. TOAST">Section 66.2</a> for more information about
         <acronym class="acronym">TOAST</acronym>.
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
         <a id="id-1.5.8.34.9.3.2.2.4.1.1.1" class="indexterm"></a>
@@ -1057,10 +1071,10 @@ postgres=# SELECT '0/0'::pg_lsn + pd.segment_number * ps.setting::int + :offset 
            data fork of the relation.
           </p></li><li class="listitem"><p>
            <code class="literal">fsm</code> returns the size of the Free Space Map
-           (see <a class="xref" href="storage-fsm.html" title="65.3. Free Space Map">Section 65.3</a>) associated with the relation.
+           (see <a class="xref" href="storage-fsm.html" title="66.3. Free Space Map">Section 66.3</a>) associated with the relation.
           </p></li><li class="listitem"><p>
            <code class="literal">vm</code> returns the size of the Visibility Map
-           (see <a class="xref" href="storage-vm.html" title="65.4. Visibility Map">Section 65.4</a>) associated with the relation.
+           (see <a class="xref" href="storage-vm.html" title="66.4. Visibility Map">Section 66.4</a>) associated with the relation.
           </p></li><li class="listitem"><p>
            <code class="literal">init</code> returns the size of the initialization
            fork, if any, associated with the relation.
@@ -1132,9 +1146,9 @@ postgres=# SELECT '0/0'::pg_lsn + pd.segment_number * ps.setting::int + :offset 
     converter will do the work for you.  See <a class="xref" href="datatype-oid.html" title="8.19. Object Identifier Types">Section 8.19</a>
     for details.
    </p><p>
-    The functions shown in <a class="xref" href="functions-admin.html#FUNCTIONS-ADMIN-DBLOCATION" title="Table 9.101. Database Object Location Functions">Table 9.101</a> assist
+    The functions shown in <a class="xref" href="functions-admin.html#FUNCTIONS-ADMIN-DBLOCATION" title="Table 9.103. Database Object Location Functions">Table 9.103</a> assist
     in identifying the specific disk files associated with database objects.
-   </p><div class="table" id="FUNCTIONS-ADMIN-DBLOCATION"><p class="title"><strong>Table 9.101. Database Object Location Functions</strong></p><div class="table-contents"><table class="table" summary="Database Object Location Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
+   </p><div class="table" id="FUNCTIONS-ADMIN-DBLOCATION"><p class="title"><strong>Table 9.103. Database Object Location Functions</strong></p><div class="table-contents"><table class="table" summary="Database Object Location Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
         Function
        </p>
        <p>
@@ -1148,7 +1162,7 @@ postgres=# SELECT '0/0'::pg_lsn + pd.segment_number * ps.setting::int + :offset 
         Returns the <span class="quote">“<span class="quote">filenode</span>”</span> number currently assigned to the
         specified relation.  The filenode is the base component of the file
         name(s) used for the relation (see
-        <a class="xref" href="storage-file-layout.html" title="65.1. Database File Layout">Section 65.1</a> for more information).
+        <a class="xref" href="storage-file-layout.html" title="66.1. Database File Layout">Section 66.1</a> for more information).
         For most relations the result is the same as
         <code class="structname">pg_class</code>.<code class="structfield">relfilenode</code>,
         but for certain system catalogs <code class="structfield">relfilenode</code>
@@ -1174,11 +1188,12 @@ postgres=# SELECT '0/0'::pg_lsn + pd.segment_number * ps.setting::int + :offset 
         <code class="function">pg_relation_filepath</code>.  For a relation in the
         database's default tablespace, the tablespace can be specified as zero.
         Returns <code class="literal">NULL</code> if no relation in the current database
-        is associated with the given values.
+        is associated with the given values, or if dealing with a temporary
+        relation.
        </p></td></tr></tbody></table></div></div><br class="table-break" /><p>
-    <a class="xref" href="functions-admin.html#FUNCTIONS-ADMIN-COLLATION" title="Table 9.102. Collation Management Functions">Table 9.102</a> lists functions used to manage
+    <a class="xref" href="functions-admin.html#FUNCTIONS-ADMIN-COLLATION" title="Table 9.104. Collation Management Functions">Table 9.104</a> lists functions used to manage
     collations.
-   </p><div class="table" id="FUNCTIONS-ADMIN-COLLATION"><p class="title"><strong>Table 9.102. Collation Management Functions</strong></p><div class="table-contents"><table class="table" summary="Collation Management Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
+   </p><div class="table" id="FUNCTIONS-ADMIN-COLLATION"><p class="title"><strong>Table 9.104. Collation Management Functions</strong></p><div class="table-contents"><table class="table" summary="Collation Management Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
         Function
        </p>
        <p>
@@ -1230,15 +1245,193 @@ postgres=# SELECT '0/0'::pg_lsn + pd.segment_number * ps.setting::int + :offset 
         function returns the number of new collation objects it created.
         Use of this function is restricted to superusers.
        </p></td></tr></tbody></table></div></div><br class="table-break" /><p>
-    <a class="xref" href="functions-admin.html#FUNCTIONS-INFO-PARTITION" title="Table 9.103. Partitioning Information Functions">Table 9.103</a> lists functions that provide
-    information about the structure of partitioned tables.
-   </p><div class="table" id="FUNCTIONS-INFO-PARTITION"><p class="title"><strong>Table 9.103. Partitioning Information Functions</strong></p><div class="table-contents"><table class="table" summary="Partitioning Information Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
+    <a class="xref" href="functions-admin.html#FUNCTIONS-ADMIN-STATSMOD" title="Table 9.105. Database Object Statistics Manipulation Functions">Table 9.105</a> lists functions used to
+    manipulate statistics.
+    These functions cannot be executed during recovery.
+    </p><div class="warning"><h3 class="title">Warning</h3><p>
+      Changes made by these statistics manipulation functions are likely to be
+      overwritten by <a class="link" href="routine-vacuuming.html#AUTOVACUUM" title="24.1.6. The Autovacuum Daemon">autovacuum</a> (or manual
+      <code class="command">VACUUM</code> or <code class="command">ANALYZE</code>) and should be
+      considered temporary.
+     </p></div><p>
+   </p><div class="table" id="FUNCTIONS-ADMIN-STATSMOD"><p class="title"><strong>Table 9.105. Database Object Statistics Manipulation Functions</strong></p><div class="table-contents"><table class="table" summary="Database Object Statistics Manipulation Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
         Function
        </p>
        <p>
         Description
        </p></th></tr></thead><tbody><tr><td class="func_table_entry"><p class="func_signature">
         <a id="id-1.5.8.34.9.10.2.2.1.1.1.1" class="indexterm"></a>
+        <code class="function">pg_restore_relation_stats</code> (
+        <code class="literal">VARIADIC</code> <em class="parameter"><code>kwargs</code></em> <code class="type">"any"</code> )
+        → <code class="returnvalue">boolean</code>
+       </p>
+        <p>
+         Updates table-level statistics.  Ordinarily, these statistics are
+         collected automatically or updated as a part of <a class="xref" href="sql-vacuum.html" title="VACUUM"><span class="refentrytitle">VACUUM</span></a> or <a class="xref" href="sql-analyze.html" title="ANALYZE"><span class="refentrytitle">ANALYZE</span></a>, so it's not
+         necessary to call this function.  However, it is useful after a
+         restore to enable the optimizer to choose better plans if
+         <code class="command">ANALYZE</code> has not been run yet.
+        </p>
+        <p>
+         The tracked statistics may change from version to version, so
+         arguments are passed as pairs of <em class="replaceable"><code>argname</code></em>
+         and <em class="replaceable"><code>argvalue</code></em> in the form:
+</p><pre class="programlisting">
+SELECT pg_restore_relation_stats(
+    '<em class="replaceable"><code>arg1name</code></em>', '<em class="replaceable"><code>arg1value</code></em>'::<em class="replaceable"><code>arg1type</code></em>,
+    '<em class="replaceable"><code>arg2name</code></em>', '<em class="replaceable"><code>arg2value</code></em>'::<em class="replaceable"><code>arg2type</code></em>,
+    '<em class="replaceable"><code>arg3name</code></em>', '<em class="replaceable"><code>arg3value</code></em>'::<em class="replaceable"><code>arg3type</code></em>);
+</pre><p>
+        </p>
+        <p>
+         For example, to set the <code class="structfield">relpages</code> and
+         <code class="structfield">reltuples</code> values for the table
+         <code class="structname">mytable</code>:
+</p><pre class="programlisting">
+SELECT pg_restore_relation_stats(
+    'schemaname', 'myschema',
+    'relname',    'mytable',
+    'relpages',   173::integer,
+    'reltuples',  10000::real);
+</pre><p>
+        </p>
+        <p>
+         The arguments <code class="literal">schemaname</code> and
+         <code class="literal">relname</code> are required, and specify the table. Other
+         arguments are the names and values of statistics corresponding to
+         certain columns in <a class="link" href="catalog-pg-class.html" title="52.11. pg_class"><code class="structname">pg_class</code></a>.
+         The currently-supported relation statistics are
+         <code class="literal">relpages</code> with a value of type
+         <code class="type">integer</code>, <code class="literal">reltuples</code> with a value of
+         type <code class="type">real</code>, <code class="literal">relallvisible</code> with a value
+         of type <code class="type">integer</code>, and <code class="literal">relallfrozen</code>
+         with a value of type <code class="type">integer</code>.
+        </p>
+        <p>
+         Additionally, this function accepts argument name
+         <code class="literal">version</code> of type <code class="type">integer</code>, which
+         specifies the server version from which the statistics originated.
+         This is anticipated to be helpful in porting statistics from older
+         versions of <span class="productname">PostgreSQL</span>.
+        </p>
+        <p>
+         Minor errors are reported as a <code class="literal">WARNING</code> and
+         ignored, and remaining statistics will still be restored. If all
+         specified statistics are successfully restored, returns
+         <code class="literal">true</code>, otherwise <code class="literal">false</code>.
+        </p>
+        <p>
+         The caller must have the <code class="literal">MAINTAIN</code> privilege on the
+         table or be the owner of the database.
+        </p>
+       </td></tr><tr><td class="func_table_entry">
+        <p class="func_signature">
+         <a id="id-1.5.8.34.9.10.2.2.2.1.1.1" class="indexterm"></a>
+         <code class="function">pg_clear_relation_stats</code> ( <em class="parameter"><code>schemaname</code></em> <code class="type">text</code>, <em class="parameter"><code>relname</code></em> <code class="type">text</code> )
+         → <code class="returnvalue">void</code>
+        </p>
+        <p>
+         Clears table-level statistics for the given relation, as though the
+         table was newly created.
+        </p>
+        <p>
+         The caller must have the <code class="literal">MAINTAIN</code> privilege on the
+         table or be the owner of the database.
+        </p>
+       </td></tr><tr><td class="func_table_entry"><p class="func_signature">
+        <a id="id-1.5.8.34.9.10.2.2.3.1.1.1" class="indexterm"></a>
+        <code class="function">pg_restore_attribute_stats</code> (
+        <code class="literal">VARIADIC</code> <em class="parameter"><code>kwargs</code></em> <code class="type">"any"</code> )
+        → <code class="returnvalue">boolean</code>
+       </p>
+        <p>
+         Creates or updates column-level statistics.  Ordinarily, these
+         statistics are collected automatically or updated as a part of <a class="xref" href="sql-vacuum.html" title="VACUUM"><span class="refentrytitle">VACUUM</span></a> or <a class="xref" href="sql-analyze.html" title="ANALYZE"><span class="refentrytitle">ANALYZE</span></a>, so it's not
+         necessary to call this function.  However, it is useful after a
+         restore to enable the optimizer to choose better plans if
+         <code class="command">ANALYZE</code> has not been run yet.
+        </p>
+        <p>
+         The tracked statistics may change from version to version, so
+         arguments are passed as pairs of <em class="replaceable"><code>argname</code></em>
+         and <em class="replaceable"><code>argvalue</code></em> in the form:
+</p><pre class="programlisting">
+SELECT pg_restore_attribute_stats(
+    '<em class="replaceable"><code>arg1name</code></em>', '<em class="replaceable"><code>arg1value</code></em>'::<em class="replaceable"><code>arg1type</code></em>,
+    '<em class="replaceable"><code>arg2name</code></em>', '<em class="replaceable"><code>arg2value</code></em>'::<em class="replaceable"><code>arg2type</code></em>,
+    '<em class="replaceable"><code>arg3name</code></em>', '<em class="replaceable"><code>arg3value</code></em>'::<em class="replaceable"><code>arg3type</code></em>);
+</pre><p>
+        </p>
+        <p>
+         For example, to set the <code class="structfield">avg_width</code> and
+         <code class="structfield">null_frac</code> values for the attribute
+         <code class="structfield">col1</code> of the table
+         <code class="structname">mytable</code>:
+</p><pre class="programlisting">
+SELECT pg_restore_attribute_stats(
+    'schemaname', 'myschema',
+    'relname',    'mytable',
+    'attname',    'col1',
+    'inherited',  false,
+    'avg_width',  125::integer,
+    'null_frac',  0.5::real);
+</pre><p>
+        </p>
+        <p>
+         The required arguments are <code class="literal">schemaname</code> and
+         <code class="literal">relname</code> with a value of type <code class="type">text</code>
+         which specify the table; either <code class="literal">attname</code> with a
+         value of type <code class="type">text</code> or <code class="literal">attnum</code> with a
+         value of type <code class="type">smallint</code>, which specifies the column; and
+         <code class="literal">inherited</code>, which specifies whether the statistics
+         include values from child tables.  Other arguments are the names and
+         values of statistics corresponding to columns in <a class="link" href="view-pg-stats.html" title="53.29. pg_stats"><code class="structname">pg_stats</code></a>.
+        </p>
+        <p>
+         Additionally, this function accepts argument name
+         <code class="literal">version</code> of type <code class="type">integer</code>, which
+         specifies the server version from which the statistics originated.
+         This is anticipated to be helpful in porting statistics from older
+         versions of <span class="productname">PostgreSQL</span>.
+        </p>
+        <p>
+         Minor errors are reported as a <code class="literal">WARNING</code> and
+         ignored, and remaining statistics will still be restored. If all
+         specified statistics are successfully restored, returns
+         <code class="literal">true</code>, otherwise <code class="literal">false</code>.
+        </p>
+        <p>
+         The caller must have the <code class="literal">MAINTAIN</code> privilege on the
+         table or be the owner of the database.
+        </p>
+       </td></tr><tr><td class="func_table_entry">
+        <p class="func_signature">
+         <a id="id-1.5.8.34.9.10.2.2.4.1.1.1" class="indexterm"></a>
+         <code class="function">pg_clear_attribute_stats</code> (
+         <em class="parameter"><code>schemaname</code></em> <code class="type">text</code>,
+         <em class="parameter"><code>relname</code></em> <code class="type">text</code>,
+         <em class="parameter"><code>attname</code></em> <code class="type">text</code>,
+         <em class="parameter"><code>inherited</code></em> <code class="type">boolean</code> )
+         → <code class="returnvalue">void</code>
+        </p>
+        <p>
+         Clears column-level statistics for the given relation and
+         attribute, as though the table was newly created.
+        </p>
+        <p>
+         The caller must have the <code class="literal">MAINTAIN</code> privilege on
+         the table or be the owner of the database.
+        </p>
+       </td></tr></tbody></table></div></div><br class="table-break" /><p>
+    <a class="xref" href="functions-admin.html#FUNCTIONS-INFO-PARTITION" title="Table 9.106. Partitioning Information Functions">Table 9.106</a> lists functions that provide
+    information about the structure of partitioned tables.
+   </p><div class="table" id="FUNCTIONS-INFO-PARTITION"><p class="title"><strong>Table 9.106. Partitioning Information Functions</strong></p><div class="table-contents"><table class="table" summary="Partitioning Information Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
+        Function
+       </p>
+       <p>
+        Description
+       </p></th></tr></thead><tbody><tr><td class="func_table_entry"><p class="func_signature">
+        <a id="id-1.5.8.34.9.12.2.2.1.1.1.1" class="indexterm"></a>
         <code class="function">pg_partition_tree</code> ( <code class="type">regclass</code> )
         → <code class="returnvalue">setof record</code>
         ( <em class="parameter"><code>relid</code></em> <code class="type">regclass</code>,
@@ -1257,7 +1450,7 @@ postgres=# SELECT '0/0'::pg_lsn + pd.segment_number * ps.setting::int + :offset 
         Returns no rows if the relation does not exist or is not a partition
         or partitioned table.
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.34.9.10.2.2.2.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.34.9.12.2.2.2.1.1.1" class="indexterm"></a>
         <code class="function">pg_partition_ancestors</code> ( <code class="type">regclass</code> )
         → <code class="returnvalue">setof regclass</code>
        </p>
@@ -1266,7 +1459,7 @@ postgres=# SELECT '0/0'::pg_lsn + pd.segment_number * ps.setting::int + :offset 
         including the relation itself.  Returns no rows if the relation
         does not exist or is not a partition or partitioned table.
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.34.9.10.2.2.3.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.34.9.12.2.2.3.1.1.1" class="indexterm"></a>
         <code class="function">pg_partition_root</code> ( <code class="type">regclass</code> )
         → <code class="returnvalue">regclass</code>
        </p>
@@ -1283,14 +1476,14 @@ SELECT pg_size_pretty(sum(pg_relation_size(relid))) AS total_size
   FROM pg_partition_tree('measurement');
 </pre><p>
    </p></div><div class="sect2" id="FUNCTIONS-ADMIN-INDEX"><div class="titlepage"><div><div><h3 class="title">9.28.8. Index Maintenance Functions <a href="#FUNCTIONS-ADMIN-INDEX" class="id_link">#</a></h3></div></div></div><p>
-    <a class="xref" href="functions-admin.html#FUNCTIONS-ADMIN-INDEX-TABLE" title="Table 9.104. Index Maintenance Functions">Table 9.104</a> shows the functions
+    <a class="xref" href="functions-admin.html#FUNCTIONS-ADMIN-INDEX-TABLE" title="Table 9.107. Index Maintenance Functions">Table 9.107</a> shows the functions
     available for index maintenance tasks.  (Note that these maintenance
     tasks are normally done automatically by autovacuum; use of these
     functions is only required in special cases.)
     These functions cannot be executed during recovery.
     Use of these functions is restricted to superusers and the owner
     of the given index.
-   </p><div class="table" id="FUNCTIONS-ADMIN-INDEX-TABLE"><p class="title"><strong>Table 9.104. Index Maintenance Functions</strong></p><div class="table-contents"><table class="table" summary="Index Maintenance Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
+   </p><div class="table" id="FUNCTIONS-ADMIN-INDEX-TABLE"><p class="title"><strong>Table 9.107. Index Maintenance Functions</strong></p><div class="table-contents"><table class="table" summary="Index Maintenance Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
         Function
        </p>
        <p>
@@ -1336,11 +1529,11 @@ SELECT pg_size_pretty(sum(pg_relation_size(relid))) AS total_size
         If the argument is a GIN index built with
         the <code class="literal">fastupdate</code> option disabled, no cleanup happens
         and the result is zero, because the index doesn't have a pending list.
-        See <a class="xref" href="gin.html#GIN-FAST-UPDATE" title="64.4.4.1. GIN Fast Update Technique">Section 64.4.4.1</a> and <a class="xref" href="gin.html#GIN-TIPS" title="64.4.5. GIN Tips and Tricks">Section 64.4.5</a>
+        See <a class="xref" href="gin.html#GIN-FAST-UPDATE" title="65.4.4.1. GIN Fast Update Technique">Section 65.4.4.1</a> and <a class="xref" href="gin.html#GIN-TIPS" title="65.4.5. GIN Tips and Tricks">Section 65.4.5</a>
         for details about the pending list and <code class="literal">fastupdate</code>
         option.
        </p></td></tr></tbody></table></div></div><br class="table-break" /></div><div class="sect2" id="FUNCTIONS-ADMIN-GENFILE"><div class="titlepage"><div><div><h3 class="title">9.28.9. Generic File Access Functions <a href="#FUNCTIONS-ADMIN-GENFILE" class="id_link">#</a></h3></div></div></div><p>
-    The functions shown in <a class="xref" href="functions-admin.html#FUNCTIONS-ADMIN-GENFILE-TABLE" title="Table 9.105. Generic File Access Functions">Table 9.105</a> provide native access to
+    The functions shown in <a class="xref" href="functions-admin.html#FUNCTIONS-ADMIN-GENFILE-TABLE" title="Table 9.108. Generic File Access Functions">Table 9.108</a> provide native access to
     files on the machine hosting the server. Only files within the
     database cluster directory and the <code class="varname">log_directory</code> can be
     accessed, unless the user is a superuser or is granted the role
@@ -1372,7 +1565,7 @@ SELECT pg_size_pretty(sum(pg_relation_size(relid))) AS total_size
     If <code class="literal">false</code>, an error is raised.  (Failure conditions
     other than <span class="quote">“<span class="quote">file not found</span>”</span> are reported as errors in any
     case.)  The default is <code class="literal">false</code>.
-   </p><div class="table" id="FUNCTIONS-ADMIN-GENFILE-TABLE"><p class="title"><strong>Table 9.105. Generic File Access Functions</strong></p><div class="table-contents"><table class="table" summary="Generic File Access Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
+   </p><div class="table" id="FUNCTIONS-ADMIN-GENFILE-TABLE"><p class="title"><strong>Table 9.108. Generic File Access Functions</strong></p><div class="table-contents"><table class="table" summary="Generic File Access Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
         Function
        </p>
        <p>
@@ -1487,6 +1680,24 @@ SELECT pg_size_pretty(sum(pg_relation_size(relid))) AS total_size
         be granted EXECUTE to run the function.
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
         <a id="id-1.5.8.34.11.6.2.2.7.1.1.1" class="indexterm"></a>
+        <code class="function">pg_ls_summariesdir</code> ()
+        → <code class="returnvalue">setof record</code>
+        ( <em class="parameter"><code>name</code></em> <code class="type">text</code>,
+        <em class="parameter"><code>size</code></em> <code class="type">bigint</code>,
+        <em class="parameter"><code>modification</code></em> <code class="type">timestamp with time zone</code> )
+       </p>
+       <p>
+        Returns the name, size, and last modification time (mtime) of each
+        ordinary file in the server's WAL summaries directory
+        (<code class="filename">pg_wal/summaries</code>).  Filenames beginning
+        with a dot, directories, and other special files are excluded.
+       </p>
+       <p>
+        This function is restricted to superusers and members of
+        the <code class="literal">pg_monitor</code> role by default, but other users can
+        be granted EXECUTE to run the function.
+       </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
+        <a id="id-1.5.8.34.11.6.2.2.8.1.1.1" class="indexterm"></a>
         <code class="function">pg_ls_archive_statusdir</code> ()
         → <code class="returnvalue">setof record</code>
         ( <em class="parameter"><code>name</code></em> <code class="type">text</code>,
@@ -1505,7 +1716,7 @@ SELECT pg_size_pretty(sum(pg_relation_size(relid))) AS total_size
         be granted EXECUTE to run the function.
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
 
-        <a id="id-1.5.8.34.11.6.2.2.8.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.34.11.6.2.2.9.1.1.1" class="indexterm"></a>
         <code class="function">pg_ls_tmpdir</code> ( [<span class="optional"> <em class="parameter"><code>tablespace</code></em> <code class="type">oid</code> </span>] )
         → <code class="returnvalue">setof record</code>
         ( <em class="parameter"><code>name</code></em> <code class="type">text</code>,
@@ -1526,7 +1737,7 @@ SELECT pg_size_pretty(sum(pg_relation_size(relid))) AS total_size
         the <code class="literal">pg_monitor</code> role by default, but other users can
         be granted EXECUTE to run the function.
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.34.11.6.2.2.9.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.34.11.6.2.2.10.1.1.1" class="indexterm"></a>
         <code class="function">pg_read_file</code> ( <em class="parameter"><code>filename</code></em> <code class="type">text</code> [<span class="optional">, <em class="parameter"><code>offset</code></em> <code class="type">bigint</code>, <em class="parameter"><code>length</code></em> <code class="type">bigint</code> </span>] [<span class="optional">, <em class="parameter"><code>missing_ok</code></em> <code class="type">boolean</code> </span>] )
         → <code class="returnvalue">text</code>
        </p>
@@ -1545,7 +1756,7 @@ SELECT pg_size_pretty(sum(pg_relation_size(relid))) AS total_size
         This function is restricted to superusers by default, but other users
         can be granted EXECUTE to run the function.
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.34.11.6.2.2.10.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.34.11.6.2.2.11.1.1.1" class="indexterm"></a>
         <code class="function">pg_read_binary_file</code> ( <em class="parameter"><code>filename</code></em> <code class="type">text</code> [<span class="optional">, <em class="parameter"><code>offset</code></em> <code class="type">bigint</code>, <em class="parameter"><code>length</code></em> <code class="type">bigint</code> </span>] [<span class="optional">, <em class="parameter"><code>missing_ok</code></em> <code class="type">boolean</code> </span>] )
         → <code class="returnvalue">bytea</code>
        </p>
@@ -1567,7 +1778,7 @@ SELECT pg_size_pretty(sum(pg_relation_size(relid))) AS total_size
 SELECT convert_from(pg_read_binary_file('file_in_utf8.txt'), 'UTF8');
 </pre><p>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.34.11.6.2.2.11.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.34.11.6.2.2.12.1.1.1" class="indexterm"></a>
         <code class="function">pg_stat_file</code> ( <em class="parameter"><code>filename</code></em> <code class="type">text</code> [<span class="optional">, <em class="parameter"><code>missing_ok</code></em> <code class="type">boolean</code> </span>] )
         → <code class="returnvalue">record</code>
         ( <em class="parameter"><code>size</code></em> <code class="type">bigint</code>,
@@ -1587,7 +1798,7 @@ SELECT convert_from(pg_read_binary_file('file_in_utf8.txt'), 'UTF8');
         This function is restricted to superusers by default, but other users
         can be granted EXECUTE to run the function.
        </p></td></tr></tbody></table></div></div><br class="table-break" /></div><div class="sect2" id="FUNCTIONS-ADVISORY-LOCKS"><div class="titlepage"><div><div><h3 class="title">9.28.10. Advisory Lock Functions <a href="#FUNCTIONS-ADVISORY-LOCKS" class="id_link">#</a></h3></div></div></div><p>
-    The functions shown in <a class="xref" href="functions-admin.html#FUNCTIONS-ADVISORY-LOCKS-TABLE" title="Table 9.106. Advisory Lock Functions">Table 9.106</a>
+    The functions shown in <a class="xref" href="functions-admin.html#FUNCTIONS-ADVISORY-LOCKS-TABLE" title="Table 9.109. Advisory Lock Functions">Table 9.109</a>
     manage advisory locks.  For details about proper use of these functions,
     see <a class="xref" href="explicit-locking.html#ADVISORY-LOCKS" title="13.3.5. Advisory Locks">Section 13.3.5</a>.
    </p><p>
@@ -1606,7 +1817,7 @@ SELECT convert_from(pg_read_binary_file('file_in_utf8.txt'), 'UTF8');
     Multiple session-level lock requests stack, so that if the same resource
     identifier is locked three times there must then be three unlock requests
     to release the resource in advance of session end.
-   </p><div class="table" id="FUNCTIONS-ADVISORY-LOCKS-TABLE"><p class="title"><strong>Table 9.106. Advisory Lock Functions</strong></p><div class="table-contents"><table class="table" summary="Advisory Lock Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
+   </p><div class="table" id="FUNCTIONS-ADVISORY-LOCKS-TABLE"><p class="title"><strong>Table 9.109. Advisory Lock Functions</strong></p><div class="table-contents"><table class="table" summary="Advisory Lock Functions" border="1"><colgroup><col /></colgroup><thead><tr><th class="func_table_entry"><p class="func_signature">
         Function
        </p>
        <p>
@@ -1750,4 +1961,4 @@ SELECT convert_from(pg_read_binary_file('file_in_utf8.txt'), 'UTF8');
         This will either obtain the lock immediately and
         return <code class="literal">true</code>, or return <code class="literal">false</code>
         without waiting if the lock cannot be acquired immediately.
-       </p></td></tr></tbody></table></div></div><br class="table-break" /></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="functions-info.html" title="9.27. System Information Functions and Operators">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="functions.html" title="Chapter 9. Functions and Operators">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="functions-trigger.html" title="9.29. Trigger Functions">Next</a></td></tr><tr><td width="40%" align="left" valign="top">9.27. System Information Functions and Operators </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 9.29. Trigger Functions</td></tr></table></div></body></html>
+       </p></td></tr></tbody></table></div></div><br class="table-break" /></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="functions-info.html" title="9.27. System Information Functions and Operators">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="functions.html" title="Chapter 9. Functions and Operators">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="functions-trigger.html" title="9.29. Trigger Functions">Next</a></td></tr><tr><td width="40%" align="left" valign="top">9.27. System Information Functions and Operators </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 9.29. Trigger Functions</td></tr></table></div></body></html>

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>F.36. postgres_fdw — access data stored in external PostgreSQL servers</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="pgwalinspect.html" title="F.35. pg_walinspect — low-level WAL inspection" /><link rel="next" href="seg.html" title="F.37. seg — a datatype for line segments or floating point intervals" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">F.36. postgres_fdw —
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>F.38. postgres_fdw — access data stored in external PostgreSQL servers</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="pgwalinspect.html" title="F.37. pg_walinspect — low-level WAL inspection" /><link rel="next" href="seg.html" title="F.39. seg — a datatype for line segments or floating point intervals" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">F.38. postgres_fdw —
    access data stored in external <span class="productname">PostgreSQL</span>
-   servers</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="pgwalinspect.html" title="F.35. pg_walinspect — low-level WAL inspection">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="contrib.html" title="Appendix F. Additional Supplied Modules and Extensions">Up</a></td><th width="60%" align="center">Appendix F. Additional Supplied Modules and Extensions</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="seg.html" title="F.37. seg — a datatype for line segments or floating point intervals">Next</a></td></tr></table><hr /></div><div class="sect1" id="POSTGRES-FDW"><div class="titlepage"><div><div><h2 class="title" style="clear: both">F.36. postgres_fdw —
+   servers</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="pgwalinspect.html" title="F.37. pg_walinspect — low-level WAL inspection">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="contrib.html" title="Appendix F. Additional Supplied Modules and Extensions">Up</a></td><th width="60%" align="center">Appendix F. Additional Supplied Modules and Extensions</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="seg.html" title="F.39. seg — a datatype for line segments or floating point intervals">Next</a></td></tr></table><hr /></div><div class="sect1" id="POSTGRES-FDW"><div class="titlepage"><div><div><h2 class="title" style="clear: both">F.38. postgres_fdw —
    access data stored in external <span class="productname">PostgreSQL</span>
-   servers <a href="#POSTGRES-FDW" class="id_link">#</a></h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="postgres-fdw.html#POSTGRES-FDW-OPTIONS">F.36.1. FDW Options of postgres_fdw</a></span></dt><dt><span class="sect2"><a href="postgres-fdw.html#POSTGRES-FDW-FUNCTIONS">F.36.2. Functions</a></span></dt><dt><span class="sect2"><a href="postgres-fdw.html#POSTGRES-FDW-CONNECTION-MANAGEMENT">F.36.3. Connection Management</a></span></dt><dt><span class="sect2"><a href="postgres-fdw.html#POSTGRES-FDW-TRANSACTION-MANAGEMENT">F.36.4. Transaction Management</a></span></dt><dt><span class="sect2"><a href="postgres-fdw.html#POSTGRES-FDW-REMOTE-QUERY-OPTIMIZATION">F.36.5. Remote Query Optimization</a></span></dt><dt><span class="sect2"><a href="postgres-fdw.html#POSTGRES-FDW-REMOTE-QUERY-EXECUTION-ENVIRONMENT">F.36.6. Remote Query Execution Environment</a></span></dt><dt><span class="sect2"><a href="postgres-fdw.html#POSTGRES-FDW-CROSS-VERSION-COMPATIBILITY">F.36.7. Cross-Version Compatibility</a></span></dt><dt><span class="sect2"><a href="postgres-fdw.html#POSTGRES-FDW-WAIT-EVENTS">F.36.8. Wait Events</a></span></dt><dt><span class="sect2"><a href="postgres-fdw.html#POSTGRES-FDW-CONFIGURATION-PARAMETERS">F.36.9. Configuration Parameters</a></span></dt><dt><span class="sect2"><a href="postgres-fdw.html#POSTGRES-FDW-EXAMPLES">F.36.10. Examples</a></span></dt><dt><span class="sect2"><a href="postgres-fdw.html#POSTGRES-FDW-AUTHOR">F.36.11. Author</a></span></dt></dl></div><a id="id-1.11.7.46.2" class="indexterm"></a><p>
+   servers <a href="#POSTGRES-FDW" class="id_link">#</a></h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="postgres-fdw.html#POSTGRES-FDW-OPTIONS">F.38.1. FDW Options of postgres_fdw</a></span></dt><dt><span class="sect2"><a href="postgres-fdw.html#POSTGRES-FDW-FUNCTIONS">F.38.2. Functions</a></span></dt><dt><span class="sect2"><a href="postgres-fdw.html#POSTGRES-FDW-CONNECTION-MANAGEMENT">F.38.3. Connection Management</a></span></dt><dt><span class="sect2"><a href="postgres-fdw.html#POSTGRES-FDW-TRANSACTION-MANAGEMENT">F.38.4. Transaction Management</a></span></dt><dt><span class="sect2"><a href="postgres-fdw.html#POSTGRES-FDW-REMOTE-QUERY-OPTIMIZATION">F.38.5. Remote Query Optimization</a></span></dt><dt><span class="sect2"><a href="postgres-fdw.html#POSTGRES-FDW-REMOTE-QUERY-EXECUTION-ENVIRONMENT">F.38.6. Remote Query Execution Environment</a></span></dt><dt><span class="sect2"><a href="postgres-fdw.html#POSTGRES-FDW-CROSS-VERSION-COMPATIBILITY">F.38.7. Cross-Version Compatibility</a></span></dt><dt><span class="sect2"><a href="postgres-fdw.html#POSTGRES-FDW-WAIT-EVENTS">F.38.8. Wait Events</a></span></dt><dt><span class="sect2"><a href="postgres-fdw.html#POSTGRES-FDW-CONFIGURATION-PARAMETERS">F.38.9. Configuration Parameters</a></span></dt><dt><span class="sect2"><a href="postgres-fdw.html#POSTGRES-FDW-EXAMPLES">F.38.10. Examples</a></span></dt><dt><span class="sect2"><a href="postgres-fdw.html#POSTGRES-FDW-AUTHOR">F.38.11. Author</a></span></dt></dl></div><a id="id-1.11.7.48.2" class="indexterm"></a><p>
   The <code class="filename">postgres_fdw</code> module provides the foreign-data wrapper
   <code class="literal">postgres_fdw</code>, which can be used to access data
   stored in external <span class="productname">PostgreSQL</span> servers.
@@ -72,7 +72,7 @@
   Note that a foreign table can be declared with fewer columns, or with a
   different column order, than its underlying remote table has.  Matching
   of columns to the remote table is by name, not position.
- </p><div class="sect2" id="POSTGRES-FDW-OPTIONS"><div class="titlepage"><div><div><h3 class="title">F.36.1. FDW Options of postgres_fdw <a href="#POSTGRES-FDW-OPTIONS" class="id_link">#</a></h3></div></div></div><div class="sect3" id="POSTGRES-FDW-OPTIONS-CONNECTION"><div class="titlepage"><div><div><h4 class="title">F.36.1.1. Connection Options <a href="#POSTGRES-FDW-OPTIONS-CONNECTION" class="id_link">#</a></h4></div></div></div><p>
+ </p><div class="sect2" id="POSTGRES-FDW-OPTIONS"><div class="titlepage"><div><div><h3 class="title">F.38.1. FDW Options of postgres_fdw <a href="#POSTGRES-FDW-OPTIONS" class="id_link">#</a></h3></div></div></div><div class="sect3" id="POSTGRES-FDW-OPTIONS-CONNECTION"><div class="titlepage"><div><div><h4 class="title">F.38.1.1. Connection Options <a href="#POSTGRES-FDW-OPTIONS-CONNECTION" class="id_link">#</a></h4></div></div></div><p>
     A foreign server using the <code class="filename">postgres_fdw</code> foreign data wrapper
     can have the same options that <span class="application">libpq</span> accepts in
     connection strings, as described in <a class="xref" href="libpq-connect.html#LIBPQ-PARAMKEYWORDS" title="32.1.2. Parameter Key Words">Section 32.1.2</a>,
@@ -131,10 +131,12 @@ OPTIONS (ADD password_required 'false');
     user can potentially use any client certificates,
     <code class="filename">.pgpass</code>,
     <code class="filename">.pg_service.conf</code> etc. in the unix home directory of the
-    system user the postgres server runs as. They can also use any trust
+    system user the postgres server runs as.   (For details on how home
+    directories are found, see <a class="xref" href="libpq-pgpass.html" title="32.16. The Password File">Section 32.16</a>.)  They can
+    also use any trust
     relationship granted by authentication modes like <code class="literal">peer</code>
     or <code class="literal">ident</code> authentication.
-   </p></div><div class="sect3" id="POSTGRES-FDW-OPTIONS-OBJECT-NAME"><div class="titlepage"><div><div><h4 class="title">F.36.1.2. Object Name Options <a href="#POSTGRES-FDW-OPTIONS-OBJECT-NAME" class="id_link">#</a></h4></div></div></div><p>
+   </p></div><div class="sect3" id="POSTGRES-FDW-OPTIONS-OBJECT-NAME"><div class="titlepage"><div><div><h4 class="title">F.38.1.2. Object Name Options <a href="#POSTGRES-FDW-OPTIONS-OBJECT-NAME" class="id_link">#</a></h4></div></div></div><p>
     These options can be used to control the names used in SQL statements
     sent to the remote <span class="productname">PostgreSQL</span> server.  These
     options are needed when a foreign table is created with names different
@@ -151,7 +153,7 @@ OPTIONS (ADD password_required 'false');
        This option, which can be specified for a column of a foreign table,
        gives the column name to use for the column on the remote server.
        If this option is omitted, the column's name is used.
-      </p></dd></dl></div></div><div class="sect3" id="POSTGRES-FDW-OPTIONS-COST-ESTIMATION"><div class="titlepage"><div><div><h4 class="title">F.36.1.3. Cost Estimation Options <a href="#POSTGRES-FDW-OPTIONS-COST-ESTIMATION" class="id_link">#</a></h4></div></div></div><p>
+      </p></dd></dl></div></div><div class="sect3" id="POSTGRES-FDW-OPTIONS-COST-ESTIMATION"><div class="titlepage"><div><div><h4 class="title">F.38.1.3. Cost Estimation Options <a href="#POSTGRES-FDW-OPTIONS-COST-ESTIMATION" class="id_link">#</a></h4></div></div></div><p>
     <code class="filename">postgres_fdw</code> retrieves remote data by executing queries
     against remote servers, so ideally the estimated cost of scanning a
     foreign table should be whatever it costs to be done on the remote
@@ -221,7 +223,7 @@ OPTIONS (ADD password_required 'false');
        method automatically; currently it means
        either <code class="literal">bernoulli</code> or <code class="literal">random</code>
        depending on the remote server version.
-      </p></dd></dl></div></div><div class="sect3" id="POSTGRES-FDW-OPTIONS-REMOTE-EXECUTION"><div class="titlepage"><div><div><h4 class="title">F.36.1.4. Remote Execution Options <a href="#POSTGRES-FDW-OPTIONS-REMOTE-EXECUTION" class="id_link">#</a></h4></div></div></div><p>
+      </p></dd></dl></div></div><div class="sect3" id="POSTGRES-FDW-OPTIONS-REMOTE-EXECUTION"><div class="titlepage"><div><div><h4 class="title">F.38.1.4. Remote Execution Options <a href="#POSTGRES-FDW-OPTIONS-REMOTE-EXECUTION" class="id_link">#</a></h4></div></div></div><p>
     By default, only <code class="literal">WHERE</code> clauses using built-in operators and
     functions will be considered for execution on the remote server.  Clauses
     involving non-built-in functions are checked locally after rows are
@@ -268,7 +270,7 @@ OPTIONS (ADD password_required 'false');
        once is determined in a similar way to the insert case, but it is
        limited to at most 1000 due to implementation restrictions of the
        <code class="command">COPY</code> command.
-      </p></dd></dl></div></div><div class="sect3" id="POSTGRES-FDW-OPTIONS-ASYNCHRONOUS-EXECUTION"><div class="titlepage"><div><div><h4 class="title">F.36.1.5. Asynchronous Execution Options <a href="#POSTGRES-FDW-OPTIONS-ASYNCHRONOUS-EXECUTION" class="id_link">#</a></h4></div></div></div><p>
+      </p></dd></dl></div></div><div class="sect3" id="POSTGRES-FDW-OPTIONS-ASYNCHRONOUS-EXECUTION"><div class="titlepage"><div><div><h4 class="title">F.38.1.5. Asynchronous Execution Options <a href="#POSTGRES-FDW-OPTIONS-ASYNCHRONOUS-EXECUTION" class="id_link">#</a></h4></div></div></div><p>
     <code class="filename">postgres_fdw</code> supports asynchronous execution, which
     runs multiple parts of an <code class="structname">Append</code> node
     concurrently rather than serially to improve performance.
@@ -298,7 +300,7 @@ OPTIONS (ADD password_required 'false');
        subplans are waiting for the results of asynchronous queries sent to
        foreign servers.
        This behavior might change in a future release.
-      </p></dd></dl></div></div><div class="sect3" id="POSTGRES-FDW-OPTIONS-TRANSACTION-MANAGEMENT"><div class="titlepage"><div><div><h4 class="title">F.36.1.6. Transaction Management Options <a href="#POSTGRES-FDW-OPTIONS-TRANSACTION-MANAGEMENT" class="id_link">#</a></h4></div></div></div><p>
+      </p></dd></dl></div></div><div class="sect3" id="POSTGRES-FDW-OPTIONS-TRANSACTION-MANAGEMENT"><div class="titlepage"><div><div><h4 class="title">F.38.1.6. Transaction Management Options <a href="#POSTGRES-FDW-OPTIONS-TRANSACTION-MANAGEMENT" class="id_link">#</a></h4></div></div></div><p>
     As described in the Transaction Management section, in
     <code class="filename">postgres_fdw</code> transactions are managed by creating
     corresponding remote transactions, and subtransactions are managed by
@@ -334,7 +336,7 @@ OPTIONS (ADD password_required 'false');
     When these options are enabled, a foreign server with many remote
     transactions may see a negative performance impact when the local
     transaction is committed or aborted.
-   </p></div><div class="sect3" id="POSTGRES-FDW-OPTIONS-UPDATABILITY"><div class="titlepage"><div><div><h4 class="title">F.36.1.7. Updatability Options <a href="#POSTGRES-FDW-OPTIONS-UPDATABILITY" class="id_link">#</a></h4></div></div></div><p>
+   </p></div><div class="sect3" id="POSTGRES-FDW-OPTIONS-UPDATABILITY"><div class="titlepage"><div><div><h4 class="title">F.38.1.7. Updatability Options <a href="#POSTGRES-FDW-OPTIONS-UPDATABILITY" class="id_link">#</a></h4></div></div></div><p>
     By default all foreign tables using <code class="filename">postgres_fdw</code> are assumed
     to be updatable.  This may be overridden using the following option:
    </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">updatable</code> (<code class="type">boolean</code>)</span></dt><dd><p>
@@ -352,7 +354,7 @@ OPTIONS (ADD password_required 'false');
        <code class="filename">postgres_fdw</code> foreign table to be updatable (or not)
        according to the setting of this option, without any check of the
        remote server.
-      </p></dd></dl></div></div><div class="sect3" id="POSTGRES-FDW-OPTIONS-TRUNCATABILITY"><div class="titlepage"><div><div><h4 class="title">F.36.1.8. Truncatability Options <a href="#POSTGRES-FDW-OPTIONS-TRUNCATABILITY" class="id_link">#</a></h4></div></div></div><p>
+      </p></dd></dl></div></div><div class="sect3" id="POSTGRES-FDW-OPTIONS-TRUNCATABILITY"><div class="titlepage"><div><div><h4 class="title">F.38.1.8. Truncatability Options <a href="#POSTGRES-FDW-OPTIONS-TRUNCATABILITY" class="id_link">#</a></h4></div></div></div><p>
     By default all foreign tables using <code class="filename">postgres_fdw</code> are assumed
     to be truncatable.  This may be overridden using the following option:
    </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">truncatable</code> (<code class="type">boolean</code>)</span></dt><dd><p>
@@ -365,7 +367,7 @@ OPTIONS (ADD password_required 'false');
        Of course, if the remote table is not in fact truncatable, an error
        would occur anyway.  Use of this option primarily allows the error to
        be thrown locally without querying the remote server.
-      </p></dd></dl></div></div><div class="sect3" id="POSTGRES-FDW-OPTIONS-IMPORTING"><div class="titlepage"><div><div><h4 class="title">F.36.1.9. Importing Options <a href="#POSTGRES-FDW-OPTIONS-IMPORTING" class="id_link">#</a></h4></div></div></div><p>
+      </p></dd></dl></div></div><div class="sect3" id="POSTGRES-FDW-OPTIONS-IMPORTING"><div class="titlepage"><div><div><h4 class="title">F.38.1.9. Importing Options <a href="#POSTGRES-FDW-OPTIONS-IMPORTING" class="id_link">#</a></h4></div></div></div><p>
     <code class="filename">postgres_fdw</code> is able to import foreign table definitions
     using <a class="xref" href="sql-importforeignschema.html" title="IMPORT FOREIGN SCHEMA"><span class="refentrytitle">IMPORT FOREIGN SCHEMA</span></a>.  This command creates
     foreign table definitions on the local server that match tables or
@@ -431,38 +433,117 @@ OPTIONS (ADD password_required 'false');
     which is the root of the partitioning hierarchy, importing only
     partitioned tables should allow access to all the data without
     creating extra objects.
-   </p></div><div class="sect3" id="POSTGRES-FDW-OPTIONS-CONNECTION-MANAGEMENT"><div class="titlepage"><div><div><h4 class="title">F.36.1.10. Connection Management Options <a href="#POSTGRES-FDW-OPTIONS-CONNECTION-MANAGEMENT" class="id_link">#</a></h4></div></div></div><p>
+   </p></div><div class="sect3" id="POSTGRES-FDW-OPTIONS-CONNECTION-MANAGEMENT"><div class="titlepage"><div><div><h4 class="title">F.38.1.10. Connection Management Options <a href="#POSTGRES-FDW-OPTIONS-CONNECTION-MANAGEMENT" class="id_link">#</a></h4></div></div></div><p>
      By default, all connections that <code class="filename">postgres_fdw</code>
      establishes to foreign servers are kept open in the local session
      for re-use.
-    </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">keep_connections</code> (<code class="type">boolean</code>)</span></dt><dd><p>
+    </p><div class="variablelist"><dl class="variablelist"><dt id="POSTGRES-FDW-OPTION-KEEP-CONNECTIONS"><span class="term"><code class="literal">keep_connections</code> (<code class="type">boolean</code>)</span> <a href="#POSTGRES-FDW-OPTION-KEEP-CONNECTIONS" class="id_link">#</a></dt><dd><p>
         This option controls whether <code class="filename">postgres_fdw</code> keeps
         the connections to the foreign server open so that subsequent
         queries can re-use them. It can only be specified for a foreign server.
         The default is <code class="literal">on</code>. If set to <code class="literal">off</code>,
         all connections to this foreign server will be discarded at the end of
         each transaction.
-      </p></dd></dl></div></div></div><div class="sect2" id="POSTGRES-FDW-FUNCTIONS"><div class="titlepage"><div><div><h3 class="title">F.36.2. Functions <a href="#POSTGRES-FDW-FUNCTIONS" class="id_link">#</a></h3></div></div></div><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="function">postgres_fdw_get_connections(OUT server_name text, OUT valid boolean) returns setof record</code></span></dt><dd><p>
-      This function returns the foreign server names of all the open
-      connections that <code class="filename">postgres_fdw</code> established from
-      the local session to the foreign servers. It also returns whether
-      each connection is valid or not. <code class="literal">false</code> is returned
-      if the foreign server connection is used in the current local
-      transaction but its foreign server or user mapping is changed or
-      dropped (Note that server name of an invalid connection will be
-      <code class="literal">NULL</code> if the server is dropped),
-      and then such invalid connection will be closed at
-      the end of that transaction. <code class="literal">true</code> is returned
-      otherwise. If there are no open connections, no record is returned.
+      </p></dd><dt id="POSTGRES-FDW-OPTION-USE-SCRAM-PASSTHROUGH"><span class="term"><code class="literal">use_scram_passthrough</code> (<code class="type">boolean</code>)</span> <a href="#POSTGRES-FDW-OPTION-USE-SCRAM-PASSTHROUGH" class="id_link">#</a></dt><dd><p>
+        This option controls whether <code class="filename">postgres_fdw</code> will
+        use the SCRAM pass-through authentication to connect to the foreign
+        server.  With SCRAM pass-through authentication,
+        <code class="filename">postgres_fdw</code> uses SCRAM-hashed secrets instead of
+        plain-text user passwords to connect to the remote server.  This
+        avoids storing plain-text user passwords in PostgreSQL system
+        catalogs.
+       </p><p>
+        To use SCRAM pass-through authentication:
+        </p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+           The remote server must request the <code class="literal">scram-sha-256</code>
+           authentication method; otherwise, the connection will fail.
+          </p></li><li class="listitem"><p>
+           The remote server can be of any PostgreSQL version that supports
+           SCRAM.  Support for <code class="literal">use_scram_passthrough</code> is
+           only required on the client side (FDW side).
+          </p></li><li class="listitem"><p>
+           The user mapping password is not used.
+          </p></li><li class="listitem"><p>
+           The server running <code class="filename">postgres_fdw</code> and the remote
+           server must have identical SCRAM secrets (encrypted passwords) for
+           the user being used on <code class="filename">postgres_fdw</code> to
+           authenticate on the foreign server (same salt and iterations, not
+           merely the same password).
+          </p><p>
+           As a corollary, if FDW connections to multiple hosts are to be
+           made, for example for partitioned foreign tables/sharding, then all
+           hosts must have identical SCRAM secrets for the users involved.
+          </p></li><li class="listitem"><p>
+           The current session on the PostgreSQL instance that makes the
+           outgoing FDW connections also must also use SCRAM authentication
+           for its incoming client connection.  (Hence
+           <span class="quote">“<span class="quote">pass-through</span>”</span>: SCRAM must be used going in and out.)
+           This is a technical requirement of the SCRAM protocol.
+          </p></li></ul></div><p>
+       </p></dd></dl></div></div></div><div class="sect2" id="POSTGRES-FDW-FUNCTIONS"><div class="titlepage"><div><div><h3 class="title">F.38.2. Functions <a href="#POSTGRES-FDW-FUNCTIONS" class="id_link">#</a></h3></div></div></div><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="function">postgres_fdw_get_connections(
+      IN check_conn boolean DEFAULT false, OUT server_name text,
+      OUT user_name text, OUT valid boolean, OUT used_in_xact boolean,
+      OUT closed boolean, OUT remote_backend_pid int4)
+      returns setof record</code></span></dt><dd><p>
+      This function returns information about all open connections postgres_fdw
+      has established from the local session to foreign servers. If there are
+      no open connections, no records are returned.
+     </p><p>
+      If <code class="literal">check_conn</code> is set to <code class="literal">true</code>,
+      the function checks the status of each connection and shows
+      the result in the <code class="literal">closed</code> column.
+      This feature is currently available only on systems that support
+      the non-standard <code class="symbol">POLLRDHUP</code> extension to
+      the <code class="symbol">poll</code> system call, including Linux.
+      This is useful to check if all connections used within
+      a transaction are still open. If any connections are closed,
+      the transaction cannot be committed successfully,
+      so it is better to roll back as soon as a closed connection is detected,
+      rather than continuing to the end. Users can roll back the transaction
+      immediately if the function reports connections where both
+      <code class="literal">used_in_xact</code> and <code class="literal">closed</code> are
+      <code class="literal">true</code>.
+     </p><p>
       Example usage of the function:
 </p><pre class="screen">
-postgres=# SELECT * FROM postgres_fdw_get_connections() ORDER BY 1;
- server_name | valid
--------------+-------
- loopback1   | t
- loopback2   | f
+postgres=# SELECT * FROM postgres_fdw_get_connections(true);
+ server_name | user_name | valid | used_in_xact | closed | remote_backend_pid
+-------------+-----------+-------+--------------+-----------------------------
+ loopback1   | postgres  | t     | t            | f      |            1353340
+ loopback2   | public    | t     | t            | f      |            1353120
+ loopback3   |           | f     | t            | f      |            1353156
 </pre><p>
-     </p></dd><dt><span class="term"><code class="function">postgres_fdw_disconnect(server_name text) returns boolean</code></span></dt><dd><p>
+      The output columns are described in
+      <a class="xref" href="postgres-fdw.html#POSTGRES-FDW-GET-CONNECTIONS-COLUMNS" title="Table F.28. postgres_fdw_get_connections Output Columns">Table F.28</a>.
+     </p><div class="table" id="POSTGRES-FDW-GET-CONNECTIONS-COLUMNS"><p class="title"><strong>Table F.28. <code class="function">postgres_fdw_get_connections</code> Output Columns</strong></p><div class="table-contents"><table class="table" summary="postgres_fdw_get_connections Output Columns" border="1"><colgroup><col /><col /><col /></colgroup><thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code class="structfield">server_name</code></td><td><code class="type">text</code></td><td>
+         The foreign server name of this connection. If the server is
+         dropped but the connection remains open (i.e., marked as
+         invalid), this will be <code class="literal">NULL</code>.
+        </td></tr><tr><td><code class="structfield">user_name</code></td><td><code class="type">text</code></td><td>
+         Name of the local user mapped to the foreign server of this
+         connection, or <code class="literal">public</code> if a public mapping is used.
+         If the user mapping is dropped but the connection remains open
+         (i.e., marked as invalid), this will be <code class="literal">NULL</code>.
+        </td></tr><tr><td><code class="structfield">valid</code></td><td><code class="type">boolean</code></td><td>
+         False if this connection is invalid, meaning it is used in
+         the current transaction, but its foreign server or
+         user mapping has been changed or dropped.
+         The invalid connection will be closed at the end of
+         the transaction. True is returned otherwise.
+        </td></tr><tr><td><code class="structfield">used_in_xact</code></td><td><code class="type">boolean</code></td><td>
+         True if this connection is used in the current transaction.
+        </td></tr><tr><td><code class="structfield">closed</code></td><td><code class="type">boolean</code></td><td>
+         True if this connection is closed, false otherwise.
+         <code class="literal">NULL</code> is returned if <code class="literal">check_conn</code>
+         is set to <code class="literal">false</code> or if the connection status check
+         is not available on this platform.
+        </td></tr><tr><td><code class="structfield">remote_backend_pid</code></td><td><code class="type">int4</code></td><td>
+         Process ID of the remote backend, on the foreign server,
+         handling the connection.  If the remote backend is terminated and
+         the connection is closed (with <code class="literal">closed</code> set to
+         <code class="literal">true</code>), this still shows the process ID of
+         the terminated backend.
+        </td></tr></tbody></table></div></div><br class="table-break" /></dd><dt><span class="term"><code class="function">postgres_fdw_disconnect(server_name text) returns boolean</code></span></dt><dd><p>
       This function discards the open connections that are established by
       <code class="filename">postgres_fdw</code> from the local session to
       the foreign server with the given name.  Note that there can be
@@ -493,7 +574,7 @@ postgres=# SELECT postgres_fdw_disconnect_all();
 -----------------------------
  t
 </pre><p>
-     </p></dd></dl></div></div><div class="sect2" id="POSTGRES-FDW-CONNECTION-MANAGEMENT"><div class="titlepage"><div><div><h3 class="title">F.36.3. Connection Management <a href="#POSTGRES-FDW-CONNECTION-MANAGEMENT" class="id_link">#</a></h3></div></div></div><p>
+     </p></dd></dl></div></div><div class="sect2" id="POSTGRES-FDW-CONNECTION-MANAGEMENT"><div class="titlepage"><div><div><h3 class="title">F.38.3. Connection Management <a href="#POSTGRES-FDW-CONNECTION-MANAGEMENT" class="id_link">#</a></h3></div></div></div><p>
    <code class="filename">postgres_fdw</code> establishes a connection to a
    foreign server during the first query that uses a foreign table
    associated with the foreign server.  By default this connection
@@ -520,7 +601,7 @@ postgres=# SELECT postgres_fdw_disconnect_all();
    may be used.  For example, these are useful to close
    connections that are no longer necessary, thereby releasing
    connections on the foreign server.
-  </p></div><div class="sect2" id="POSTGRES-FDW-TRANSACTION-MANAGEMENT"><div class="titlepage"><div><div><h3 class="title">F.36.4. Transaction Management <a href="#POSTGRES-FDW-TRANSACTION-MANAGEMENT" class="id_link">#</a></h3></div></div></div><p>
+  </p></div><div class="sect2" id="POSTGRES-FDW-TRANSACTION-MANAGEMENT"><div class="titlepage"><div><div><h3 class="title">F.38.4. Transaction Management <a href="#POSTGRES-FDW-TRANSACTION-MANAGEMENT" class="id_link">#</a></h3></div></div></div><p>
    During a query that references any remote tables on a foreign server,
    <code class="filename">postgres_fdw</code> opens a transaction on the
    remote server if one is not already open corresponding to the current
@@ -545,7 +626,7 @@ postgres=# SELECT postgres_fdw_disconnect_all();
    Note that it is currently not supported by
    <code class="filename">postgres_fdw</code> to prepare the remote transaction for
    two-phase commit.
-  </p></div><div class="sect2" id="POSTGRES-FDW-REMOTE-QUERY-OPTIMIZATION"><div class="titlepage"><div><div><h3 class="title">F.36.5. Remote Query Optimization <a href="#POSTGRES-FDW-REMOTE-QUERY-OPTIMIZATION" class="id_link">#</a></h3></div></div></div><p>
+  </p></div><div class="sect2" id="POSTGRES-FDW-REMOTE-QUERY-OPTIMIZATION"><div class="titlepage"><div><div><h3 class="title">F.38.5. Remote Query Optimization <a href="#POSTGRES-FDW-REMOTE-QUERY-OPTIMIZATION" class="id_link">#</a></h3></div></div></div><p>
    <code class="filename">postgres_fdw</code> attempts to optimize remote queries to reduce
    the amount of data transferred from foreign servers.  This is done by
    sending query <code class="literal">WHERE</code> clauses to the remote server for
@@ -578,7 +659,7 @@ postgres=# SELECT postgres_fdw_disconnect_all();
   </p><p>
    The query that is actually sent to the remote server for execution can
    be examined using <code class="command">EXPLAIN VERBOSE</code>.
-  </p></div><div class="sect2" id="POSTGRES-FDW-REMOTE-QUERY-EXECUTION-ENVIRONMENT"><div class="titlepage"><div><div><h3 class="title">F.36.6. Remote Query Execution Environment <a href="#POSTGRES-FDW-REMOTE-QUERY-EXECUTION-ENVIRONMENT" class="id_link">#</a></h3></div></div></div><p>
+  </p></div><div class="sect2" id="POSTGRES-FDW-REMOTE-QUERY-EXECUTION-ENVIRONMENT"><div class="titlepage"><div><div><h3 class="title">F.38.6. Remote Query Execution Environment <a href="#POSTGRES-FDW-REMOTE-QUERY-EXECUTION-ENVIRONMENT" class="id_link">#</a></h3></div></div></div><p>
    In the remote sessions opened by <code class="filename">postgres_fdw</code>,
    the <a class="xref" href="runtime-config-client.html#GUC-SEARCH-PATH">search_path</a> parameter is set to
    just <code class="literal">pg_catalog</code>, so that only built-in objects are visible
@@ -611,10 +692,12 @@ postgres=# SELECT postgres_fdw_disconnect_all();
    It is <span class="emphasis"><em>not</em></span> recommended that you override this behavior by
    changing the session-level settings of these parameters; that is likely
    to cause <code class="filename">postgres_fdw</code> to malfunction.
-  </p></div><div class="sect2" id="POSTGRES-FDW-CROSS-VERSION-COMPATIBILITY"><div class="titlepage"><div><div><h3 class="title">F.36.7. Cross-Version Compatibility <a href="#POSTGRES-FDW-CROSS-VERSION-COMPATIBILITY" class="id_link">#</a></h3></div></div></div><p>
+  </p></div><div class="sect2" id="POSTGRES-FDW-CROSS-VERSION-COMPATIBILITY"><div class="titlepage"><div><div><h3 class="title">F.38.7. Cross-Version Compatibility <a href="#POSTGRES-FDW-CROSS-VERSION-COMPATIBILITY" class="id_link">#</a></h3></div></div></div><p>
    <code class="filename">postgres_fdw</code> can be used with remote servers dating back
    to <span class="productname">PostgreSQL</span> 8.3.  Read-only capability is available
-   back to 8.1.  A limitation however is that <code class="filename">postgres_fdw</code>
+   back to 8.1.
+  </p><p>
+   A limitation however is that <code class="filename">postgres_fdw</code>
    generally assumes that immutable built-in functions and operators are
    safe to send to the remote server for execution, if they appear in a
    <code class="literal">WHERE</code> clause for a foreign table.  Thus, a built-in
@@ -625,7 +708,13 @@ postgres=# SELECT postgres_fdw_disconnect_all();
    reference in a sub-<code class="literal">SELECT</code> with <code class="literal">OFFSET 0</code> as an
    optimization fence, and placing the problematic function or operator
    outside the sub-<code class="literal">SELECT</code>.
-  </p></div><div class="sect2" id="POSTGRES-FDW-WAIT-EVENTS"><div class="titlepage"><div><div><h3 class="title">F.36.8. Wait Events <a href="#POSTGRES-FDW-WAIT-EVENTS" class="id_link">#</a></h3></div></div></div><p>
+  </p><p>
+   Another limitation is that when executing <code class="command">INSERT</code>
+   statements with an <code class="literal">ON CONFLICT DO NOTHING</code> clause on
+   a foreign table, the remote server must be running
+   <span class="productname">PostgreSQL</span> 9.5 or later,
+   as earlier versions do not support this feature.
+  </p></div><div class="sect2" id="POSTGRES-FDW-WAIT-EVENTS"><div class="titlepage"><div><div><h3 class="title">F.38.8. Wait Events <a href="#POSTGRES-FDW-WAIT-EVENTS" class="id_link">#</a></h3></div></div></div><p>
    <code class="filename">postgres_fdw</code> can report the following wait events
    under the wait event type <code class="literal">Extension</code>:
   </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">PostgresFdwCleanupResult</code></span></dt><dd><p>
@@ -634,9 +723,9 @@ postgres=# SELECT postgres_fdw_disconnect_all();
       Waiting to establish a connection to a remote server.
      </p></dd><dt><span class="term"><code class="literal">PostgresFdwGetResult</code></span></dt><dd><p>
       Waiting to receive the results of a query from a remote server.
-     </p></dd></dl></div></div><div class="sect2" id="POSTGRES-FDW-CONFIGURATION-PARAMETERS"><div class="titlepage"><div><div><h3 class="title">F.36.9. Configuration Parameters <a href="#POSTGRES-FDW-CONFIGURATION-PARAMETERS" class="id_link">#</a></h3></div></div></div><div class="variablelist"><dl class="variablelist"><dt id="GUC-PGFDW-APPLICATION-NAME"><span class="term">
+     </p></dd></dl></div></div><div class="sect2" id="POSTGRES-FDW-CONFIGURATION-PARAMETERS"><div class="titlepage"><div><div><h3 class="title">F.38.9. Configuration Parameters <a href="#POSTGRES-FDW-CONFIGURATION-PARAMETERS" class="id_link">#</a></h3></div></div></div><div class="variablelist"><dl class="variablelist"><dt id="GUC-PGFDW-APPLICATION-NAME"><span class="term">
      <code class="varname">postgres_fdw.application_name</code> (<code class="type">string</code>)
-     <a id="id-1.11.7.46.19.2.1.1.3" class="indexterm"></a>
+     <a id="id-1.11.7.48.19.2.1.1.3" class="indexterm"></a>
     </span> <a href="#GUC-PGFDW-APPLICATION-NAME" class="id_link">#</a></dt><dd><p>
       Specifies a value for <a class="xref" href="runtime-config-logging.html#GUC-APPLICATION-NAME">application_name</a>
       configuration parameter used when <code class="filename">postgres_fdw</code>
@@ -671,7 +760,7 @@ postgres=# SELECT postgres_fdw_disconnect_all();
       <code class="literal">foreign_db</code> as user <code class="literal">foreign_user</code>,
       the setting <code class="literal">'db=%d, user=%u'</code> is replaced with
       <code class="literal">'db=local_db, user=local_user'</code>.
-     </p></dd></dl></div></div><div class="sect2" id="POSTGRES-FDW-EXAMPLES"><div class="titlepage"><div><div><h3 class="title">F.36.10. Examples <a href="#POSTGRES-FDW-EXAMPLES" class="id_link">#</a></h3></div></div></div><p>
+     </p></dd></dl></div></div><div class="sect2" id="POSTGRES-FDW-EXAMPLES"><div class="titlepage"><div><div><h3 class="title">F.38.10. Examples <a href="#POSTGRES-FDW-EXAMPLES" class="id_link">#</a></h3></div></div></div><p>
    Here is an example of creating a foreign table with
    <code class="literal">postgres_fdw</code>. First install the extension:
   </p><pre class="programlisting">
@@ -721,6 +810,6 @@ CREATE FOREIGN TABLE foreign_table (
    table.
    In many cases, use of <a class="link" href="sql-importforeignschema.html" title="IMPORT FOREIGN SCHEMA"><code class="command">IMPORT FOREIGN SCHEMA</code></a> is
    preferable to constructing foreign table definitions manually.
-  </p></div><div class="sect2" id="POSTGRES-FDW-AUTHOR"><div class="titlepage"><div><div><h3 class="title">F.36.11. Author <a href="#POSTGRES-FDW-AUTHOR" class="id_link">#</a></h3></div></div></div><p>
+  </p></div><div class="sect2" id="POSTGRES-FDW-AUTHOR"><div class="titlepage"><div><div><h3 class="title">F.38.11. Author <a href="#POSTGRES-FDW-AUTHOR" class="id_link">#</a></h3></div></div></div><p>
    Shigeru Hanada <code class="email">&lt;<a class="email" href="mailto:shigeru.hanada@gmail.com">shigeru.hanada@gmail.com</a>&gt;</code>
-  </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="pgwalinspect.html" title="F.35. pg_walinspect — low-level WAL inspection">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="contrib.html" title="Appendix F. Additional Supplied Modules and Extensions">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="seg.html" title="F.37. seg — a datatype for line segments or floating point intervals">Next</a></td></tr><tr><td width="40%" align="left" valign="top">F.35. pg_walinspect — low-level WAL inspection </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> F.37. seg — a datatype for line segments or floating point intervals</td></tr></table></div></body></html>
+  </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="pgwalinspect.html" title="F.37. pg_walinspect — low-level WAL inspection">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="contrib.html" title="Appendix F. Additional Supplied Modules and Extensions">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="seg.html" title="F.39. seg — a datatype for line segments or floating point intervals">Next</a></td></tr><tr><td width="40%" align="left" valign="top">F.37. pg_walinspect — low-level WAL inspection </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> F.39. seg — a datatype for line segments or floating point intervals</td></tr></table></div></body></html>

@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "COPY" "7" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "COPY" "7" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -55,6 +55,7 @@ where \fIoption\fR can be one of:
     FORCE_NOT_NULL { ( \fIcolumn_name\fR [, \&.\&.\&.] ) | * }
     FORCE_NULL { ( \fIcolumn_name\fR [, \&.\&.\&.] ) | * }
     ON_ERROR \fIerror_action\fR
+    REJECT_LIMIT \fImaxerror\fR
     ENCODING \*(Aq\fIencoding_name\fR\*(Aq
     LOG_VERBOSITY \fIverbosity\fR
 .fi
@@ -199,7 +200,9 @@ text,
 csv
 (Comma Separated Values), or
 binary\&. The default is
-text\&.
+text\&. See
+File Formats
+below for details\&.
 .RE
 .PP
 FREEZE
@@ -208,7 +211,7 @@ Requests copying the data with rows already frozen, just as they would be after 
 \fBVACUUM FREEZE\fR
 command\&. This is intended as a performance option for initial data loading\&. Rows will be frozen only if the table being loaded has been created or truncated in the current subtransaction, there are no cursors open and there are no older snapshots held by this transaction\&. It is currently not possible to perform a
 \fBCOPY FREEZE\fR
-on a partitioned table\&. This option is only allowed in
+on a partitioned table or foreign table\&. This option is only allowed in
 \fBCOPY FROM\fR\&.
 .sp
 Note that all other sessions will immediately be able to see the data once it has been successfully loaded\&. This violates the normal rules of MVCC visibility and users should be aware of the potential problems this might cause\&.
@@ -357,7 +360,30 @@ LOG_VERBOSITY
 option is set to
 verbose, a
 NOTICE
-message containing the line of the input file and the column name whose input conversion has failed is emitted for each discarded row\&.
+message containing the line of the input file and the column name whose input conversion has failed is emitted for each discarded row\&. When it is set to
+silent, no message is emitted regarding ignored rows\&.
+.RE
+.PP
+REJECT_LIMIT
+.RS 4
+Specifies the maximum number of errors tolerated while converting a column\*(Aqs input value to its data type, when
+ON_ERROR
+is set to
+ignore\&. If the input causes more errors than the specified value, the
+\fBCOPY\fR
+command fails, even with
+ON_ERROR
+set to
+ignore\&. This clause must be used with
+ON_ERROR=ignore
+and
+\fImaxerror\fR
+must be positive
+bigint\&. If not specified,
+ON_ERROR=ignore
+allows an unlimited number of errors, meaning
+\fBCOPY\fR
+will skip all erroneous data\&.
 .RE
 .PP
 ENCODING
@@ -368,14 +394,16 @@ Specifies that the file is encoded in the
 .PP
 LOG_VERBOSITY
 .RS 4
-Specify the amount of messages emitted by a
+Specifies the amount of messages emitted by a
 \fBCOPY\fR
 command:
-default
-or
-verbose\&. If
+default,
+verbose, or
+silent\&. If
 verbose
 is specified, additional messages are emitted during processing\&.
+silent
+suppresses both verbose and default messages\&.
 .sp
 This is currently used in
 \fBCOPY FROM\fR
@@ -457,12 +485,11 @@ meta\-command
 .SH "NOTES"
 .PP
 \fBCOPY TO\fR
-can be used only with plain tables, not views, and does not copy rows from child tables or child partitions\&. For example,
+can be used with plain tables and populated materialized views\&. For example,
 COPY \fItable\fR TO
 copies the same rows as
-SELECT * FROM ONLY \fItable\fR\&. The syntax
-COPY (SELECT * FROM \fItable\fR) TO \&.\&.\&.
-can be used to dump all of the rows in an inheritance hierarchy, partitioned table, or view\&.
+SELECT * FROM ONLY \fItable\fR\&. However it doesn\*(Aqt directly support other relation types, such as partitioned tables, inheritance child tables, or views\&. To copy all rows from such relations, use
+COPY (SELECT * FROM \fItable\fR) TO\&.
 .PP
 \fBCOPY FROM\fR
 can be used with plain, foreign, or partitioned tables or with views that have
@@ -577,7 +604,15 @@ format is used, the data read or written is a text file with one line per table 
 \fBCOPY FROM\fR
 will raise an error if any line of the input file contains more or fewer columns than are expected\&.
 .PP
-End of data can be represented by a single line containing just backslash\-period (\e\&.)\&. An end\-of\-data marker is not necessary when reading from a file, since the end of file serves perfectly well; it is needed only when copying data to or from client applications using pre\-3\&.0 client protocol\&.
+End of data can be represented by a line containing just backslash\-period (\e\&.)\&. An end\-of\-data marker is not necessary when reading from a file, since the end of file serves perfectly well; in that context this provision exists only for backward compatibility\&. However,
+psql
+uses
+\e\&.
+to terminate a
+COPY FROM STDIN
+operation (that is, reading in\-line
+\fBCOPY\fR
+data in an SQL script)\&. In that context the rule is needed to be able to end the operation before the end of the script\&.
 .PP
 Backslash characters (\e) can be used in the
 \fBCOPY\fR
@@ -692,7 +727,7 @@ can handle lines ending with newlines, carriage returns, or carriage return/newl
 will complain if the line endings in the input are not all alike\&.
 .SS "CSV Format"
 .PP
-This format option is used for importing and exporting the Comma Separated Value (CSV) file format used by many other programs, such as spreadsheets\&. Instead of the escaping rules used by
+This format option is used for importing and exporting the Comma\- Separated Value (CSV) file format used by many other programs, such as spreadsheets\&. Instead of the escaping rules used by
 PostgreSQL\*(Aqs standard text format, it produces and recognizes the common
 CSV
 escaping mechanism\&.
@@ -741,11 +776,41 @@ NULL\&.
 .PP
 Because backslash is not a special character in the
 CSV
-format,
-\e\&., the end\-of\-data marker, could also appear as a data value\&. To avoid any misinterpretation, a
+format, the end\-of\-data marker used in text mode (\e\&.) is not normally treated as special when reading
+CSV
+data\&. An exception is that
+psql
+will terminate a
+COPY FROM STDIN
+operation (that is, reading in\-line
+\fBCOPY\fR
+data in an SQL script) at a line containing only
+\e\&., whether it is text or
+CSV
+mode\&.
+.if n \{\
+.sp
+.\}
+.RS 4
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBNote\fR
+.ps -1
+.br
+.PP
+PostgreSQL
+versions before v18 always recognized unquoted
 \e\&.
-data value appearing as a lone entry on a line is automatically quoted on output, and on input, if quoted, is not interpreted as the end\-of\-data marker\&. If you are loading a file created by another application that has a single unquoted column and might have a value of
-\e\&., you might need to quote that value in the input file\&.
+as an end\-of\-data marker, even when reading from a separate file\&. For compatibility with older versions,
+\fBCOPY TO\fR
+will quote
+\e\&.
+when it\*(Aqs alone on a line, even though this is no longer necessary\&.
+.sp .5v
+.RE
 .if n \{\
 .sp
 .\}

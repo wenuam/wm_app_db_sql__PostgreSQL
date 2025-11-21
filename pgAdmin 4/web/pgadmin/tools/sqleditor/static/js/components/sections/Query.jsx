@@ -15,7 +15,7 @@ import { LayoutDockerContext, LAYOUT_EVENTS } from '../../../../../../static/js/
 import ConfirmSaveContent from '../../../../../../static/js/Dialogs/ConfirmSaveContent';
 import gettext from 'sources/gettext';
 import { isMac } from '../../../../../../static/js/keyboard_shortcuts';
-import { checkTrojanSource, isShortcutValue, parseKeyEventValue, parseShortcutValue } from '../../../../../../static/js/utils';
+import { checkTrojanSource, isShortcutValue, parseKeyEventValue, parseShortcutValue, shortcutCharToCode } from '../../../../../../static/js/utils';
 import { usePgAdmin } from '../../../../../../static/js/PgAdminProvider';
 import ConfirmPromotionContent from '../dialogs/ConfirmPromotionContent';
 import ConfirmExecuteQueryContent from '../dialogs/ConfirmExecuteQueryContent';
@@ -296,6 +296,7 @@ export default function Query({onTextSelect, setQtStatePartial}) {
       // this function creates a key object from the shortcut preference
       let key = {
         keyCode: pref.key.key_code,
+        code: shortcutCharToCode(pref.key.char),
         metaKey: false,
         ctrlKey: pref.control,
         shiftKey: pref.shift,
@@ -309,8 +310,8 @@ export default function Query({onTextSelect, setQtStatePartial}) {
     };
 
     const unregisterEditorExecCmd = eventBus.registerListener(QUERY_TOOL_EVENTS.EDITOR_EXEC_CMD, (cmd='')=>{
-      let key = {}, gotolinecol = queryToolCtx.preferences.sqleditor.goto_line_col,
-        formatSql = queryToolCtx.preferences.sqleditor.format_sql;
+      let key = {}, gotolinecol = queryToolCtx.preferences.editor.goto_line_col,
+        formatSql = queryToolCtx.preferences.editor.format_sql;
       switch(cmd) {
       case 'gotoLineCol':
         key = createKeyObjectFromShortcut(gotolinecol);
@@ -326,8 +327,8 @@ export default function Query({onTextSelect, setQtStatePartial}) {
     });
 
     const unregisterFindReplace = eventBus.registerListener(QUERY_TOOL_EVENTS.EDITOR_FIND_REPLACE, (replace=false)=>{
-      let findShortcut = queryToolCtx.preferences.sqleditor.find;
-      let replaceShortcut = queryToolCtx.preferences.sqleditor.replace;
+      let findShortcut = queryToolCtx.preferences.editor.find;
+      let replaceShortcut = queryToolCtx.preferences.editor.replace;
       let key ={};
       editor.current?.focus();
       if (!replace) {

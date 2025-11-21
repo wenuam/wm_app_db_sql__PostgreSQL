@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>MERGE</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="sql-lock.html" title="LOCK" /><link rel="next" href="sql-move.html" title="MOVE" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">MERGE</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="sql-lock.html" title="LOCK">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><th width="60%" align="center">SQL Commands</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="sql-move.html" title="MOVE">Next</a></td></tr></table><hr /></div><div class="refentry" id="SQL-MERGE"><div class="titlepage"></div><a id="id-1.9.3.156.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle">MERGE</span></h2><p>MERGE — conditionally insert, update, or delete rows of a table</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><pre class="synopsis">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>MERGE</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="sql-lock.html" title="LOCK" /><link rel="next" href="sql-move.html" title="MOVE" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">MERGE</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="sql-lock.html" title="LOCK">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><th width="60%" align="center">SQL Commands</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="sql-move.html" title="MOVE">Next</a></td></tr></table><hr /></div><div class="refentry" id="SQL-MERGE"><div class="titlepage"></div><a id="id-1.9.3.156.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle">MERGE</span></h2><p>MERGE — conditionally insert, update, or delete rows of a table</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><pre class="synopsis">
 [ WITH <em class="replaceable"><code>with_query</code></em> [, ...] ]
 MERGE INTO [ ONLY ] <em class="replaceable"><code>target_table_name</code></em> [ * ] [ [ AS ] <em class="replaceable"><code>target_alias</code></em> ]
     USING <em class="replaceable"><code>data_source</code></em> ON <em class="replaceable"><code>join_condition</code></em>
     <em class="replaceable"><code>when_clause</code></em> [...]
-    [ RETURNING { * | <em class="replaceable"><code>output_expression</code></em> [ [ AS ] <em class="replaceable"><code>output_name</code></em> ] } [, ...] ]
+    [ RETURNING [ WITH ( { OLD | NEW } AS <em class="replaceable"><code>output_alias</code></em> [, ...] ) ]
+                { * | <em class="replaceable"><code>output_expression</code></em> [ [ AS ] <em class="replaceable"><code>output_name</code></em> ] } [, ...] ]
 
 <span class="phrase">where <em class="replaceable"><code>data_source</code></em> is:</span>
 
@@ -70,10 +71,11 @@ MERGE INTO [ ONLY ] <em class="replaceable"><code>target_table_name</code></em> 
    to compute and return value(s) based on each row inserted, updated, or
    deleted.  Any expression using the source or target table's columns, or
    the <a class="link" href="functions-merge-support.html#MERGE-ACTION"><code class="function">merge_action()</code></a>
-   function can be computed.  When an <code class="command">INSERT</code> or
+   function can be computed.  By default, when an <code class="command">INSERT</code> or
    <code class="command">UPDATE</code> action is performed, the new values of the target
-   table's columns are used.  When a <code class="command">DELETE</code> is performed,
-   the old values of the target table's columns are used.  The syntax of the
+   table's columns are used, and when a <code class="command">DELETE</code> is performed,
+   the old values of the target table's columns are used, but it is also
+   possible to explicitly request old and new values.  The syntax of the
    <code class="literal">RETURNING</code> list is identical to that of the output list
    of <code class="command">SELECT</code>.
   </p><p>
@@ -304,6 +306,17 @@ MERGE INTO [ ONLY ] <em class="replaceable"><code>target_table_name</code></em> 
       If used in a <code class="literal">WHEN NOT MATCHED BY SOURCE</code> clause, the
       sub-query can only refer to values from the original row in the target
       table.
+     </p></dd><dt><span class="term"><em class="replaceable"><code>output_alias</code></em></span></dt><dd><p>
+      An optional substitute name for <code class="literal">OLD</code> or
+      <code class="literal">NEW</code> rows in the <code class="literal">RETURNING</code> list.
+     </p><p>
+      By default, old values from the target table can be returned by writing
+      <code class="literal">OLD.<em class="replaceable"><code>column_name</code></em></code>
+      or <code class="literal">OLD.*</code>, and new values can be returned by writing
+      <code class="literal">NEW.<em class="replaceable"><code>column_name</code></em></code>
+      or <code class="literal">NEW.*</code>.  When an alias is provided, these names are
+      hidden and the old or new rows must be referred to using the alias.
+      For example <code class="literal">RETURNING WITH (OLD AS o, NEW AS n) o.*, n.*</code>.
      </p></dd><dt><span class="term"><em class="replaceable"><code>output_expression</code></em></span></dt><dd><p>
       An expression to be computed and returned by the <code class="command">MERGE</code>
       command after each row is changed (whether inserted, updated, or deleted).
@@ -317,6 +330,16 @@ MERGE INTO [ ONLY ] <em class="replaceable"><code>target_table_name</code></em> 
       target tables to have a lot of the same columns.  This can be avoided by
       qualifying the <code class="literal">*</code> with the name or alias of the source
       or target table.
+     </p><p>
+      A column name or <code class="literal">*</code> may also be qualified using
+      <code class="literal">OLD</code> or <code class="literal">NEW</code>, or the corresponding
+      <em class="replaceable"><code>output_alias</code></em> for
+      <code class="literal">OLD</code> or <code class="literal">NEW</code>, to cause old or new
+      values from the target table to be returned.  An unqualified column
+      name from the target table, or a column name or <code class="literal">*</code>
+      qualified using the target table name or alias will return new values
+      for <code class="literal">INSERT</code> and <code class="literal">UPDATE</code> actions, and
+      old values for <code class="literal">DELETE</code> actions.
      </p></dd><dt><span class="term"><em class="replaceable"><code>output_name</code></em></span></dt><dd><p>
       A name to use for a returned column.
      </p></dd></dl></div></div><div class="refsect1" id="id-1.9.3.156.7"><h2>Outputs</h2><p>
@@ -438,21 +461,6 @@ WHEN NOT MATCHED THEN
   VALUES (t.customer_id, t.transaction_value);
 </pre><p>
   </p><p>
-   Notice that this would be exactly equivalent to the following
-   statement because the <code class="literal">MATCHED</code> result does not change
-   during execution.
-
-</p><pre class="programlisting">
-MERGE INTO customer_account ca
-USING (SELECT customer_id, transaction_value FROM recent_transactions) AS t
-ON t.customer_id = ca.customer_id
-WHEN MATCHED THEN
-  UPDATE SET balance = balance + transaction_value
-WHEN NOT MATCHED THEN
-  INSERT (customer_id, balance)
-  VALUES (t.customer_id, t.transaction_value);
-</pre><p>
-  </p><p>
    Attempt to insert a new stock item along with the quantity of stock. If
    the item already exists, instead update the stock count of the existing
    item. Don't allow entries that have zero stock. Return details of all
@@ -467,7 +475,7 @@ WHEN MATCHED AND w.stock + s.stock_delta &gt; 0 THEN
   UPDATE SET stock = w.stock + s.stock_delta
 WHEN MATCHED THEN
   DELETE
-RETURNING merge_action(), w.*;
+RETURNING merge_action(), w.winename, old.stock AS old_stock, new.stock AS new_stock;
 </pre><p>
 
    The <code class="literal">wine_stock_changes</code> table might be, for example, a
@@ -495,4 +503,4 @@ WHEN NOT MATCHED BY SOURCE THEN
     <code class="literal">WHEN NOT MATCHED</code>, <code class="literal">DO NOTHING</code> action,
     and <code class="literal">RETURNING</code> clause are extensions to the
     <acronym class="acronym">SQL</acronym> standard.
-  </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="sql-lock.html" title="LOCK">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="sql-move.html" title="MOVE">Next</a></td></tr><tr><td width="40%" align="left" valign="top">LOCK </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> MOVE</td></tr></table></div></body></html>
+  </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="sql-lock.html" title="LOCK">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="sql-move.html" title="MOVE">Next</a></td></tr><tr><td width="40%" align="left" valign="top">LOCK </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> MOVE</td></tr></table></div></body></html>

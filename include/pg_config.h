@@ -32,17 +32,11 @@
 
 #define ENABLE_NLS 1
 
-#define HAVE_ASN1_STRING_GET0_DATA 1
-
-#define HAVE_ATOMICS 1
-
 /* Define to 1 if you have the <atomic.h> header file. */
 #undef HAVE_ATOMIC_H
 
 /* Define to 1 if you have the `backtrace_symbols' function. */
 #undef HAVE_BACKTRACE_SYMBOLS
-
-#define HAVE_BIO_METH_NEW 1
 
 /* Define to 1 if you have the `copyfile' function. */
 #undef HAVE_COPYFILE
@@ -55,8 +49,6 @@
 
 /* Define to 1 if you have the <crtdefs.h> header file. */
 #define HAVE_CRTDEFS_H 1
-
-#undef HAVE_CRYPTO_LOCK
 
 /* Define to 1 if you have the declaration of `fdatasync', and to 0 if you
    don't. */
@@ -98,6 +90,17 @@
    don't. */
 #define HAVE_DECL_STRNLEN 1
 
+/* Define to 1 if you have the declaration of `strsep', and to 0 if you
+   don't. */
+#define HAVE_DECL_STRSEP 0
+
+/* Define to 1 if you have the declaration of `timingsafe_bcmp', and to 0 if you
+   don't. */
+#define HAVE_DECL_TIMINGSAFE_BCMP 0
+
+/* Define to 1 if you have the `elf_aux_info' function. */
+#undef HAVE_ELF_AUX_INFO
+
 /* Define to 1 if you have the <execinfo.h> header file. */
 #undef HAVE_EXECINFO_H
 
@@ -116,6 +119,9 @@
 
 #undef HAVE_GCC__SYNC_INT64_CAS
 
+/* Define to 1 if you have the `getauxval' function. */
+#undef HAVE_GETAUXVAL
+
 /* Define to 1 if you have the `getifaddrs' function. */
 #undef HAVE_GETIFADDRS
 
@@ -127,10 +133,6 @@
 
 /* Define to 1 if you have the `getpeerucred' function. */
 #undef HAVE_GETPEERUCRED
-
-#define HAVE_HMAC_CTX_FREE 1
-
-#define HAVE_HMAC_CTX_NEW 1
 
 /* Define to 1 if you have the <ifaddrs.h> header file. */
 #undef HAVE_IFADDRS_H
@@ -150,9 +152,6 @@
 /* Define to 1 if you have the `kqueue' function. */
 #undef HAVE_KQUEUE
 
-/* Define to 1 if you have the <langinfo.h> header file. */
-#undef HAVE_LANGINFO_H
-
 #define HAVE_LIBLZ4 1
 
 #undef HAVE_LIBSELINUX
@@ -161,7 +160,8 @@
 
 #define HAVE_LIBZSTD 1
 
-#define HAVE_LONG_LONG_INT_64 1
+/* Define to 1 if you have the `localeconv_l' function. */
+#undef HAVE_LOCALECONV_L
 
 /* Define to 1 if you have the <mbarrier.h> header file. */
 #undef HAVE_MBARRIER_H
@@ -171,8 +171,6 @@
 
 /* Define to 1 if you have the `mkdtemp' function. */
 #undef HAVE_MKDTEMP
-
-#define HAVE_OPENSSL_INIT_SSL 1
 
 /* Define to 1 if you have the `posix_fadvise' function. */
 #undef HAVE_POSIX_FADVISE
@@ -197,9 +195,9 @@
 
 #define HAVE_SOCKLEN_T 1
 
-#define HAVE_SPINLOCKS 1
-
 #define HAVE_SSL_CTX_SET_CERT_CB 1
+
+#define HAVE_SSL_CTX_SET_KEYLOG_CALLBACK 1
 
 #define HAVE_SSL_CTX_SET_NUM_TICKETS 1
 
@@ -217,6 +215,9 @@
 
 /* Define to 1 if you have the `strnlen' function. */
 #define HAVE_STRNLEN 1
+
+/* Define to 1 if you have the `strsep' function. */
+#undef HAVE_STRSEP
 
 /* Define to 1 if you have the `strsignal' function. */
 #undef HAVE_STRSIGNAL
@@ -251,6 +252,9 @@
 /* Define to 1 if you have the <termios.h> header file. */
 #undef HAVE_TERMIOS_H
 
+/* Define to 1 if you have the `timingsafe_bcmp' function. */
+#undef HAVE_TIMINGSAFE_BCMP
+
 #define HAVE_TYPEOF 1
 
 /* Define to 1 if you have the <ucred.h> header file. */
@@ -269,57 +273,53 @@
 
 #define HAVE_X509_GET_SIGNATURE_INFO 1
 
-#define HAVE_XSAVE_INTRINSICS 1
+/* Define to 1 if you have the <xlocale.h> header file. */
+#undef HAVE_XLOCALE_H
 
-/* Define to 1 if you have the `_configthreadlocale' function. */
-#define HAVE__CONFIGTHREADLOCALE 1
+#define HAVE_XSAVE_INTRINSICS 1
 
 #define HAVE__CPUID 1
 
 #define HAVE__CPUIDEX 1
-
-#define INT64_MODIFIER "ll"
 
 #define MAXIMUM_ALIGNOF 8
 
 #define MEMSET_LOOP_LIMIT 1024
 
 /* Define to the OpenSSL API version in use. This avoids deprecation warnings from newer OpenSSL versions. */
-#define OPENSSL_API_COMPAT 0x10002000L
+#define OPENSSL_API_COMPAT 0x10101000L
 
 #define PACKAGE_BUGREPORT "pgsql-bugs@lists.postgresql.org"
 
 #define PACKAGE_NAME "PostgreSQL"
 
-#define PACKAGE_STRING "PostgreSQL 17.6"
+#define PACKAGE_STRING "PostgreSQL 18.0"
 
 #define PACKAGE_TARNAME "postgresql"
 
 #define PACKAGE_URL "https://www.postgresql.org/"
 
-#define PACKAGE_VERSION "17.6"
-
-#define PG_INT64_TYPE long long int
+#define PACKAGE_VERSION "18.0"
 
 #define PG_KRB_SRVNAM "postgres"
 
-#define PG_MAJORVERSION "17"
+#define PG_MAJORVERSION "18"
 
-#define PG_MAJORVERSION_NUM 17
+#define PG_MAJORVERSION_NUM 18
 
-#define PG_MINORVERSION_NUM 6
+#define PG_MINORVERSION_NUM 0
 
-#define PG_USE_STDBOOL 1
+#define PG_VERSION "18.0"
 
-#define PG_VERSION "17.6"
+#define PG_VERSION_NUM 180000
 
-#define PG_VERSION_NUM 170006
-
-#define PG_VERSION_STR "PostgreSQL 17.6 on x86_64-windows, compiled by msvc-19.44.35213, 64-bit"
+#define PG_VERSION_STR "PostgreSQL 18.0 on x86_64-windows, compiled by msvc-19.44.35217, 64-bit"
 
 #define RELSEG_SIZE 131072
 
 #define SIZEOF_LONG 4
+
+#define SIZEOF_LONG_LONG 8
 
 #define SIZEOF_SIZE_T 8
 

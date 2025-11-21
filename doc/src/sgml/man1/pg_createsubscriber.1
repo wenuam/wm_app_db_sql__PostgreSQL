@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "PG_CREATESUBSCRIBER" "1" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "PG_CREATESUBSCRIBER" "1" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -55,13 +55,41 @@ option\&.
 pg_createsubscriber
 accepts the following command\-line arguments:
 .PP
+\fB\-a\fR
+.br
+\fB\-\-all\fR
+.RS 4
+Create one subscription per database on the target server\&. Exceptions are template databases and databases that don\*(Aqt allow connections\&. To discover the list of all databases, connect to the source server using the database name specified in the
+\fB\-\-publisher\-server\fR
+connection string, or if not specified, the
+postgres
+database will be used, or if that does not exist,
+template1
+will be used\&. Automatically generated names for subscriptions, publications, and replication slots are used when this option is specified\&. This option cannot be used along with
+\fB\-\-database\fR,
+\fB\-\-publication\fR,
+\fB\-\-replication\-slot\fR, or
+\fB\-\-subscription\fR\&.
+.RE
+.PP
 \fB\-d \fR\fB\fIdbname\fR\fR
 .br
 \fB\-\-database=\fR\fB\fIdbname\fR\fR
 .RS 4
 The name of the database in which to create a subscription\&. Multiple databases can be selected by writing multiple
 \fB\-d\fR
-switches\&.
+switches\&. This option cannot be used together with
+\fB\-a\fR\&. If
+\fB\-d\fR
+option is not provided, the database name will be obtained from
+\fB\-P\fR
+option\&. If the database name is not specified in either the
+\fB\-d\fR
+option, or the
+\fB\-P\fR
+option, and
+\fB\-a\fR
+option is not specified, an error will be reported\&.
 .RE
 .PP
 \fB\-D \fR\fB\fIdirectory\fR\fR
@@ -107,6 +135,16 @@ The directory to use for postmaster sockets on target server\&. The default is c
 The maximum number of seconds to wait for recovery to end\&. Setting to 0 disables\&. The default is 0\&.
 .RE
 .PP
+\fB\-T\fR
+.br
+\fB\-\-enable\-two\-phase\fR
+.RS 4
+Enables
+two_phase
+commit for the subscription\&. When multiple databases are specified, this option applies uniformly to all subscriptions created on those databases\&. The default is
+false\&.
+.RE
+.PP
 \fB\-U \fR\fB\fIusername\fR\fR
 .br
 \fB\-\-subscriber\-username=\fR\fB\fIusername\fR\fR
@@ -121,6 +159,28 @@ The user name to connect as on target server\&. Defaults to the current operatin
 Enables verbose mode\&. This will cause
 pg_createsubscriber
 to output progress messages and detailed information about each step to standard error\&. Repeating the option causes additional debug\-level messages to appear on standard error\&.
+.RE
+.PP
+\fB\-\-clean=\fR\fB\fIobjtype\fR\fR
+.RS 4
+Drop all objects of the specified type from specified databases on the target server\&.
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+publications: The
+FOR ALL TABLES
+publications established for this subscriber are always dropped; specifying this object type causes all other publications replicated from the source server to be dropped as well\&.
+.RE
+.sp
+The objects selected to be dropped are individually logged, including during a
+\fB\-\-dry\-run\fR\&. There is no opportunity to affect or stop the dropping of the selected objects, so consider taking a backup of them using
+pg_dump\&.
 .RE
 .PP
 \fB\-\-config\-file=\fR\fB\fIfilename\fR\fR
@@ -138,21 +198,24 @@ configuration file if it is stored outside the data directory\&.
 .RS 4
 The publication name to set up the logical replication\&. Multiple publications can be specified by writing multiple
 \fB\-\-publication\fR
-switches\&. The number of publication names must match the number of specified databases, otherwise an error is reported\&. The order of the multiple publication name switches must match the order of database switches\&. If this option is not specified, a generated name is assigned to the publication name\&.
+switches\&. The number of publication names must match the number of specified databases, otherwise an error is reported\&. The order of the multiple publication name switches must match the order of database switches\&. If this option is not specified, a generated name is assigned to the publication name\&. This option cannot be used together with
+\fB\-\-all\fR\&.
 .RE
 .PP
 \fB\-\-replication\-slot=\fR\fB\fIname\fR\fR
 .RS 4
 The replication slot name to set up the logical replication\&. Multiple replication slots can be specified by writing multiple
 \fB\-\-replication\-slot\fR
-switches\&. The number of replication slot names must match the number of specified databases, otherwise an error is reported\&. The order of the multiple replication slot name switches must match the order of database switches\&. If this option is not specified, the subscription name is assigned to the replication slot name\&.
+switches\&. The number of replication slot names must match the number of specified databases, otherwise an error is reported\&. The order of the multiple replication slot name switches must match the order of database switches\&. If this option is not specified, the subscription name is assigned to the replication slot name\&. This option cannot be used together with
+\fB\-\-all\fR\&.
 .RE
 .PP
 \fB\-\-subscription=\fR\fB\fIname\fR\fR
 .RS 4
 The subscription name to set up the logical replication\&. Multiple subscriptions can be specified by writing multiple
 \fB\-\-subscription\fR
-switches\&. The number of subscription names must match the number of specified databases, otherwise an error is reported\&. The order of the multiple subscription name switches must match the order of database switches\&. If this option is not specified, a generated name is assigned to the subscription name\&.
+switches\&. The number of subscription names must match the number of specified databases, otherwise an error is reported\&. The order of the multiple subscription name switches must match the order of database switches\&. If this option is not specified, a generated name is assigned to the subscription name\&. This option cannot be used together with
+\fB\-\-all\fR\&.
 .RE
 .PP
 \fB\-V\fR
@@ -184,12 +247,16 @@ and using
 \fBpg_replication_origin_advance()\fR\&.
 .PP
 The target server must be used as a physical standby\&. The target server must have
-max_replication_slots
+max_active_replication_origins
 and
 max_logical_replication_workers
 configured to a value greater than or equal to the number of specified databases\&. The target server must have
 max_worker_processes
-configured to a value greater than the number of specified databases\&. The target server must accept local connections\&.
+configured to a value greater than the number of specified databases\&. The target server must accept local connections\&. If you are planning to use the
+\fB\-\-enable\-two\-phase\fR
+switch then you will also need to set the
+max_prepared_transactions
+appropriately\&.
 .PP
 The source server must accept connections from the target server\&. The source server must not be in recovery\&. The source server must have
 wal_level
@@ -221,6 +288,9 @@ primary_slot_name, it will be removed from the source server after the logical r
 If the target server is a synchronous replica, transaction commits on the primary might wait for replication while running
 pg_createsubscriber\&.
 .PP
+Unless the
+\fB\-\-enable\-two\-phase\fR
+switch is specified,
 pg_createsubscriber
 sets up logical replication with two\-phase commit disabled\&. This means that any prepared transactions will be replicated at the time of
 \fBCOMMIT PREPARED\fR, without advance preparation\&. Once setup is complete, you can manually drop and re\-create the subscription(s) with the
@@ -230,6 +300,12 @@ option enabled\&.
 pg_createsubscriber
 changes the system identifier using
 pg_resetwal\&. It would avoid situations in which the target server might use WAL files from the source server\&. If the target server has a standby, replication will break and a fresh standby should be created\&.
+.PP
+Replication failures can occur if required WAL files are missing\&. To prevent this, the source server must set
+max_slot_wal_keep_size
+to
+\-1
+to ensure that required WAL files are not prematurely removed\&.
 .SS "How It Works"
 .PP
 The basic idea is to have a replication start point from the source server and set up a logical replication to start from this point:

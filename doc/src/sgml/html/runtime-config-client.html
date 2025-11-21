@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>19.11. Client Connection Defaults</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="runtime-config-autovacuum.html" title="19.10. Automatic Vacuuming" /><link rel="next" href="runtime-config-locks.html" title="19.12. Lock Management" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">19.11. Client Connection Defaults</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="runtime-config-autovacuum.html" title="19.10. Automatic Vacuuming">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="runtime-config.html" title="Chapter 19. Server Configuration">Up</a></td><th width="60%" align="center">Chapter 19. Server Configuration</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="runtime-config-locks.html" title="19.12. Lock Management">Next</a></td></tr></table><hr /></div><div class="sect1" id="RUNTIME-CONFIG-CLIENT"><div class="titlepage"><div><div><h2 class="title" style="clear: both">19.11. Client Connection Defaults <a href="#RUNTIME-CONFIG-CLIENT" class="id_link">#</a></h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="runtime-config-client.html#RUNTIME-CONFIG-CLIENT-STATEMENT">19.11.1. Statement Behavior</a></span></dt><dt><span class="sect2"><a href="runtime-config-client.html#RUNTIME-CONFIG-CLIENT-FORMAT">19.11.2. Locale and Formatting</a></span></dt><dt><span class="sect2"><a href="runtime-config-client.html#RUNTIME-CONFIG-CLIENT-PRELOAD">19.11.3. Shared Library Preloading</a></span></dt><dt><span class="sect2"><a href="runtime-config-client.html#RUNTIME-CONFIG-CLIENT-OTHER">19.11.4. Other Defaults</a></span></dt></dl></div><div class="sect2" id="RUNTIME-CONFIG-CLIENT-STATEMENT"><div class="titlepage"><div><div><h3 class="title">19.11.1. Statement Behavior <a href="#RUNTIME-CONFIG-CLIENT-STATEMENT" class="id_link">#</a></h3></div></div></div><div class="variablelist"><dl class="variablelist"><dt id="GUC-CLIENT-MIN-MESSAGES"><span class="term"><code class="varname">client_min_messages</code> (<code class="type">enum</code>)
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>19.11. Client Connection Defaults</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="runtime-config-vacuum.html" title="19.10. Vacuuming" /><link rel="next" href="runtime-config-locks.html" title="19.12. Lock Management" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">19.11. Client Connection Defaults</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="runtime-config-vacuum.html" title="19.10. Vacuuming">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="runtime-config.html" title="Chapter 19. Server Configuration">Up</a></td><th width="60%" align="center">Chapter 19. Server Configuration</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="runtime-config-locks.html" title="19.12. Lock Management">Next</a></td></tr></table><hr /></div><div class="sect1" id="RUNTIME-CONFIG-CLIENT"><div class="titlepage"><div><div><h2 class="title" style="clear: both">19.11. Client Connection Defaults <a href="#RUNTIME-CONFIG-CLIENT" class="id_link">#</a></h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="runtime-config-client.html#RUNTIME-CONFIG-CLIENT-STATEMENT">19.11.1. Statement Behavior</a></span></dt><dt><span class="sect2"><a href="runtime-config-client.html#RUNTIME-CONFIG-CLIENT-FORMAT">19.11.2. Locale and Formatting</a></span></dt><dt><span class="sect2"><a href="runtime-config-client.html#RUNTIME-CONFIG-CLIENT-PRELOAD">19.11.3. Shared Library Preloading</a></span></dt><dt><span class="sect2"><a href="runtime-config-client.html#RUNTIME-CONFIG-CLIENT-OTHER">19.11.4. Other Defaults</a></span></dt></dl></div><div class="sect2" id="RUNTIME-CONFIG-CLIENT-STATEMENT"><div class="titlepage"><div><div><h3 class="title">19.11.1. Statement Behavior <a href="#RUNTIME-CONFIG-CLIENT-STATEMENT" class="id_link">#</a></h3></div></div></div><div class="variablelist"><dl class="variablelist"><dt id="GUC-CLIENT-MIN-MESSAGES"><span class="term"><code class="varname">client_min_messages</code> (<code class="type">enum</code>)
       <a id="id-1.6.6.14.2.2.1.1.3" class="indexterm"></a>
       </span> <a href="#GUC-CLIENT-MIN-MESSAGES" class="id_link">#</a></dt><dd><p>
         Controls which
@@ -137,7 +137,7 @@
       <a id="id-1.6.6.14.2.2.6.1.3" class="indexterm"></a>
       </span> <a href="#GUC-DEFAULT-TOAST-COMPRESSION" class="id_link">#</a></dt><dd><p>
         This variable sets the default
-        <a class="link" href="storage-toast.html" title="65.2. TOAST">TOAST</a>
+        <a class="link" href="storage-toast.html" title="66.2. TOAST">TOAST</a>
         compression method for values of compressible columns.
         (This can be overridden for individual columns by setting
         the <code class="literal">COMPRESSION</code> column option in
@@ -381,109 +381,8 @@
         may not react well to unexpected connection closure.  It may be
         helpful to enable this timeout only for interactive sessions,
         perhaps by applying it only to particular users.
-       </p></dd><dt id="GUC-VACUUM-FREEZE-TABLE-AGE"><span class="term"><code class="varname">vacuum_freeze_table_age</code> (<code class="type">integer</code>)
-      <a id="id-1.6.6.14.2.2.21.1.3" class="indexterm"></a>
-      </span> <a href="#GUC-VACUUM-FREEZE-TABLE-AGE" class="id_link">#</a></dt><dd><p>
-        <code class="command">VACUUM</code> performs an aggressive scan if the table's
-        <code class="structname">pg_class</code>.<code class="structfield">relfrozenxid</code> field has reached
-        the age specified by this setting.  An aggressive scan differs from
-        a regular <code class="command">VACUUM</code> in that it visits every page that might
-        contain unfrozen XIDs or MXIDs, not just those that might contain dead
-        tuples.  The default is 150 million transactions.  Although users can
-        set this value anywhere from zero to two billion, <code class="command">VACUUM</code>
-        will silently limit the effective value to 95% of
-        <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-FREEZE-MAX-AGE">autovacuum_freeze_max_age</a>, so that a
-        periodic manual <code class="command">VACUUM</code> has a chance to run before an
-        anti-wraparound autovacuum is launched for the table. For more
-        information see
-        <a class="xref" href="routine-vacuuming.html#VACUUM-FOR-WRAPAROUND" title="24.1.5. Preventing Transaction ID Wraparound Failures">Section 24.1.5</a>.
-       </p></dd><dt id="GUC-VACUUM-FREEZE-MIN-AGE"><span class="term"><code class="varname">vacuum_freeze_min_age</code> (<code class="type">integer</code>)
-      <a id="id-1.6.6.14.2.2.22.1.3" class="indexterm"></a>
-      </span> <a href="#GUC-VACUUM-FREEZE-MIN-AGE" class="id_link">#</a></dt><dd><p>
-        Specifies the cutoff age (in transactions) that
-        <code class="command">VACUUM</code> should use to decide whether to
-        trigger freezing of pages that have an older XID.
-        The default is 50 million transactions.  Although
-        users can set this value anywhere from zero to one billion,
-        <code class="command">VACUUM</code> will silently limit the effective value to half
-        the value of <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-FREEZE-MAX-AGE">autovacuum_freeze_max_age</a>, so
-        that there is not an unreasonably short time between forced
-        autovacuums.  For more information see <a class="xref" href="routine-vacuuming.html#VACUUM-FOR-WRAPAROUND" title="24.1.5. Preventing Transaction ID Wraparound Failures">Section 24.1.5</a>.
-       </p></dd><dt id="GUC-VACUUM-FAILSAFE-AGE"><span class="term"><code class="varname">vacuum_failsafe_age</code> (<code class="type">integer</code>)
-      <a id="id-1.6.6.14.2.2.23.1.3" class="indexterm"></a>
-      </span> <a href="#GUC-VACUUM-FAILSAFE-AGE" class="id_link">#</a></dt><dd><p>
-        Specifies the maximum age (in transactions) that a table's
-        <code class="structname">pg_class</code>.<code class="structfield">relfrozenxid</code>
-        field can attain before <code class="command">VACUUM</code> takes
-        extraordinary measures to avoid system-wide transaction ID
-        wraparound failure.  This is <code class="command">VACUUM</code>'s
-        strategy of last resort.  The failsafe typically triggers
-        when an autovacuum to prevent transaction ID wraparound has
-        already been running for some time, though it's possible for
-        the failsafe to trigger during any <code class="command">VACUUM</code>.
-       </p><p>
-        When the failsafe is triggered, any cost-based delay that is
-        in effect will no longer be applied, further non-essential
-        maintenance tasks (such as index vacuuming) are bypassed, and any
-        <a class="glossterm" href="glossary.html#GLOSSARY-BUFFER-ACCESS-STRATEGY"><em class="glossterm"><a class="glossterm" href="glossary.html#GLOSSARY-BUFFER-ACCESS-STRATEGY" title="Buffer Access Strategy">Buffer Access Strategy</a></em></a>
-        in use will be disabled resulting in <code class="command">VACUUM</code> being
-        free to make use of all of
-        <a class="glossterm" href="glossary.html#GLOSSARY-SHARED-MEMORY"><em class="glossterm"><a class="glossterm" href="glossary.html#GLOSSARY-SHARED-MEMORY" title="Shared memory">shared buffers</a></em></a>.
-       </p><p>
-        The default is 1.6 billion transactions.  Although users can
-        set this value anywhere from zero to 2.1 billion,
-        <code class="command">VACUUM</code> will silently adjust the effective
-        value to no less than 105% of <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-FREEZE-MAX-AGE">autovacuum_freeze_max_age</a>.
-       </p></dd><dt id="GUC-VACUUM-MULTIXACT-FREEZE-TABLE-AGE"><span class="term"><code class="varname">vacuum_multixact_freeze_table_age</code> (<code class="type">integer</code>)
-      <a id="id-1.6.6.14.2.2.24.1.3" class="indexterm"></a>
-      </span> <a href="#GUC-VACUUM-MULTIXACT-FREEZE-TABLE-AGE" class="id_link">#</a></dt><dd><p>
-        <code class="command">VACUUM</code> performs an aggressive scan if the table's
-        <code class="structname">pg_class</code>.<code class="structfield">relminmxid</code> field has reached
-        the age specified by this setting.  An aggressive scan differs from
-        a regular <code class="command">VACUUM</code> in that it visits every page that might
-        contain unfrozen XIDs or MXIDs, not just those that might contain dead
-        tuples.  The default is 150 million multixacts.
-        Although users can set this value anywhere from zero to two billion,
-        <code class="command">VACUUM</code> will silently limit the effective value to 95% of
-        <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-MULTIXACT-FREEZE-MAX-AGE">autovacuum_multixact_freeze_max_age</a>, so that a
-        periodic manual <code class="command">VACUUM</code> has a chance to run before an
-        anti-wraparound is launched for the table.
-        For more information see <a class="xref" href="routine-vacuuming.html#VACUUM-FOR-MULTIXACT-WRAPAROUND" title="24.1.5.1. Multixacts and Wraparound">Section 24.1.5.1</a>.
-       </p></dd><dt id="GUC-VACUUM-MULTIXACT-FREEZE-MIN-AGE"><span class="term"><code class="varname">vacuum_multixact_freeze_min_age</code> (<code class="type">integer</code>)
-      <a id="id-1.6.6.14.2.2.25.1.3" class="indexterm"></a>
-      </span> <a href="#GUC-VACUUM-MULTIXACT-FREEZE-MIN-AGE" class="id_link">#</a></dt><dd><p>
-        Specifies the cutoff age (in multixacts) that <code class="command">VACUUM</code>
-        should use to decide whether to trigger freezing of pages with
-        an older multixact ID.  The default is 5 million multixacts.
-        Although users can set this value anywhere from zero to one billion,
-        <code class="command">VACUUM</code> will silently limit the effective value to half
-        the value of <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-MULTIXACT-FREEZE-MAX-AGE">autovacuum_multixact_freeze_max_age</a>,
-        so that there is not an unreasonably short time between forced
-        autovacuums.
-        For more information see <a class="xref" href="routine-vacuuming.html#VACUUM-FOR-MULTIXACT-WRAPAROUND" title="24.1.5.1. Multixacts and Wraparound">Section 24.1.5.1</a>.
-       </p></dd><dt id="GUC-VACUUM-MULTIXACT-FAILSAFE-AGE"><span class="term"><code class="varname">vacuum_multixact_failsafe_age</code> (<code class="type">integer</code>)
-      <a id="id-1.6.6.14.2.2.26.1.3" class="indexterm"></a>
-      </span> <a href="#GUC-VACUUM-MULTIXACT-FAILSAFE-AGE" class="id_link">#</a></dt><dd><p>
-        Specifies the maximum age (in multixacts) that a table's
-        <code class="structname">pg_class</code>.<code class="structfield">relminmxid</code>
-        field can attain before <code class="command">VACUUM</code> takes
-        extraordinary measures to avoid system-wide multixact ID
-        wraparound failure.  This is <code class="command">VACUUM</code>'s
-        strategy of last resort.  The failsafe typically triggers when
-        an autovacuum to prevent transaction ID wraparound has already
-        been running for some time, though it's possible for the
-        failsafe to trigger during any <code class="command">VACUUM</code>.
-       </p><p>
-        When the failsafe is triggered, any cost-based delay that is
-        in effect will no longer be applied, and further non-essential
-        maintenance tasks (such as index vacuuming) are bypassed.
-       </p><p>
-        The default is 1.6 billion multixacts.  Although users can set
-        this value anywhere from zero to 2.1 billion,
-        <code class="command">VACUUM</code> will silently adjust the effective
-        value to no less than 105% of <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-MULTIXACT-FREEZE-MAX-AGE">autovacuum_multixact_freeze_max_age</a>.
        </p></dd><dt id="GUC-BYTEA-OUTPUT"><span class="term"><code class="varname">bytea_output</code> (<code class="type">enum</code>)
-      <a id="id-1.6.6.14.2.2.27.1.3" class="indexterm"></a>
+      <a id="id-1.6.6.14.2.2.21.1.3" class="indexterm"></a>
       </span> <a href="#GUC-BYTEA-OUTPUT" class="id_link">#</a></dt><dd><p>
         Sets the output format for values of type <code class="type">bytea</code>.
         Valid values are <code class="literal">hex</code> (the default)
@@ -492,7 +391,7 @@
         information.  The <code class="type">bytea</code> type always
         accepts both formats on input, regardless of this setting.
        </p></dd><dt id="GUC-XMLBINARY"><span class="term"><code class="varname">xmlbinary</code> (<code class="type">enum</code>)
-      <a id="id-1.6.6.14.2.2.28.1.3" class="indexterm"></a>
+      <a id="id-1.6.6.14.2.2.22.1.3" class="indexterm"></a>
       </span> <a href="#GUC-XMLBINARY" class="id_link">#</a></dt><dd><p>
         Sets how binary values are to be encoded in XML.  This applies
         for example when <code class="type">bytea</code> values are converted to
@@ -509,9 +408,9 @@
         although the hex encoding will be somewhat larger than the
         base64 encoding.
        </p></dd><dt id="GUC-XMLOPTION"><span class="term"><code class="varname">xmloption</code> (<code class="type">enum</code>)
-      <a id="id-1.6.6.14.2.2.29.1.3" class="indexterm"></a>
-      <a id="id-1.6.6.14.2.2.29.1.4" class="indexterm"></a>
-      <a id="id-1.6.6.14.2.2.29.1.5" class="indexterm"></a>
+      <a id="id-1.6.6.14.2.2.23.1.3" class="indexterm"></a>
+      <a id="id-1.6.6.14.2.2.23.1.4" class="indexterm"></a>
+      <a id="id-1.6.6.14.2.2.23.1.5" class="indexterm"></a>
       </span> <a href="#GUC-XMLOPTION" class="id_link">#</a></dt><dd><p>
         Sets whether <code class="literal">DOCUMENT</code> or
         <code class="literal">CONTENT</code> is implicit when converting between
@@ -526,7 +425,7 @@ SET XML OPTION { DOCUMENT | CONTENT };
 </pre><p>
         This syntax is also available in PostgreSQL.
        </p></dd><dt id="GUC-GIN-PENDING-LIST-LIMIT"><span class="term"><code class="varname">gin_pending_list_limit</code> (<code class="type">integer</code>)
-      <a id="id-1.6.6.14.2.2.30.1.3" class="indexterm"></a>
+      <a id="id-1.6.6.14.2.2.24.1.3" class="indexterm"></a>
       </span> <a href="#GUC-GIN-PENDING-LIST-LIMIT" class="id_link">#</a></dt><dd><p>
         Sets the maximum size of a GIN index's pending list, which is used
         when <code class="literal">fastupdate</code> is enabled. If the list grows
@@ -536,10 +435,10 @@ SET XML OPTION { DOCUMENT | CONTENT };
         The default is four megabytes (<code class="literal">4MB</code>). This setting
         can be overridden for individual GIN indexes by changing
         index storage parameters.
-         See <a class="xref" href="gin.html#GIN-FAST-UPDATE" title="64.4.4.1. GIN Fast Update Technique">Section 64.4.4.1</a> and <a class="xref" href="gin.html#GIN-TIPS" title="64.4.5. GIN Tips and Tricks">Section 64.4.5</a>
+         See <a class="xref" href="gin.html#GIN-FAST-UPDATE" title="65.4.4.1. GIN Fast Update Technique">Section 65.4.4.1</a> and <a class="xref" href="gin.html#GIN-TIPS" title="65.4.5. GIN Tips and Tricks">Section 65.4.5</a>
          for more information.
        </p></dd><dt id="GUC-CREATEROLE-SELF-GRANT"><span class="term"><code class="varname">createrole_self_grant</code> (<code class="type">string</code>)
-      <a id="id-1.6.6.14.2.2.31.1.3" class="indexterm"></a>
+      <a id="id-1.6.6.14.2.2.25.1.3" class="indexterm"></a>
       </span> <a href="#GUC-CREATEROLE-SELF-GRANT" class="id_link">#</a></dt><dd><p>
         If a user who has <code class="literal">CREATEROLE</code> but not
         <code class="literal">SUPERUSER</code> creates a role, and if this
@@ -562,7 +461,7 @@ SET XML OPTION { DOCUMENT | CONTENT };
         to produce a similar behavior for <code class="literal">CREATEROLE</code> users
         for users which they create.
        </p></dd><dt id="GUC-EVENT-TRIGGERS"><span class="term"><code class="varname">event_triggers</code> (<code class="type">boolean</code>)
-      <a id="id-1.6.6.14.2.2.32.1.3" class="indexterm"></a>
+      <a id="id-1.6.6.14.2.2.26.1.3" class="indexterm"></a>
      </span> <a href="#GUC-EVENT-TRIGGERS" class="id_link">#</a></dt><dd><p>
        Allow temporarily disabling execution of event triggers in order to
        troubleshoot and repair faulty event triggers. All event triggers will
@@ -571,7 +470,7 @@ SET XML OPTION { DOCUMENT | CONTENT };
        is the default value. Only superusers and users with the appropriate
        <code class="literal">SET</code> privilege can change this setting.
       </p></dd><dt id="GUC-RESTRICT-NONSYSTEM-RELATION-KIND"><span class="term"><code class="varname">restrict_nonsystem_relation_kind</code> (<code class="type">string</code>)
-      <a id="id-1.6.6.14.2.2.33.1.3" class="indexterm"></a>
+      <a id="id-1.6.6.14.2.2.27.1.3" class="indexterm"></a>
      </span> <a href="#GUC-RESTRICT-NONSYSTEM-RELATION-KIND" class="id_link">#</a></dt><dd><p>
        Set relation kinds for which access to non-system relations is prohibited.
        The value takes the form of a comma-separated list of relation kinds.
@@ -630,8 +529,10 @@ SET XML OPTION { DOCUMENT | CONTENT };
       <a id="id-1.6.6.14.3.2.4.1.3" class="indexterm"></a>
       <a id="id-1.6.6.14.3.2.4.1.4" class="indexterm"></a>
       </span> <a href="#GUC-TIMEZONE-ABBREVIATIONS" class="id_link">#</a></dt><dd><p>
-        Sets the collection of time zone abbreviations that will be accepted
-        by the server for datetime input.  The default is <code class="literal">'Default'</code>,
+        Sets the collection of additional time zone abbreviations that
+        will be accepted by the server for datetime input (beyond any
+        abbreviations defined by the current <code class="varname">TimeZone</code>
+        setting).  The default is <code class="literal">'Default'</code>,
         which is a collection that works in most of the world; there are
         also <code class="literal">'Australia'</code> and <code class="literal">'India'</code>,
         and other collections can be defined for a particular installation.
@@ -923,9 +824,64 @@ dynamic_library_path = 'C:\tools\postgresql;H:\my_project\lib;$libdir'
         development purposes. The recommended way to set this parameter
         is in the <code class="filename">postgresql.conf</code> configuration
         file.
-       </p></dd><dt id="GUC-GIN-FUZZY-SEARCH-LIMIT"><span class="term"><code class="varname">gin_fuzzy_search_limit</code> (<code class="type">integer</code>)
+       </p></dd><dt id="GUC-EXTENSION-CONTROL-PATH"><span class="term"><code class="varname">extension_control_path</code> (<code class="type">string</code>)
       <a id="id-1.6.6.14.5.2.2.1.3" class="indexterm"></a>
+      </span> <a href="#GUC-EXTENSION-CONTROL-PATH" class="id_link">#</a></dt><dd><p>
+        A path to search for extensions, specifically extension control files
+        (<code class="filename"><em class="replaceable"><code>name</code></em>.control</code>).  The
+        remaining extension script and secondary control files are then loaded
+        from the same directory where the primary control file was found.
+        See <a class="xref" href="extend-extensions.html#EXTEND-EXTENSIONS-FILES" title="36.17.1. Extension Files">Section 36.17.1</a> for details.
+       </p><p>
+        The value for <code class="varname">extension_control_path</code> must be a
+        list of absolute directory paths separated by colons (or semi-colons
+        on Windows).  If a list element starts
+        with the special string <code class="literal">$system</code>, the
+        compiled-in <span class="productname">PostgreSQL</span> extension
+        directory is substituted for <code class="literal">$system</code>; this
+        is where the extensions provided by the standard
+        <span class="productname">PostgreSQL</span> distribution are installed.
+        (Use <code class="literal">pg_config --sharedir</code> to find out the name of
+        this directory.) For example:
+</p><pre class="programlisting">
+extension_control_path = '/usr/local/share/postgresql:/home/my_project/share:$system'
+</pre><p>
+        or, in a Windows environment:
+</p><pre class="programlisting">
+extension_control_path = 'C:\tools\postgresql;H:\my_project\share;$system'
+</pre><p>
+        Note that the specified paths elements are expected to have a
+        subdirectory <code class="filename">extension</code> which will contain the
+        <code class="filename">.control</code> and <code class="filename">.sql</code> files; the
+        <code class="filename">extension</code> suffix is automatically appended to
+        each path element.
+       </p><p>
+        The default value for this parameter is
+        <code class="literal">'$system'</code>. If the value is set to an empty
+        string, the default <code class="literal">'$system'</code> is also assumed.
+       </p><p>
+        If extensions with equal names are present in multiple directories in
+        the configured path, only the instance found first in the path will be
+        used.
+       </p><p>
+        This parameter can be changed at run time by superusers and users
+        with the appropriate <code class="literal">SET</code> privilege, but a
+        setting done that way will only persist until the end of the
+        client connection, so this method should be reserved for
+        development purposes. The recommended way to set this parameter
+        is in the <code class="filename">postgresql.conf</code> configuration
+        file.
+       </p><p>
+        Note that if you set this parameter to be able to load extensions from
+        nonstandard locations, you will most likely also need to set <a class="xref" href="runtime-config-client.html#GUC-DYNAMIC-LIBRARY-PATH">dynamic_library_path</a> to a correspondent location, for
+        example,
+</p><pre class="programlisting">
+extension_control_path = '/usr/local/share/postgresql:$system'
+dynamic_library_path = '/usr/local/lib/postgresql:$libdir'
+</pre><p>
+       </p></dd><dt id="GUC-GIN-FUZZY-SEARCH-LIMIT"><span class="term"><code class="varname">gin_fuzzy_search_limit</code> (<code class="type">integer</code>)
+      <a id="id-1.6.6.14.5.2.3.1.3" class="indexterm"></a>
       </span> <a href="#GUC-GIN-FUZZY-SEARCH-LIMIT" class="id_link">#</a></dt><dd><p>
         Soft upper limit of the size of the set returned by GIN index scans. For more
-        information see <a class="xref" href="gin.html#GIN-TIPS" title="64.4.5. GIN Tips and Tricks">Section 64.4.5</a>.
-       </p></dd></dl></div></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="runtime-config-autovacuum.html" title="19.10. Automatic Vacuuming">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="runtime-config.html" title="Chapter 19. Server Configuration">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="runtime-config-locks.html" title="19.12. Lock Management">Next</a></td></tr><tr><td width="40%" align="left" valign="top">19.10. Automatic Vacuuming </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 19.12. Lock Management</td></tr></table></div></body></html>
+        information see <a class="xref" href="gin.html#GIN-TIPS" title="65.4.5. GIN Tips and Tricks">Section 65.4.5</a>.
+       </p></dd></dl></div></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="runtime-config-vacuum.html" title="19.10. Vacuuming">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="runtime-config.html" title="Chapter 19. Server Configuration">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="runtime-config-locks.html" title="19.12. Lock Management">Next</a></td></tr><tr><td width="40%" align="left" valign="top">19.10. Vacuuming </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 19.12. Lock Management</td></tr></table></div></body></html>

@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "INSERT" "7" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "INSERT" "7" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -37,7 +37,8 @@ INSERT INTO \fItable_name\fR [ AS \fIalias\fR ] [ ( \fIcolumn_name\fR [, \&.\&.\
     [ OVERRIDING { SYSTEM | USER } VALUE ]
     { DEFAULT VALUES | VALUES ( { \fIexpression\fR | DEFAULT } [, \&.\&.\&.] ) [, \&.\&.\&.] | \fIquery\fR }
     [ ON CONFLICT [ \fIconflict_target\fR ] \fIconflict_action\fR ]
-    [ RETURNING { * | \fIoutput_expression\fR [ [ AS ] \fIoutput_name\fR ] } [, \&.\&.\&.] ]
+    [ RETURNING [ WITH ( { OLD | NEW } AS \fIoutput_alias\fR [, \&.\&.\&.] ) ]
+                { * | \fIoutput_expression\fR [ [ AS ] \fIoutput_name\fR ] } [, \&.\&.\&.] ]
 
 where \fIconflict_target\fR can be one of:
 
@@ -77,7 +78,7 @@ If the expression for any column is not of the correct data type, automatic type
 .PP
 \fBINSERT\fR
 into tables that lack unique indexes will not be blocked by concurrent activity\&. Tables with unique indexes might block if concurrent sessions perform actions that lock or modify rows matching the unique index values being inserted; the details are covered in
-Section\ \&62.5\&.
+Section\ \&63.5\&.
 ON CONFLICT
 can be used to specify an alternative action to raising a unique constraint or exclusion constraint violation error\&. (See
 ON CONFLICT Clause
@@ -247,6 +248,26 @@ statement) that supplies the rows to be inserted\&. Refer to the
 statement for a description of the syntax\&.
 .RE
 .PP
+\fIoutput_alias\fR
+.RS 4
+An optional substitute name for
+OLD
+or
+NEW
+rows in the
+RETURNING
+list\&.
+.sp
+By default, old values from the target table can be returned by writing
+OLD\&.\fIcolumn_name\fR
+or
+OLD\&.*, and new values can be returned by writing
+NEW\&.\fIcolumn_name\fR
+or
+NEW\&.*\&. When an alias is provided, these names are hidden and the old or new rows must be referred to using the alias\&. For example
+RETURNING WITH (OLD AS o, NEW AS n) o\&.*, n\&.*\&.
+.RE
+.PP
 \fIoutput_expression\fR
 .RS 4
 An expression to be computed and returned by the
@@ -255,6 +276,29 @@ command after each row is inserted or updated\&. The expression can use any colu
 \fItable_name\fR\&. Write
 *
 to return all columns of the inserted or updated row(s)\&.
+.sp
+A column name or
+*
+may be qualified using
+OLD
+or
+NEW, or the corresponding
+\fIoutput_alias\fR
+for
+OLD
+or
+NEW, to cause old or new values to be returned\&. An unqualified column name, or
+*, or a column name or
+*
+qualified using the target table name or alias will return new values\&.
+.sp
+For a simple
+\fBINSERT\fR, all old values will be
+NULL\&. However, for an
+\fBINSERT\fR
+with an
+ON CONFLICT DO UPDATE
+clause, the old values may be non\-NULL\&.
 .RE
 .PP
 \fIoutput_name\fR
@@ -672,6 +716,28 @@ table is used to reference values originally proposed for insertion:
 INSERT INTO distributors (did, dname)
     VALUES (5, \*(AqGizmo Transglobal\*(Aq), (6, \*(AqAssociated Computing, Inc\*(Aq)
     ON CONFLICT (did) DO UPDATE SET dname = EXCLUDED\&.dname;
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+Insert or update new distributors as above, returning information about any existing values that were updated, together with the new data inserted\&. Note that the returned values for
+old_did
+and
+old_dname
+will be
+NULL
+for non\-conflicting rows:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+INSERT INTO distributors (did, dname)
+    VALUES (5, \*(AqGizmo Transglobal\*(Aq), (6, \*(AqAssociated Computing, Inc\*(Aq)
+    ON CONFLICT (did) DO UPDATE SET dname = EXCLUDED\&.dname
+    RETURNING old\&.did AS old_did, old\&.dname AS old_dname,
+              new\&.did AS new_did, new\&.dname AS new_dname;
 .fi
 .if n \{\
 .RE

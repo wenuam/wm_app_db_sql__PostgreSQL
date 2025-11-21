@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>24.1. Routine Vacuuming</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="maintenance.html" title="Chapter 24. Routine Database Maintenance Tasks" /><link rel="next" href="routine-reindex.html" title="24.2. Routine Reindexing" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">24.1. Routine Vacuuming</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="maintenance.html" title="Chapter 24. Routine Database Maintenance Tasks">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="maintenance.html" title="Chapter 24. Routine Database Maintenance Tasks">Up</a></td><th width="60%" align="center">Chapter 24. Routine Database Maintenance Tasks</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="routine-reindex.html" title="24.2. Routine Reindexing">Next</a></td></tr></table><hr /></div><div class="sect1" id="ROUTINE-VACUUMING"><div class="titlepage"><div><div><h2 class="title" style="clear: both">24.1. Routine Vacuuming <a href="#ROUTINE-VACUUMING" class="id_link">#</a></h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="routine-vacuuming.html#VACUUM-BASICS">24.1.1. Vacuuming Basics</a></span></dt><dt><span class="sect2"><a href="routine-vacuuming.html#VACUUM-FOR-SPACE-RECOVERY">24.1.2. Recovering Disk Space</a></span></dt><dt><span class="sect2"><a href="routine-vacuuming.html#VACUUM-FOR-STATISTICS">24.1.3. Updating Planner Statistics</a></span></dt><dt><span class="sect2"><a href="routine-vacuuming.html#VACUUM-FOR-VISIBILITY-MAP">24.1.4. Updating the Visibility Map</a></span></dt><dt><span class="sect2"><a href="routine-vacuuming.html#VACUUM-FOR-WRAPAROUND">24.1.5. Preventing Transaction ID Wraparound Failures</a></span></dt><dt><span class="sect2"><a href="routine-vacuuming.html#AUTOVACUUM">24.1.6. The Autovacuum Daemon</a></span></dt></dl></div><a id="id-1.6.11.10.2" class="indexterm"></a><p>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>24.1. Routine Vacuuming</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="maintenance.html" title="Chapter 24. Routine Database Maintenance Tasks" /><link rel="next" href="routine-reindex.html" title="24.2. Routine Reindexing" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">24.1. Routine Vacuuming</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="maintenance.html" title="Chapter 24. Routine Database Maintenance Tasks">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="maintenance.html" title="Chapter 24. Routine Database Maintenance Tasks">Up</a></td><th width="60%" align="center">Chapter 24. Routine Database Maintenance Tasks</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="routine-reindex.html" title="24.2. Routine Reindexing">Next</a></td></tr></table><hr /></div><div class="sect1" id="ROUTINE-VACUUMING"><div class="titlepage"><div><div><h2 class="title" style="clear: both">24.1. Routine Vacuuming <a href="#ROUTINE-VACUUMING" class="id_link">#</a></h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="routine-vacuuming.html#VACUUM-BASICS">24.1.1. Vacuuming Basics</a></span></dt><dt><span class="sect2"><a href="routine-vacuuming.html#VACUUM-FOR-SPACE-RECOVERY">24.1.2. Recovering Disk Space</a></span></dt><dt><span class="sect2"><a href="routine-vacuuming.html#VACUUM-FOR-STATISTICS">24.1.3. Updating Planner Statistics</a></span></dt><dt><span class="sect2"><a href="routine-vacuuming.html#VACUUM-FOR-VISIBILITY-MAP">24.1.4. Updating the Visibility Map</a></span></dt><dt><span class="sect2"><a href="routine-vacuuming.html#VACUUM-FOR-WRAPAROUND">24.1.5. Preventing Transaction ID Wraparound Failures</a></span></dt><dt><span class="sect2"><a href="routine-vacuuming.html#AUTOVACUUM">24.1.6. The Autovacuum Daemon</a></span></dt></dl></div><a id="id-1.6.11.10.2" class="indexterm"></a><p>
    <span class="productname">PostgreSQL</span> databases require periodic
    maintenance known as <em class="firstterm">vacuuming</em>.  For many installations, it
    is sufficient to let vacuuming be performed by the <em class="firstterm">autovacuum
@@ -49,7 +49,7 @@
     traffic, which can cause poor performance for other active sessions.
     There are configuration parameters that can be adjusted to reduce the
     performance impact of background vacuuming — see
-    <a class="xref" href="runtime-config-resource.html#RUNTIME-CONFIG-RESOURCE-VACUUM-COST" title="19.4.4. Cost-based Vacuum Delay">Section 19.4.4</a>.
+    <a class="xref" href="runtime-config-vacuum.html#RUNTIME-CONFIG-RESOURCE-VACUUM-COST" title="19.10.2. Cost-based Vacuum Delay">Section 19.10.2</a>.
    </p></div><div class="sect2" id="VACUUM-FOR-SPACE-RECOVERY"><div class="titlepage"><div><div><h3 class="title">24.1.2. Recovering Disk Space <a href="#VACUUM-FOR-SPACE-RECOVERY" class="id_link">#</a></h3></div></div></div><a id="id-1.6.11.10.5.2" class="indexterm"></a><p>
     In <span class="productname">PostgreSQL</span>, an
     <code class="command">UPDATE</code> or <code class="command">DELETE</code> of a row does not
@@ -211,7 +211,7 @@
      a manual <code class="command">ANALYZE</code> on those tables to keep the statistics
      up to date.
     </p></div></div><div class="sect2" id="VACUUM-FOR-VISIBILITY-MAP"><div class="titlepage"><div><div><h3 class="title">24.1.4. Updating the Visibility Map <a href="#VACUUM-FOR-VISIBILITY-MAP" class="id_link">#</a></h3></div></div></div><p>
-    Vacuum maintains a <a class="link" href="storage-vm.html" title="65.4. Visibility Map">visibility map</a> for each
+    Vacuum maintains a <a class="link" href="storage-vm.html" title="66.4. Visibility Map">visibility map</a> for each
     table to keep track of which pages contain only tuples that are known to be
     visible to all active transactions (and all future transactions, until the
     page is again modified).  This has two purposes.  First, vacuum
@@ -287,7 +287,7 @@
      Like <code class="literal">FrozenTransactionId</code>, this special XID is treated as
      older than every normal XID.
     </p></div><p>
-    <a class="xref" href="runtime-config-client.html#GUC-VACUUM-FREEZE-MIN-AGE">vacuum_freeze_min_age</a>
+    <a class="xref" href="runtime-config-vacuum.html#GUC-VACUUM-FREEZE-MIN-AGE">vacuum_freeze_min_age</a>
     controls how old an XID value has to be before rows bearing that XID will be
     frozen.  Increasing this setting may avoid unnecessary work if the
     rows that would otherwise be frozen will soon be modified again,
@@ -295,7 +295,7 @@
     the number of transactions that can elapse before the table must be
     vacuumed again.
    </p><p>
-    <code class="command">VACUUM</code> uses the <a class="link" href="storage-vm.html" title="65.4. Visibility Map">visibility map</a>
+    <code class="command">VACUUM</code> uses the <a class="link" href="storage-vm.html" title="66.4. Visibility Map">visibility map</a>
     to determine which pages of a table must be scanned.  Normally, it
     will skip pages that don't have any dead row versions even if those pages
     might still have row versions with old XID values.  Therefore, normal
@@ -303,9 +303,20 @@
     When that happens, <code class="command">VACUUM</code> will eventually need to perform an
     <em class="firstterm">aggressive vacuum</em>, which will freeze all eligible unfrozen
     XID and MXID values, including those from all-visible but not all-frozen pages.
-    In practice most tables require periodic aggressive vacuuming.
-    <a class="xref" href="runtime-config-client.html#GUC-VACUUM-FREEZE-TABLE-AGE">vacuum_freeze_table_age</a>
-    controls when <code class="command">VACUUM</code> does that: all-visible but not all-frozen
+   </p><p>
+    If a table is building up a backlog of all-visible but not all-frozen
+    pages, a normal vacuum may choose to scan skippable pages in an effort to
+    freeze them. Doing so decreases the number of pages the next aggressive
+    vacuum must scan. These are referred to as <em class="firstterm">eagerly
+    scanned</em> pages. Eager scanning can be tuned to attempt to freeze
+    more all-visible pages by increasing <a class="xref" href="runtime-config-vacuum.html#GUC-VACUUM-MAX-EAGER-FREEZE-FAILURE-RATE">vacuum_max_eager_freeze_failure_rate</a>. Even if eager
+    scanning has kept the number of all-visible but not all-frozen pages to a
+    minimum, most tables still require periodic aggressive vacuuming. However,
+    any pages successfully eager frozen may be skipped during an aggressive
+    vacuum, so eager freezing may minimize the overhead of aggressive vacuums.
+   </p><p>
+    <a class="xref" href="runtime-config-vacuum.html#GUC-VACUUM-FREEZE-TABLE-AGE">vacuum_freeze_table_age</a>
+    controls when a table is aggressively vacuumed. All all-visible but not all-frozen
     pages are scanned if the number of transactions that have passed since the
     last such scan is greater than <code class="varname">vacuum_freeze_table_age</code> minus
     <code class="varname">vacuum_freeze_min_age</code>. Setting
@@ -318,7 +329,7 @@
     unvacuumed for longer than
     that, data loss could result.  To ensure that this does not happen,
     autovacuum is invoked on any table that might contain unfrozen rows with
-    XIDs older than the age specified by the configuration parameter <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-FREEZE-MAX-AGE">autovacuum_freeze_max_age</a>.  (This will happen even if
+    XIDs older than the age specified by the configuration parameter <a class="xref" href="runtime-config-vacuum.html#GUC-AUTOVACUUM-FREEZE-MAX-AGE">autovacuum_freeze_max_age</a>.  (This will happen even if
     autovacuum is disabled.)
    </p><p>
     This implies that if a table is not otherwise vacuumed,
@@ -413,10 +424,12 @@ SELECT datname, age(datfrozenxid) FROM pg_database;
      autovacuum logging (controlled by <a class="xref" href="runtime-config-logging.html#GUC-LOG-AUTOVACUUM-MIN-DURATION">log_autovacuum_min_duration</a>) reports on a
      <code class="command">VACUUM</code> operation executed by autovacuum.
     </p></div><p>
-    <code class="command">VACUUM</code> normally only scans pages that have been modified
-    since the last vacuum, but <code class="structfield">relfrozenxid</code> can only be
-    advanced when every page of the table
-    that might contain unfrozen XIDs is scanned.  This happens when
+    While <code class="command">VACUUM</code> scans mostly pages that have been
+    modified since the last vacuum, it may also eagerly scan some
+    all-visible but not all-frozen pages in an attempt to freeze them, but
+    the <code class="structfield">relfrozenxid</code> will only be advanced when
+    every page of the table that might contain unfrozen XIDs is scanned.
+    This happens when
     <code class="structfield">relfrozenxid</code> is more than
     <code class="varname">vacuum_freeze_table_age</code> transactions old, when
     <code class="command">VACUUM</code>'s <code class="literal">FREEZE</code> option is used, or when all
@@ -466,7 +479,7 @@ HINT:  Execute a database-wide VACUUM in that database.
     Instead, follow these steps:
 
     </p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem">Resolve old prepared transactions. You can find these by checking
-       <a class="link" href="view-pg-prepared-xacts.html" title="52.16. pg_prepared_xacts">pg_prepared_xacts</a> for rows where
+       <a class="link" href="view-pg-prepared-xacts.html" title="53.17. pg_prepared_xacts">pg_prepared_xacts</a> for rows where
        <code class="literal">age(transactionid)</code> is large. Such transactions should be
        committed or rolled back.</li><li class="listitem">End long-running open transactions. You can find these by checking
        <a class="link" href="monitoring-stats.html#MONITORING-PG-STAT-ACTIVITY-VIEW" title="27.2.3. pg_stat_activity">pg_stat_activity</a> for rows where
@@ -497,7 +510,7 @@ HINT:  Execute a database-wide VACUUM in that database.
      tables to avoid needing to <code class="command">VACUUM</code> them.  The three-million-transaction
      safety margin exists to let the administrator do this. See the
      <a class="xref" href="app-postgres.html" title="postgres"><span class="refentrytitle"><span class="application">postgres</span></span></a> reference page for details about using single-user mode.
-    </p></div><div class="sect3" id="VACUUM-FOR-MULTIXACT-WRAPAROUND"><div class="titlepage"><div><div><h4 class="title">24.1.5.1. Multixacts and Wraparound <a href="#VACUUM-FOR-MULTIXACT-WRAPAROUND" class="id_link">#</a></h4></div></div></div><a id="id-1.6.11.10.8.19.2" class="indexterm"></a><a id="id-1.6.11.10.8.19.3" class="indexterm"></a><p>
+    </p></div><div class="sect3" id="VACUUM-FOR-MULTIXACT-WRAPAROUND"><div class="titlepage"><div><div><h4 class="title">24.1.5.1. Multixacts and Wraparound <a href="#VACUUM-FOR-MULTIXACT-WRAPAROUND" class="id_link">#</a></h4></div></div></div><a id="id-1.6.11.10.8.21.2" class="indexterm"></a><a id="id-1.6.11.10.8.21.3" class="indexterm"></a><p>
      <em class="firstterm">Multixact IDs</em> are used to support row locking by
      multiple transactions.  Since there is only limited space in a tuple
      header to store lock information, that information is encoded as
@@ -514,18 +527,18 @@ HINT:  Execute a database-wide VACUUM in that database.
      each multixact, which also uses a 32-bit counter and which must also
      be managed.  The system function
      <code class="function">pg_get_multixact_members()</code> described in
-     <a class="xref" href="functions-info.html#FUNCTIONS-PG-SNAPSHOT" title="Table 9.82. Transaction ID and Snapshot Information Functions">Table 9.82</a> can be used to examine the
+     <a class="xref" href="functions-info.html#FUNCTIONS-PG-SNAPSHOT" title="Table 9.84. Transaction ID and Snapshot Information Functions">Table 9.84</a> can be used to examine the
      transaction IDs associated with a multixact ID.
     </p><p>
      Whenever <code class="command">VACUUM</code> scans any part of a table, it will replace
      any multixact ID it encounters which is older than
-     <a class="xref" href="runtime-config-client.html#GUC-VACUUM-MULTIXACT-FREEZE-MIN-AGE">vacuum_multixact_freeze_min_age</a>
+     <a class="xref" href="runtime-config-vacuum.html#GUC-VACUUM-MULTIXACT-FREEZE-MIN-AGE">vacuum_multixact_freeze_min_age</a>
      by a different value, which can be the zero value, a single
      transaction ID, or a newer multixact ID.  For each table,
      <code class="structname">pg_class</code>.<code class="structfield">relminmxid</code> stores the oldest
      possible multixact ID still appearing in any tuple of that table.
      If this value is older than
-     <a class="xref" href="runtime-config-client.html#GUC-VACUUM-MULTIXACT-FREEZE-TABLE-AGE">vacuum_multixact_freeze_table_age</a>, an aggressive
+     <a class="xref" href="runtime-config-vacuum.html#GUC-VACUUM-MULTIXACT-FREEZE-TABLE-AGE">vacuum_multixact_freeze_table_age</a>, an aggressive
      vacuum is forced.  As discussed in the previous section, an aggressive
      vacuum means that only those pages which are known to be all-frozen will
      be skipped.  <code class="function">mxid_age()</code> can be used on
@@ -539,7 +552,7 @@ HINT:  Execute a database-wide VACUUM in that database.
      multixacts can be removed.
     </p><p>
      As a safety device, an aggressive vacuum scan will
-     occur for any table whose multixact-age is greater than <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-MULTIXACT-FREEZE-MAX-AGE">autovacuum_multixact_freeze_max_age</a>.  Also, if the
+     occur for any table whose multixact-age is greater than <a class="xref" href="runtime-config-vacuum.html#GUC-AUTOVACUUM-MULTIXACT-FREEZE-MAX-AGE">autovacuum_multixact_freeze_max_age</a>.  Also, if the
      storage occupied by multixacts members exceeds about 10GB, aggressive vacuum
      scans will occur more often for all tables, starting with those that
      have the oldest multixact-age.  Both of these kinds of aggressive
@@ -579,11 +592,11 @@ HINT:  Execute a database-wide VACUUM in that database.
     <em class="firstterm">autovacuum launcher</em>, which is in charge of starting
     <em class="firstterm">autovacuum worker</em> processes for all databases. The
     launcher will distribute the work across time, attempting to start one
-    worker within each database every <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-NAPTIME">autovacuum_naptime</a>
+    worker within each database every <a class="xref" href="runtime-config-vacuum.html#GUC-AUTOVACUUM-NAPTIME">autovacuum_naptime</a>
     seconds.  (Therefore, if the installation has <em class="replaceable"><code>N</code></em> databases,
     a new worker will be launched every
     <code class="varname">autovacuum_naptime</code>/<em class="replaceable"><code>N</code></em> seconds.)
-    A maximum of <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-MAX-WORKERS">autovacuum_max_workers</a> worker processes
+    A maximum of <a class="xref" href="runtime-config-vacuum.html#GUC-AUTOVACUUM-MAX-WORKERS">autovacuum_max_workers</a> worker processes
     are allowed to run at the same time. If there are more than
     <code class="varname">autovacuum_max_workers</code> databases to be processed,
     the next database will be processed as soon as the first worker finishes.
@@ -603,19 +616,21 @@ HINT:  Execute a database-wide VACUUM in that database.
     <a class="xref" href="runtime-config-connection.html#GUC-SUPERUSER-RESERVED-CONNECTIONS">superuser_reserved_connections</a> limits.
    </p><p>
     Tables whose <code class="structfield">relfrozenxid</code> value is more than
-    <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-FREEZE-MAX-AGE">autovacuum_freeze_max_age</a> transactions old are always
+    <a class="xref" href="runtime-config-vacuum.html#GUC-AUTOVACUUM-FREEZE-MAX-AGE">autovacuum_freeze_max_age</a> transactions old are always
     vacuumed (this also applies to those tables whose freeze max age has
     been modified via storage parameters; see below).  Otherwise, if the
     number of tuples obsoleted since the last
     <code class="command">VACUUM</code> exceeds the <span class="quote">“<span class="quote">vacuum threshold</span>”</span>, the
     table is vacuumed.  The vacuum threshold is defined as:
 </p><pre class="programlisting">
-vacuum threshold = vacuum base threshold + vacuum scale factor * number of tuples
+vacuum threshold = Minimum(vacuum max threshold, vacuum base threshold + vacuum scale factor * number of tuples)
 </pre><p>
-    where the vacuum base threshold is
-    <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-VACUUM-THRESHOLD">autovacuum_vacuum_threshold</a>,
+    where the vacuum max threshold is
+    <a class="xref" href="runtime-config-vacuum.html#GUC-AUTOVACUUM-VACUUM-MAX-THRESHOLD">autovacuum_vacuum_max_threshold</a>,
+    the vacuum base threshold is
+    <a class="xref" href="runtime-config-vacuum.html#GUC-AUTOVACUUM-VACUUM-THRESHOLD">autovacuum_vacuum_threshold</a>,
     the vacuum scale factor is
-    <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-VACUUM-SCALE-FACTOR">autovacuum_vacuum_scale_factor</a>,
+    <a class="xref" href="runtime-config-vacuum.html#GUC-AUTOVACUUM-VACUUM-SCALE-FACTOR">autovacuum_vacuum_scale_factor</a>,
     and the number of tuples is
     <code class="structname">pg_class</code>.<code class="structfield">reltuples</code>.
    </p><p>
@@ -625,9 +640,9 @@ vacuum threshold = vacuum base threshold + vacuum scale factor * number of tuple
 vacuum insert threshold = vacuum base insert threshold + vacuum insert scale factor * number of tuples
 </pre><p>
     where the vacuum insert base threshold is
-    <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-VACUUM-INSERT-THRESHOLD">autovacuum_vacuum_insert_threshold</a>,
+    <a class="xref" href="runtime-config-vacuum.html#GUC-AUTOVACUUM-VACUUM-INSERT-THRESHOLD">autovacuum_vacuum_insert_threshold</a>,
     and vacuum insert scale factor is
-    <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-VACUUM-INSERT-SCALE-FACTOR">autovacuum_vacuum_insert_scale_factor</a>.
+    <a class="xref" href="runtime-config-vacuum.html#GUC-AUTOVACUUM-VACUUM-INSERT-SCALE-FACTOR">autovacuum_vacuum_insert_scale_factor</a>.
     Such vacuums may allow portions of the table to be marked as
     <em class="firstterm">all visible</em> and also allow tuples to be frozen, which
     can reduce the work required in subsequent vacuums.
@@ -642,8 +657,7 @@ vacuum insert threshold = vacuum base insert threshold + vacuum insert scale fac
     If the <code class="structfield">relfrozenxid</code> value of the table
     is more than <code class="varname">vacuum_freeze_table_age</code> transactions old,
     an aggressive vacuum is performed to freeze old tuples and advance
-    <code class="structfield">relfrozenxid</code>; otherwise, only pages that have been modified
-    since the last vacuum are scanned.
+    <code class="structfield">relfrozenxid</code>.
    </p><p>
     For analyze, a similar condition is used: the threshold, defined as:
 </p><pre class="programlisting">
@@ -672,11 +686,11 @@ analyze threshold = analyze base threshold + analyze scale factor * number of tu
     <a class="xref" href="sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS" title="Storage Parameters">Storage Parameters</a> for more information.
     If a setting has been changed via a table's storage parameters, that value
     is used when processing that table; otherwise the global settings are
-    used. See <a class="xref" href="runtime-config-autovacuum.html" title="19.10. Automatic Vacuuming">Section 19.10</a> for more details on
+    used. See <a class="xref" href="runtime-config-vacuum.html#RUNTIME-CONFIG-AUTOVACUUM" title="19.10.1. Automatic Vacuuming">Section 19.10.1</a> for more details on
     the global settings.
    </p><p>
     When multiple workers are running, the autovacuum cost delay parameters
-    (see <a class="xref" href="runtime-config-resource.html#RUNTIME-CONFIG-RESOURCE-VACUUM-COST" title="19.4.4. Cost-based Vacuum Delay">Section 19.4.4</a>) are
+    (see <a class="xref" href="runtime-config-vacuum.html#RUNTIME-CONFIG-RESOURCE-VACUUM-COST" title="19.10.2. Cost-based Vacuum Delay">Section 19.10.2</a>) are
     <span class="quote">“<span class="quote">balanced</span>”</span> among all the running workers, so that the
     total I/O impact on the system is the same regardless of the number
     of workers actually running.  However, any workers processing tables whose
@@ -697,4 +711,4 @@ analyze threshold = analyze base threshold + analyze scale factor * number of tu
      Regularly running commands that acquire locks conflicting with a
      <code class="literal">SHARE UPDATE EXCLUSIVE</code> lock (e.g., ANALYZE) can
      effectively prevent autovacuums from ever completing.
-    </p></div></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="maintenance.html" title="Chapter 24. Routine Database Maintenance Tasks">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="maintenance.html" title="Chapter 24. Routine Database Maintenance Tasks">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="routine-reindex.html" title="24.2. Routine Reindexing">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter 24. Routine Database Maintenance Tasks </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 24.2. Routine Reindexing</td></tr></table></div></body></html>
+    </p></div></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="maintenance.html" title="Chapter 24. Routine Database Maintenance Tasks">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="maintenance.html" title="Chapter 24. Routine Database Maintenance Tasks">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="routine-reindex.html" title="24.2. Routine Reindexing">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter 24. Routine Database Maintenance Tasks </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 24.2. Routine Reindexing</td></tr></table></div></body></html>

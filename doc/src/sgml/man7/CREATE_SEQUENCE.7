@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "CREATE SEQUENCE" "7" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "CREATE SEQUENCE" "7" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -36,7 +36,9 @@ CREATE [ { TEMPORARY | TEMP } | UNLOGGED ] SEQUENCE [ IF NOT EXISTS ] \fIname\fR
     [ AS \fIdata_type\fR ]
     [ INCREMENT [ BY ] \fIincrement\fR ]
     [ MINVALUE \fIminvalue\fR | NO MINVALUE ] [ MAXVALUE \fImaxvalue\fR | NO MAXVALUE ]
-    [ START [ WITH ] \fIstart\fR ] [ CACHE \fIcache\fR ] [ [ NO ] CYCLE ]
+    [ [ NO ] CYCLE ]
+    [ START [ WITH ] \fIstart\fR ]
+    [ CACHE \fIcache\fR ]
     [ OWNED BY { \fItable_name\fR\&.\fIcolumn_name\fR | NONE } ]
 .fi
 .SH "DESCRIPTION"
@@ -136,24 +138,6 @@ determines the maximum value for the sequence\&. If this clause is not supplied 
 is specified, then default values will be used\&. The default for an ascending sequence is the maximum value of the data type\&. The default for a descending sequence is \-1\&.
 .RE
 .PP
-\fIstart\fR
-.RS 4
-The optional clause
-START WITH \fIstart\fR
-allows the sequence to begin anywhere\&. The default starting value is
-\fIminvalue\fR
-for ascending sequences and
-\fImaxvalue\fR
-for descending ones\&.
-.RE
-.PP
-\fIcache\fR
-.RS 4
-The optional clause
-CACHE \fIcache\fR
-specifies how many sequence numbers are to be preallocated and stored in memory for faster access\&. The minimum value is 1 (only one value can be generated at a time, i\&.e\&., no cache), and this is also the default\&.
-.RE
-.PP
 CYCLE
 .br
 NO CYCLE
@@ -180,6 +164,24 @@ NO CYCLE
 are specified,
 NO CYCLE
 is the default\&.
+.RE
+.PP
+\fIstart\fR
+.RS 4
+The optional clause
+START WITH \fIstart\fR
+allows the sequence to begin anywhere\&. The default starting value is
+\fIminvalue\fR
+for ascending sequences and
+\fImaxvalue\fR
+for descending ones\&.
+.RE
+.PP
+\fIcache\fR
+.RS 4
+The optional clause
+CACHE \fIcache\fR
+specifies how many sequence numbers are to be preallocated and stored in memory for faster access\&. The minimum value is 1 (only one value can be generated at a time, i\&.e\&., no cache), and this is also the default\&.
 .RE
 .PP
 OWNED BY \fItable_name\fR\&.\fIcolumn_name\fR

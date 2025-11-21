@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "CREATE SUBSCRIPTION" "7" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "CREATE SUBSCRIPTION" "7" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -150,7 +150,8 @@ When setting
 slot_name
 to a valid name and
 create_slot
-to false, the
+to
+false, the
 failover
 property value of the named slot may differ from the counterpart
 failover
@@ -212,13 +213,27 @@ parameter\&.
 streaming (enum)
 .RS 4
 Specifies whether to enable streaming of in\-progress transactions for this subscription\&. The default value is
-off, meaning all transactions are fully decoded on the publisher and only then sent to the subscriber as a whole\&.
+parallel, meaning incoming changes are directly applied via one of the parallel apply workers, if available\&. If no parallel apply worker is free to handle streaming transactions then the changes are written to temporary files and applied after the transaction is committed\&. Note that if an error happens in a parallel apply worker, the finish LSN of the remote transaction might not be reported in the server log\&.
+.if n \{\
 .sp
+.\}
+.RS 4
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBCaution\fR
+.ps -1
+.br
+There is a risk of deadlock when the schemas of the publisher and subscriber differ, although such cases are rare\&. The apply worker is equipped to retry these transactions automatically\&.
+.sp .5v
+.RE
 If set to
 on, the incoming changes are written to temporary files and then applied only after the transaction is committed on the publisher and received by the subscriber\&.
 .sp
 If set to
-parallel, incoming changes are directly applied via one of the parallel apply workers, if available\&. If no parallel apply worker is free to handle streaming transactions then the changes are written to temporary files and applied after the transaction is committed\&. Note that if an error happens in a parallel apply worker, the finish LSN of the remote transaction might not be reported in the server log\&.
+off, all transactions are fully decoded on the publisher and only then sent to the subscriber as a whole\&.
 .RE
 .PP
 synchronous_commit (enum)
@@ -281,7 +296,7 @@ false\&.
 run_as_owner (boolean)
 .RS 4
 If true, all replication actions are performed as the subscription owner\&. If false, replication workers will perform actions on each table as the owner of that table\&. The latter configuration is generally much more secure; for details, see
-Section\ \&29.10\&. The default is
+Section\ \&29.11\&. The default is
 false\&.
 .RE
 .PP
@@ -323,7 +338,7 @@ TRUE\&.
 .SH "NOTES"
 .PP
 See
-Section\ \&29.10
+Section\ \&29.11
 for details on how to configure access control between the subscription and the publication instance\&.
 .PP
 When creating a replication slot (the default behavior),
@@ -344,7 +359,11 @@ If any table in the publication has a
 WHERE
 clause, rows for which the
 \fIexpression\fR
-evaluates to false or null will not be published\&. If the subscription has several publications in which the same table has been published with different
+evaluates to
+false
+or
+NULL
+will not be published\&. If the subscription has several publications in which the same table has been published with different
 WHERE
 clauses, a row will be published if any of the expressions (referring to that publish operation) are satisfied\&. In the case of different
 WHERE

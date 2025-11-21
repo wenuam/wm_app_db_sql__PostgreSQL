@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>COPY</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="sql-commit-prepared.html" title="COMMIT PREPARED" /><link rel="next" href="sql-create-access-method.html" title="CREATE ACCESS METHOD" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">COPY</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="sql-commit-prepared.html" title="COMMIT PREPARED">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><th width="60%" align="center">SQL Commands</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="sql-create-access-method.html" title="CREATE ACCESS METHOD">Next</a></td></tr></table><hr /></div><div class="refentry" id="SQL-COPY"><div class="titlepage"></div><a id="id-1.9.3.55.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle">COPY</span></h2><p>COPY — copy data between a file and a table</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><pre class="synopsis">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>COPY</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="sql-commit-prepared.html" title="COMMIT PREPARED" /><link rel="next" href="sql-create-access-method.html" title="CREATE ACCESS METHOD" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">COPY</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="sql-commit-prepared.html" title="COMMIT PREPARED">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><th width="60%" align="center">SQL Commands</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="sql-create-access-method.html" title="CREATE ACCESS METHOD">Next</a></td></tr></table><hr /></div><div class="refentry" id="SQL-COPY"><div class="titlepage"></div><a id="id-1.9.3.55.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle">COPY</span></h2><p>COPY — copy data between a file and a table</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><pre class="synopsis">
 COPY <em class="replaceable"><code>table_name</code></em> [ ( <em class="replaceable"><code>column_name</code></em> [, ...] ) ]
     FROM { '<em class="replaceable"><code>filename</code></em>' | PROGRAM '<em class="replaceable"><code>command</code></em>' | STDIN }
     [ [ WITH ] ( <em class="replaceable"><code>option</code></em> [, ...] ) ]
@@ -23,6 +23,7 @@ COPY { <em class="replaceable"><code>table_name</code></em> [ ( <em class="repla
     FORCE_NOT_NULL { ( <em class="replaceable"><code>column_name</code></em> [, ...] ) | * }
     FORCE_NULL { ( <em class="replaceable"><code>column_name</code></em> [, ...] ) | * }
     ON_ERROR <em class="replaceable"><code>error_action</code></em>
+    REJECT_LIMIT <em class="replaceable"><code>maxerror</code></em>
     ENCODING '<em class="replaceable"><code>encoding_name</code></em>'
     LOG_VERBOSITY <em class="replaceable"><code>verbosity</code></em>
 </pre></div><div class="refsect1" id="id-1.9.3.55.5"><h2>Description</h2><p>
@@ -117,6 +118,7 @@ COPY { <em class="replaceable"><code>table_name</code></em> [ ( <em class="repla
       <code class="literal">csv</code> (Comma Separated Values),
       or <code class="literal">binary</code>.
       The default is <code class="literal">text</code>.
+      See <a class="xref" href="sql-copy.html#SQL-COPY-FILE-FORMATS" title="File Formats">File Formats</a> below for details.
      </p></dd><dt><span class="term"><code class="literal">FREEZE</code></span></dt><dd><p>
       Requests copying the data with rows already frozen, just as they
       would be after running the <code class="command">VACUUM FREEZE</code> command.
@@ -125,7 +127,7 @@ COPY { <em class="replaceable"><code>table_name</code></em> [ ( <em class="repla
       or truncated in the current subtransaction, there are no cursors
       open and there are no older snapshots held by this transaction.  It is
       currently not possible to perform a <code class="command">COPY FREEZE</code> on
-      a partitioned table.
+      a partitioned table or foreign table.
       This option is only allowed in <code class="command">COPY FROM</code>.
      </p><p>
       Note that all other sessions will immediately be able to see the data
@@ -219,15 +221,30 @@ COPY { <em class="replaceable"><code>table_name</code></em> [ ( <em class="repla
       <code class="literal">verbose</code>, a <code class="literal">NOTICE</code> message
       containing the line of the input file and the column name whose input
       conversion has failed is emitted for each discarded row.
+      When it is set to <code class="literal">silent</code>, no message is emitted
+      regarding ignored rows.
+     </p></dd><dt><span class="term"><code class="literal">REJECT_LIMIT</code></span></dt><dd><p>
+      Specifies the maximum number of errors tolerated while converting a
+      column's input value to its data type, when <code class="literal">ON_ERROR</code> is
+      set to <code class="literal">ignore</code>.
+      If the input causes more errors than the specified value, the <code class="command">COPY</code>
+      command fails, even with <code class="literal">ON_ERROR</code> set to <code class="literal">ignore</code>.
+      This clause must be used with <code class="literal">ON_ERROR</code>=<code class="literal">ignore</code>
+      and <em class="replaceable"><code>maxerror</code></em> must be positive <code class="type">bigint</code>.
+      If not specified, <code class="literal">ON_ERROR</code>=<code class="literal">ignore</code>
+      allows an unlimited number of errors, meaning <code class="command">COPY</code> will
+      skip all erroneous data.
      </p></dd><dt><span class="term"><code class="literal">ENCODING</code></span></dt><dd><p>
       Specifies that the file is encoded in the <em class="replaceable"><code>encoding_name</code></em>.  If this option is
       omitted, the current client encoding is used. See the Notes below
       for more details.
      </p></dd><dt><span class="term"><code class="literal">LOG_VERBOSITY</code></span></dt><dd><p>
-      Specify the amount of messages emitted by a <code class="command">COPY</code>
-      command: <code class="literal">default</code> or <code class="literal">verbose</code>. If
-      <code class="literal">verbose</code> is specified, additional messages are emitted
-      during processing.
+      Specifies the amount of messages emitted by a <code class="command">COPY</code>
+      command: <code class="literal">default</code>, <code class="literal">verbose</code>, or
+      <code class="literal">silent</code>.
+      If <code class="literal">verbose</code> is specified, additional messages are
+      emitted during processing.
+      <code class="literal">silent</code> suppresses both verbose and default messages.
      </p><p>
       This is currently used in <code class="command">COPY FROM</code> command when
       <code class="literal">ON_ERROR</code> option is set to <code class="literal">ignore</code>.
@@ -262,13 +279,16 @@ COPY <em class="replaceable"><code>count</code></em>
     <code class="literal">\copy ... to stdout</code>.  This is to prevent confusing the
     command tag with the data that was just printed.
    </p></div></div><div class="refsect1" id="id-1.9.3.55.8"><h2>Notes</h2><p>
-    <code class="command">COPY TO</code> can be used only with plain
-    tables, not views, and does not copy rows from child tables
-    or child partitions.  For example, <code class="literal">COPY <em class="replaceable"><code>table</code></em> TO</code> copies
-    the same rows as <code class="literal">SELECT * FROM ONLY <em class="replaceable"><code>table</code></em></code>.
-    The syntax <code class="literal">COPY (SELECT * FROM <em class="replaceable"><code>table</code></em>) TO ...</code> can be used to
-    dump all of the rows in an inheritance hierarchy, partitioned table,
-    or view.
+    <code class="command">COPY TO</code> can be used with plain
+    tables and populated materialized views.
+    For example,
+    <code class="literal">COPY <em class="replaceable"><code>table</code></em>
+    TO</code> copies the same rows as
+    <code class="literal">SELECT * FROM ONLY <em class="replaceable"><code>table</code></em></code>.
+    However it doesn't directly support other relation types,
+    such as partitioned tables, inheritance child tables, or views.
+    To copy all rows from such relations, use <code class="literal">COPY (SELECT * FROM
+    <em class="replaceable"><code>table</code></em>) TO</code>.
    </p><p>
     <code class="command">COPY FROM</code> can be used with plain, foreign, or
     partitioned tables or with views that have
@@ -360,7 +380,7 @@ COPY <em class="replaceable"><code>count</code></em>
     <code class="literal">FORCE_NULL</code> and <code class="literal">FORCE_NOT_NULL</code> can be used
     simultaneously on the same column. This results in converting quoted
     null strings to null values and unquoted null strings to empty strings.
-   </p></div><div class="refsect1" id="id-1.9.3.55.9"><h2>File Formats</h2><div class="refsect2" id="id-1.9.3.55.9.2"><h3>Text Format</h3><p>
+   </p></div><div class="refsect1" id="SQL-COPY-FILE-FORMATS"><h2>File Formats</h2><div class="refsect2" id="SQL-COPY-TEXT-FORMAT"><h3>Text Format</h3><p>
     When the <code class="literal">text</code> format is used,
     the data read or written is a text file with one line per table row.
     Columns in a row are separated by the delimiter character.
@@ -371,11 +391,16 @@ COPY <em class="replaceable"><code>count</code></em>
     <code class="command">COPY FROM</code> will raise an error if any line of the
     input file contains more or fewer columns than are expected.
    </p><p>
-    End of data can be represented by a single line containing just
+    End of data can be represented by a line containing just
     backslash-period (<code class="literal">\.</code>).  An end-of-data marker is
     not necessary when reading from a file, since the end of file
-    serves perfectly well; it is needed only when copying data to or from
-    client applications using pre-3.0 client protocol.
+    serves perfectly well; in that context this provision exists only for
+    backward compatibility.  However, <span class="application">psql</span>
+    uses <code class="literal">\.</code> to terminate a <code class="literal">COPY FROM
+    STDIN</code> operation (that is, reading
+    in-line <code class="command">COPY</code> data in an SQL script).  In that
+    context the rule is needed to be able to end the operation before the
+    end of the script.
    </p><p>
     Backslash characters (<code class="literal">\</code>) can be used in the
     <code class="command">COPY</code> data to quote data characters that might
@@ -434,8 +459,8 @@ COPY <em class="replaceable"><code>count</code></em>
     error due to un-backslashed newlines or carriage returns that were
     meant as data, <code class="command">COPY FROM</code> will complain if the line
     endings in the input are not all alike.
-   </p></div><div class="refsect2" id="id-1.9.3.55.9.3"><h3>CSV Format</h3><p>
-    This format option is used for importing and exporting the Comma
+   </p></div><div class="refsect2" id="SQL-COPY-CSV-FORMAT"><h3>CSV Format</h3><p>
+    This format option is used for importing and exporting the Comma-
     Separated Value (<code class="literal">CSV</code>) file format used by many other
     programs, such as spreadsheets. Instead of the escaping rules used by
     <span class="productname">PostgreSQL</span>'s standard text format, it
@@ -466,15 +491,20 @@ COPY <em class="replaceable"><code>count</code></em>
     <code class="literal">NULL</code>.
    </p><p>
     Because backslash is not a special character in the <code class="literal">CSV</code>
-    format, <code class="literal">\.</code>, the end-of-data marker, could also appear
-    as a data value.  To avoid any misinterpretation, a <code class="literal">\.</code>
-    data value appearing as a lone entry on a line is automatically
-    quoted on output, and on input, if quoted, is not interpreted as the
-    end-of-data marker.  If you are loading a file created by another
-    application that has a single unquoted column and might have a
-    value of <code class="literal">\.</code>, you might need to quote that value in the
-    input file.
+    format, the end-of-data marker used in text mode (<code class="literal">\.</code>)
+    is not normally treated as special when reading <code class="literal">CSV</code>
+    data.  An exception is that <span class="application">psql</span> will terminate
+    a <code class="literal">COPY FROM STDIN</code> operation (that is, reading
+    in-line <code class="command">COPY</code> data in an SQL script) at a line containing
+    only <code class="literal">\.</code>, whether it is text or <code class="literal">CSV</code>
+    mode.
    </p><div class="note"><h3 class="title">Note</h3><p>
+     <span class="productname">PostgreSQL</span> versions before v18 always
+     recognized unquoted <code class="literal">\.</code> as an end-of-data marker,
+     even when reading from a separate file.  For compatibility with older
+     versions, <code class="command">COPY TO</code> will quote <code class="literal">\.</code>
+     when it's alone on a line, even though this is no longer necessary.
+    </p></div><div class="note"><h3 class="title">Note</h3><p>
      In <code class="literal">CSV</code> format, all characters are significant. A quoted value
      surrounded by white space, or any characters other than
      <code class="literal">DELIMITER</code>, will include those characters. This can cause
@@ -494,7 +524,7 @@ COPY <em class="replaceable"><code>count</code></em>
      might encounter some files that cannot be imported using this
      mechanism, and <code class="command">COPY</code> might produce files that other
      programs cannot process.
-    </p></div></div><div class="refsect2" id="id-1.9.3.55.9.4"><h3>Binary Format</h3><p>
+    </p></div></div><div class="refsect2" id="SQL-COPY-BINARY-FORMAT"><h3>Binary Format</h3><p>
     The <code class="literal">binary</code> format option causes all data to be
     stored/read as binary format rather than as text.  It is
     somewhat faster than the text and <code class="literal">CSV</code> formats,
@@ -682,4 +712,4 @@ COPY [ BINARY ] <em class="replaceable"><code>table_name</code></em>
     TO { '<em class="replaceable"><code>filename</code></em>' | STDOUT }
     [ [USING] DELIMITERS '<em class="replaceable"><code>delimiter_character</code></em>' ]
     [ WITH NULL AS '<em class="replaceable"><code>null_string</code></em>' ]
-</pre></div><div class="refsect1" id="id-1.9.3.55.12"><h2>See Also</h2><span class="simplelist"><a class="xref" href="progress-reporting.html#COPY-PROGRESS-REPORTING" title="27.4.3. COPY Progress Reporting">Section 27.4.3</a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="sql-commit-prepared.html" title="COMMIT PREPARED">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="sql-create-access-method.html" title="CREATE ACCESS METHOD">Next</a></td></tr><tr><td width="40%" align="left" valign="top">COMMIT PREPARED </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> CREATE ACCESS METHOD</td></tr></table></div></body></html>
+</pre></div><div class="refsect1" id="id-1.9.3.55.12"><h2>See Also</h2><span class="simplelist"><a class="xref" href="progress-reporting.html#COPY-PROGRESS-REPORTING" title="27.4.3. COPY Progress Reporting">Section 27.4.3</a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="sql-commit-prepared.html" title="COMMIT PREPARED">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="sql-create-access-method.html" title="CREATE ACCESS METHOD">Next</a></td></tr><tr><td width="40%" align="left" valign="top">COMMIT PREPARED </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> CREATE ACCESS METHOD</td></tr></table></div></body></html>

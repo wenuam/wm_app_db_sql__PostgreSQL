@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>32.19. SSL Support</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="libpq-ldap.html" title="32.18. LDAP Lookup of Connection Parameters" /><link rel="next" href="libpq-threading.html" title="32.20. Behavior in Threaded Programs" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">32.19. SSL Support</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="libpq-ldap.html" title="32.18. LDAP Lookup of Connection Parameters">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="libpq.html" title="Chapter 32. libpq — C Library">Up</a></td><th width="60%" align="center">Chapter 32. <span class="application">libpq</span> — C Library</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="libpq-threading.html" title="32.20. Behavior in Threaded Programs">Next</a></td></tr></table><hr /></div><div class="sect1" id="LIBPQ-SSL"><div class="titlepage"><div><div><h2 class="title" style="clear: both">32.19. SSL Support <a href="#LIBPQ-SSL" class="id_link">#</a></h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="libpq-ssl.html#LIBQ-SSL-CERTIFICATES">32.19.1. Client Verification of Server Certificates</a></span></dt><dt><span class="sect2"><a href="libpq-ssl.html#LIBPQ-SSL-CLIENTCERT">32.19.2. Client Certificates</a></span></dt><dt><span class="sect2"><a href="libpq-ssl.html#LIBPQ-SSL-PROTECTION">32.19.3. Protection Provided in Different Modes</a></span></dt><dt><span class="sect2"><a href="libpq-ssl.html#LIBPQ-SSL-FILEUSAGE">32.19.4. SSL Client File Usage</a></span></dt><dt><span class="sect2"><a href="libpq-ssl.html#LIBPQ-SSL-INITIALIZE">32.19.5. SSL Library Initialization</a></span></dt></dl></div><a id="id-1.7.3.26.2" class="indexterm"></a><p>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>32.19. SSL Support</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="libpq-ldap.html" title="32.18. LDAP Lookup of Connection Parameters" /><link rel="next" href="libpq-oauth.html" title="32.20. OAuth Support" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">32.19. SSL Support</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="libpq-ldap.html" title="32.18. LDAP Lookup of Connection Parameters">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="libpq.html" title="Chapter 32. libpq — C Library">Up</a></td><th width="60%" align="center">Chapter 32. <span class="application">libpq</span> — C Library</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="libpq-oauth.html" title="32.20. OAuth Support">Next</a></td></tr></table><hr /></div><div class="sect1" id="LIBPQ-SSL"><div class="titlepage"><div><div><h2 class="title" style="clear: both">32.19. SSL Support <a href="#LIBPQ-SSL" class="id_link">#</a></h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="libpq-ssl.html#LIBQ-SSL-CERTIFICATES">32.19.1. Client Verification of Server Certificates</a></span></dt><dt><span class="sect2"><a href="libpq-ssl.html#LIBPQ-SSL-CLIENTCERT">32.19.2. Client Certificates</a></span></dt><dt><span class="sect2"><a href="libpq-ssl.html#LIBPQ-SSL-PROTECTION">32.19.3. Protection Provided in Different Modes</a></span></dt><dt><span class="sect2"><a href="libpq-ssl.html#LIBPQ-SSL-FILEUSAGE">32.19.4. SSL Client File Usage</a></span></dt><dt><span class="sect2"><a href="libpq-ssl.html#LIBPQ-SSL-INITIALIZE">32.19.5. SSL Library Initialization</a></span></dt></dl></div><a id="id-1.7.3.26.2" class="indexterm"></a><p>
    <span class="productname">PostgreSQL</span> has native support for using <acronym class="acronym">SSL</acronym>
    connections to encrypt client/server communications using
    <acronym class="acronym">TLS</acronym> protocols for increased security.
@@ -89,7 +89,7 @@
   </p><div class="note"><h3 class="title">Note</h3><p>
     For backwards compatibility with earlier versions of PostgreSQL, if a
     root CA file exists, the behavior of
-    <code class="literal">sslmode</code>=<code class="literal">require</code> will be the same
+    <code class="literal">sslmode=require</code> will be the same
     as that of <code class="literal">verify-ca</code>, meaning the server certificate
     is validated against the CA. Relying on this behavior is discouraged,
     and applications that need certificate validation should always use
@@ -224,9 +224,11 @@
   </p><div class="table" id="LIBPQ-SSL-FILE-USAGE"><p class="title"><strong>Table 32.2. Libpq/Client SSL File Usage</strong></p><div class="table-contents"><table class="table" summary="Libpq/Client SSL File Usage" border="1"><colgroup><col /><col /><col /></colgroup><thead><tr><th>File</th><th>Contents</th><th>Effect</th></tr></thead><tbody><tr><td><code class="filename">~/.postgresql/postgresql.crt</code></td><td>client certificate</td><td>sent to server</td></tr><tr><td><code class="filename">~/.postgresql/postgresql.key</code></td><td>client private key</td><td>proves client certificate sent by owner; does not indicate
       certificate owner is trustworthy</td></tr><tr><td><code class="filename">~/.postgresql/root.crt</code></td><td>trusted certificate authorities</td><td>checks that server certificate is signed by a trusted certificate
       authority</td></tr><tr><td><code class="filename">~/.postgresql/root.crl</code></td><td>certificates revoked by certificate authorities</td><td>server certificate must not be on this list</td></tr></tbody></table></div></div><br class="table-break" /></div><div class="sect2" id="LIBPQ-SSL-INITIALIZE"><div class="titlepage"><div><div><h3 class="title">32.19.5. SSL Library Initialization <a href="#LIBPQ-SSL-INITIALIZE" class="id_link">#</a></h3></div></div></div><p>
-   If your application initializes <code class="literal">libssl</code> and/or
-   <code class="literal">libcrypto</code> libraries and <span class="application">libpq</span>
-   is built with <acronym class="acronym">SSL</acronym> support, you should call
+   Applications which need to be compatible with older versions of
+   <span class="productname">PostgreSQL</span>, using <span class="productname">OpenSSL</span>
+   version 1.0.2 or older, need to initialize the SSL library before using it.
+   Applications which initialize <code class="literal">libssl</code> and/or
+   <code class="literal">libcrypto</code> libraries should call
    <a class="xref" href="libpq-ssl.html#LIBPQ-PQINITOPENSSL"><code class="function">PQinitOpenSSL</code></a> to tell <span class="application">libpq</span>
    that the <code class="literal">libssl</code> and/or <code class="literal">libcrypto</code> libraries
    have been initialized by your application, so that
@@ -234,26 +236,18 @@
    However, this is unnecessary when using <span class="productname">OpenSSL</span>
    version 1.1.0 or later, as duplicate initializations are no longer problematic.
   </p><p>
-   </p><div class="variablelist"><dl class="variablelist"><dt id="LIBPQ-PQINITOPENSSL"><span class="term"><code class="function">PQinitOpenSSL</code><a id="id-1.7.3.26.9.3.1.1.1.2" class="indexterm"></a></span> <a href="#LIBPQ-PQINITOPENSSL" class="id_link">#</a></dt><dd><p>
+   Refer to the documentation for the version of <span class="productname">PostgreSQL</span>
+   that you are targeting for details on their use.
+  </p><p>
+   </p><div class="variablelist"><dl class="variablelist"><dt id="LIBPQ-PQINITOPENSSL"><span class="term"><code class="function">PQinitOpenSSL</code><a id="id-1.7.3.26.9.4.1.1.1.2" class="indexterm"></a></span> <a href="#LIBPQ-PQINITOPENSSL" class="id_link">#</a></dt><dd><p>
        Allows applications to select which security libraries to initialize.
 </p><pre class="synopsis">
 void PQinitOpenSSL(int do_ssl, int do_crypto);
 </pre><p>
       </p><p>
-       When <em class="parameter"><code>do_ssl</code></em> is non-zero, <span class="application">libpq</span>
-       will initialize the <span class="productname">OpenSSL</span> library before first
-       opening a database connection.  When <em class="parameter"><code>do_crypto</code></em> is
-       non-zero, the <code class="literal">libcrypto</code> library will be initialized.  By
-       default (if <a class="xref" href="libpq-ssl.html#LIBPQ-PQINITOPENSSL"><code class="function">PQinitOpenSSL</code></a> is not called), both libraries
-       are initialized.  When SSL support is not compiled in, this function is
-       present but does nothing.
-      </p><p>
-       If your application uses and initializes either <span class="productname">OpenSSL</span>
-       or its underlying <code class="literal">libcrypto</code> library, you <span class="emphasis"><em>must</em></span>
-       call this function with zeroes for the appropriate parameter(s)
-       before first opening a database connection.  Also be sure that you
-       have done that initialization before opening a database connection.
-      </p></dd><dt id="LIBPQ-PQINITSSL"><span class="term"><code class="function">PQinitSSL</code><a id="id-1.7.3.26.9.3.1.2.1.2" class="indexterm"></a></span> <a href="#LIBPQ-PQINITSSL" class="id_link">#</a></dt><dd><p>
+       This function is deprecated and only present for backwards compatibility,
+       it does nothing.
+      </p></dd><dt id="LIBPQ-PQINITSSL"><span class="term"><code class="function">PQinitSSL</code><a id="id-1.7.3.26.9.4.1.2.1.2" class="indexterm"></a></span> <a href="#LIBPQ-PQINITSSL" class="id_link">#</a></dt><dd><p>
        Allows applications to select which security libraries to initialize.
 </p><pre class="synopsis">
 void PQinitSSL(int do_ssl);
@@ -261,13 +255,16 @@ void PQinitSSL(int do_ssl);
       </p><p>
        This function is equivalent to
        <code class="literal">PQinitOpenSSL(do_ssl, do_ssl)</code>.
-       It is sufficient for applications that initialize both or neither
-       of <span class="productname">OpenSSL</span> and <code class="literal">libcrypto</code>.
+       This function is deprecated and only present for backwards compatibility,
+       it does nothing.
       </p><p>
+       <a class="xref" href="libpq-ssl.html#LIBPQ-PQINITSSL"><code class="function">PQinitSSL</code></a> and <a class="xref" href="libpq-ssl.html#LIBPQ-PQINITOPENSSL"><code class="function">PQinitOpenSSL</code></a>
+       are maintained for backwards compatibility, but are no longer required
+       since <span class="productname">PostgreSQL</span> 18.
        <a class="xref" href="libpq-ssl.html#LIBPQ-PQINITSSL"><code class="function">PQinitSSL</code></a> has been present since
        <span class="productname">PostgreSQL</span> 8.0, while <a class="xref" href="libpq-ssl.html#LIBPQ-PQINITOPENSSL"><code class="function">PQinitOpenSSL</code></a>
        was added in <span class="productname">PostgreSQL</span> 8.4, so <a class="xref" href="libpq-ssl.html#LIBPQ-PQINITSSL"><code class="function">PQinitSSL</code></a>
        might be preferable for applications that need to work with older
        versions of <span class="application">libpq</span>.
       </p></dd></dl></div><p>
-  </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="libpq-ldap.html" title="32.18. LDAP Lookup of Connection Parameters">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="libpq.html" title="Chapter 32. libpq — C Library">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="libpq-threading.html" title="32.20. Behavior in Threaded Programs">Next</a></td></tr><tr><td width="40%" align="left" valign="top">32.18. LDAP Lookup of Connection Parameters </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 32.20. Behavior in Threaded Programs</td></tr></table></div></body></html>
+  </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="libpq-ldap.html" title="32.18. LDAP Lookup of Connection Parameters">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="libpq.html" title="Chapter 32. libpq — C Library">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="libpq-oauth.html" title="32.20. OAuth Support">Next</a></td></tr><tr><td width="40%" align="left" valign="top">32.18. LDAP Lookup of Connection Parameters </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 32.20. OAuth Support</td></tr></table></div></body></html>

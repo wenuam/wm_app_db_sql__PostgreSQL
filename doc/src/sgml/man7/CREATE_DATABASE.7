@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "CREATE DATABASE" "7" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "CREATE DATABASE" "7" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -109,7 +109,11 @@ Strategy to be used in creating the new database\&. If the
 WAL_LOG
 strategy is used, the database will be copied block by block and each block will be separately written to the write\-ahead log\&. This is the most efficient strategy in cases where the template database is small, and therefore it is the default\&. The older
 FILE_COPY
-strategy is also available\&. This strategy writes a small record to the write\-ahead log for each tablespace used by the target database\&. Each such record represents copying an entire directory to a new location at the filesystem level\&. While this does reduce the write\-ahead log volume substantially, especially if the template database is large, it also forces the system to perform a checkpoint both before and after the creation of the new database\&. In some situations, this may have a noticeable negative impact on overall system performance\&.
+strategy is also available\&. This strategy writes a small record to the write\-ahead log for each tablespace used by the target database\&. Each such record represents copying an entire directory to a new location at the filesystem level\&. While this does reduce the write\-ahead log volume substantially, especially if the template database is large, it also forces the system to perform a checkpoint both before and after the creation of the new database\&. In some situations, this may have a noticeable negative impact on overall system performance\&. The
+FILE_COPY
+strategy is affected by the
+file_copy_method
+setting\&.
 .RE
 .PP
 \fIlocale\fR
@@ -139,9 +143,9 @@ builtin, then
 or
 \fIbuiltin_locale\fR
 must be specified and set to either
-C
-or
-C\&.UTF\-8\&.
+C,
+C\&.UTF\-8, or
+PG_UNICODE_FAST\&.
 .if n \{\
 .sp
 .\}
@@ -208,9 +212,10 @@ if specified; otherwise the same setting as the template database\&.
 The locales available for the
 builtin
 provider are
-C
+C,
+C\&.UTF\-8
 and
-C\&.UTF\-8\&.
+PG_UNICODE_FAST\&.
 .RE
 .PP
 \fIicu_locale\fR

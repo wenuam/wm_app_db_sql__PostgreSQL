@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>32.1. Database Connection Control Functions</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="libpq.html" title="Chapter 32. libpq — C Library" /><link rel="next" href="libpq-status.html" title="32.2. Connection Status Functions" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">32.1. Database Connection Control Functions</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="libpq.html" title="Chapter 32. libpq — C Library">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="libpq.html" title="Chapter 32. libpq — C Library">Up</a></td><th width="60%" align="center">Chapter 32. <span class="application">libpq</span> — C Library</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="libpq-status.html" title="32.2. Connection Status Functions">Next</a></td></tr></table><hr /></div><div class="sect1" id="LIBPQ-CONNECT"><div class="titlepage"><div><div><h2 class="title" style="clear: both">32.1. Database Connection Control Functions <a href="#LIBPQ-CONNECT" class="id_link">#</a></h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="libpq-connect.html#LIBPQ-CONNSTRING">32.1.1. Connection Strings</a></span></dt><dt><span class="sect2"><a href="libpq-connect.html#LIBPQ-PARAMKEYWORDS">32.1.2. Parameter Key Words</a></span></dt></dl></div><p>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>32.1. Database Connection Control Functions</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="libpq.html" title="Chapter 32. libpq — C Library" /><link rel="next" href="libpq-status.html" title="32.2. Connection Status Functions" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">32.1. Database Connection Control Functions</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="libpq.html" title="Chapter 32. libpq — C Library">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="libpq.html" title="Chapter 32. libpq — C Library">Up</a></td><th width="60%" align="center">Chapter 32. <span class="application">libpq</span> — C Library</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="libpq-status.html" title="32.2. Connection Status Functions">Next</a></td></tr></table><hr /></div><div class="sect1" id="LIBPQ-CONNECT"><div class="titlepage"><div><div><h2 class="title" style="clear: both">32.1. Database Connection Control Functions <a href="#LIBPQ-CONNECT" class="id_link">#</a></h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="libpq-connect.html#LIBPQ-CONNSTRING">32.1.1. Connection Strings</a></span></dt><dt><span class="sect2"><a href="libpq-connect.html#LIBPQ-PARAMKEYWORDS">32.1.2. Parameter Key Words</a></span></dt></dl></div><p>
    The following functions deal with making a connection to a
    <span class="productname">PostgreSQL</span> backend server.  An
    application program can have several backend connections open at
@@ -237,7 +237,7 @@ PostgresPollingStatusType PQconnectPoll(PGconn *conn);
       </p><p>
        At any time during connection, the status of the connection can be
        checked by calling <a class="xref" href="libpq-status.html#LIBPQ-PQSTATUS"><code class="function">PQstatus</code></a>. If this call returns <code class="symbol">CONNECTION_BAD</code>, then the
-       connection procedure has failed; if the call returns <code class="function">CONNECTION_OK</code>, then the
+       connection procedure has failed; if the call returns <code class="symbol">CONNECTION_OK</code>, then the
        connection is ready.  Both of these states are equally detectable
        from the return value of <code class="function">PQconnectPoll</code>, described above. Other states might also occur
        during (and only during) an asynchronous connection procedure. These
@@ -307,7 +307,7 @@ switch(PQstatus(conn))
        sequence described in the documentation of
        <a class="xref" href="libpq-connect.html#LIBPQ-PQCONNECTSTARTPARAMS"><code class="function">PQconnectStartParams</code></a>.
 </p><pre class="synopsis">
-typedef pg_int64 pg_usec_time_t;
+typedef int64_t pg_usec_time_t;
 
 int PQsocketPoll(int sock, int forRead, int forWrite,
                  pg_usec_time_t end_time);
@@ -326,9 +326,9 @@ int PQsocketPoll(int sock, int forRead, int forWrite,
        the Unix epoch (that is, <code class="type">time_t</code> times 1 million).
        Timeout is infinite if <em class="parameter"><code>end_time</code></em>
        is <code class="literal">-1</code>.  Timeout is immediate (no blocking) if
-       end_time is <code class="literal">0</code> (or indeed, any time before now).
-       Timeout values can be calculated conveniently by adding the desired
-       number of microseconds to the result of
+       <em class="parameter"><code>end_time</code></em> is <code class="literal">0</code> (or indeed, any
+       time before now).  Timeout values can be calculated conveniently by
+       adding the desired number of microseconds to the result of
        <a class="xref" href="libpq-misc.html#LIBPQ-PQGETCURRENTTIMEUSEC"><code class="function">PQgetCurrentTimeUSec</code></a>.
        Note that the underlying system calls may have less than microsecond
        precision, so that the actual delay may be imprecise.
@@ -830,7 +830,13 @@ postgresql://%2Fvar%2Flib%2Fpostgresql/dbname
             The server must request plaintext password authentication.
            </p></dd><dt><span class="term"><code class="literal">md5</code></span></dt><dd><p>
             The server must request MD5 hashed password authentication.
-           </p></dd><dt><span class="term"><code class="literal">gss</code></span></dt><dd><p>
+           </p><div class="warning"><h3 class="title">Warning</h3><p>
+             Support for MD5-encrypted passwords is deprecated and will be
+             removed in a future release of
+             <span class="productname">PostgreSQL</span>.  Refer to
+             <a class="xref" href="auth-password.html" title="20.5. Password Authentication">Section 20.5</a> for details about migrating to
+             another password type.
+            </p></div></dd><dt><span class="term"><code class="literal">gss</code></span></dt><dd><p>
             The server must either request a Kerberos handshake via
             <acronym class="acronym">GSSAPI</acronym> or establish a
             <acronym class="acronym">GSS</acronym>-encrypted channel (see also
@@ -841,6 +847,8 @@ postgresql://%2Fvar%2Flib%2Fpostgresql/dbname
            </p></dd><dt><span class="term"><code class="literal">scram-sha-256</code></span></dt><dd><p>
             The server must successfully complete a SCRAM-SHA-256 authentication
             exchange with the client.
+           </p></dd><dt><span class="term"><code class="literal">oauth</code></span></dt><dd><p>
+            The server must request an OAuth bearer token from the client.
            </p></dd><dt><span class="term"><code class="literal">none</code></span></dt><dd><p>
             The server must not prompt the client for an authentication
             exchange. (This does not prohibit client certificate authentication
@@ -940,7 +948,7 @@ postgresql://%2Fvar%2Flib%2Fpostgresql/dbname
        PostgreSQL replication connections as well as tools such as
        <span class="application">pg_basebackup</span> use internally, but it can
        also be used by third-party applications.  For a description of the
-       replication protocol, consult <a class="xref" href="protocol-replication.html" title="53.4. Streaming Replication Protocol">Section 53.4</a>.
+       replication protocol, consult <a class="xref" href="protocol-replication.html" title="54.4. Streaming Replication Protocol">Section 54.4</a>.
       </p><p>
        The following values, which are case-insensitive, are supported:
        </p><div class="variablelist"><dl class="variablelist"><dt><span class="term">
@@ -1064,11 +1072,12 @@ postgresql://%2Fvar%2Flib%2Fpostgresql/dbname
              perform <span class="productname">PostgreSQL</span> protocol
              negotiation. This is the default if the option is not provided.
            </p></dd><dt><span class="term"><code class="literal">direct</code></span></dt><dd><p>
-             start SSL handshake directly after establishing the TCP/IP
-             connection.  This is only allowed with sslmode=require or higher,
-             because the weaker settings could lead to unintended fallback to
-             plaintext authentication when the server does not support direct
-             SSL handshake.
+            start SSL handshake directly after establishing the TCP/IP
+            connection.  This is only allowed with
+            <code class="literal">sslmode=require</code> or higher, because the weaker
+            settings could lead to unintended fallback to plaintext
+            authentication when the server does not support direct SSL
+            handshake.
            </p></dd></dl></div></dd><dt id="LIBPQ-CONNECT-SSLCOMPRESSION"><span class="term"><code class="literal">sslcompression</code></span> <a href="#LIBPQ-CONNECT-SSLCOMPRESSION" class="id_link">#</a></dt><dd><p>
         If set to 1, data sent over SSL connections will be compressed.  If
         set to 0, compression will be disabled.  The default is 0.  This
@@ -1101,6 +1110,21 @@ postgresql://%2Fvar%2Flib%2Fpostgresql/dbname
         specification should consist of a colon-separated engine name and
         an engine-specific key identifier.  This parameter is ignored if an
         SSL connection is not made.
+       </p></dd><dt id="LIBPQ-CONNECT-SSLKEYLOGFILE"><span class="term"><code class="literal">sslkeylogfile</code></span> <a href="#LIBPQ-CONNECT-SSLKEYLOGFILE" class="id_link">#</a></dt><dd><p>
+        This parameter specifies the location where <span class="application">libpq</span>
+        will log keys used in this SSL context.  This is useful for debugging
+        <span class="productname">PostgreSQL</span> protocol interactions or client
+        connections using network inspection tools like
+        <span class="productname">Wireshark</span>.  This parameter is ignored if an
+        SSL connection is not made, or if <span class="productname">LibreSSL</span>
+        is used (<span class="productname">LibreSSL</span> does not support key
+        logging).  Keys are logged using the <span class="productname">NSS</span>
+        format.
+        </p><div class="warning"><h3 class="title">Warning</h3><p>
+          Key logging will expose potentially sensitive information in the
+          keylog file.  Keylog files should be handled with the same care as
+          <a class="xref" href="libpq-connect.html#LIBPQ-CONNECT-SSLKEY">sslkey</a> files.
+         </p></div><p>
        </p></dd><dt id="LIBPQ-CONNECT-SSLPASSWORD"><span class="term"><code class="literal">sslpassword</code></span> <a href="#LIBPQ-CONNECT-SSLPASSWORD" class="id_link">#</a></dt><dd><p>
         This parameter specifies the password for the secret key specified in
         <code class="literal">sslkey</code>, allowing client certificate private keys
@@ -1111,7 +1135,7 @@ postgresql://%2Fvar%2Flib%2Fpostgresql/dbname
         <code class="literal">Enter PEM pass phrase:</code>
         prompt that <span class="productname">OpenSSL</span> will emit by default
         when an encrypted client certificate key is provided to
-        <code class="literal">libpq</code>.
+        <span class="application">libpq</span>.
        </p><p>
         If the key is not encrypted this parameter is ignored. The parameter
         has no effect on keys specified by <span class="productname">OpenSSL</span>
@@ -1194,7 +1218,7 @@ postgresql://%2Fvar%2Flib%2Fpostgresql/dbname
        </p><p>
         Both <code class="literal">sslcrl</code> and <code class="literal">sslcrldir</code> can be
         specified together.
-       </p></dd><dt id="LIBPQ-CONNECT-SSLSNI"><span class="term"><code class="literal">sslsni</code><a id="id-1.7.3.8.4.2.1.33.1.2" class="indexterm"></a></span> <a href="#LIBPQ-CONNECT-SSLSNI" class="id_link">#</a></dt><dd><p>
+       </p></dd><dt id="LIBPQ-CONNECT-SSLSNI"><span class="term"><code class="literal">sslsni</code><a id="id-1.7.3.8.4.2.1.34.1.2" class="indexterm"></a></span> <a href="#LIBPQ-CONNECT-SSLSNI" class="id_link">#</a></dt><dd><p>
         If set to 1 (default), libpq sets the TLS extension <span class="quote">“<span class="quote">Server Name
         Indication</span>”</span> (<acronym class="acronym">SNI</acronym>) on SSL-enabled connections.
         By setting this parameter to 0, this is turned off.
@@ -1243,6 +1267,36 @@ postgresql://%2Fvar%2Flib%2Fpostgresql/dbname
         defined by the backend, if set. Setting the maximum protocol version
         is mainly useful for testing or if some component has issues working
         with a newer protocol.
+       </p></dd><dt id="LIBPQ-CONNECT-MIN-PROTOCOL-VERSION"><span class="term"><code class="literal">min_protocol_version</code></span> <a href="#LIBPQ-CONNECT-MIN-PROTOCOL-VERSION" class="id_link">#</a></dt><dd><p>
+        Specifies the minimum protocol version to allow for the connection.
+        The default is to allow any version of the
+        <span class="productname">PostgreSQL</span> protocol supported by libpq,
+        which currently means <code class="literal">3.0</code>. If the server
+        does not support at least this protocol version the connection will be
+        closed.
+       </p><p>
+        The current supported values are
+        <code class="literal">3.0</code>, <code class="literal">3.2</code>,
+        and <code class="literal">latest</code>. The <code class="literal">latest</code> value is
+        equivalent to the latest protocol version supported by the libpq
+        version being used, which is currently <code class="literal">3.2</code>.
+       </p></dd><dt id="LIBPQ-CONNECT-MAX-PROTOCOL-VERSION"><span class="term"><code class="literal">max_protocol_version</code></span> <a href="#LIBPQ-CONNECT-MAX-PROTOCOL-VERSION" class="id_link">#</a></dt><dd><p>
+        Specifies the protocol version to request from the server.
+        The default is to use version <code class="literal">3.0</code> of the
+        <span class="productname">PostgreSQL</span> protocol, unless the connection
+        string specifies a feature that relies on a higher protocol version,
+        in which case the latest version supported by libpq is used. If the
+        server does not support the protocol version requested by the client,
+        the connection is automatically downgraded to a lower minor protocol
+        version that the server supports. After the connection attempt has
+        completed you can use <a class="xref" href="libpq-status.html#LIBPQ-PQPROTOCOLVERSION"><code class="function">PQprotocolVersion</code></a> to
+        find out which exact protocol version was negotiated.
+       </p><p>
+        The current supported values are
+        <code class="literal">3.0</code>, <code class="literal">3.2</code>,
+        and <code class="literal">latest</code>. The <code class="literal">latest</code> value is
+        equivalent to the latest protocol version supported by the libpq
+        version being used, which is currently <code class="literal">3.2</code>.
        </p></dd><dt id="LIBPQ-CONNECT-KRBSRVNAME"><span class="term"><code class="literal">krbsrvname</code></span> <a href="#LIBPQ-CONNECT-KRBSRVNAME" class="id_link">#</a></dt><dd><p>
         Kerberos service name to use when authenticating with GSSAPI.
         This must match the service name specified in the server
@@ -1268,6 +1322,18 @@ postgresql://%2Fvar%2Flib%2Fpostgresql/dbname
         <code class="literal">0</code> which means credentials will not be forwarded
         to the server.  Set this to <code class="literal">1</code> to have credentials
         forwarded when possible.
+       </p></dd><dt id="LIBPQ-CONNECT-SCRAM-CLIENT-KEY"><span class="term"><code class="literal">scram_client_key</code></span> <a href="#LIBPQ-CONNECT-SCRAM-CLIENT-KEY" class="id_link">#</a></dt><dd><p>
+        The base64-encoded SCRAM client key.  This can be used by foreign-data
+        wrappers or similar middleware to enable pass-through SCRAM
+        authentication. See <a class="xref" href="postgres-fdw.html#POSTGRES-FDW-OPTIONS-CONNECTION-MANAGEMENT" title="F.38.1.10. Connection Management Options">Section F.38.1.10</a> for one such
+        implementation.  It is not meant to be specified directly by users or
+        client applications.
+       </p></dd><dt id="LIBPQ-CONNECT-SCRAM-SERVER-KEY"><span class="term"><code class="literal">scram_server_key</code></span> <a href="#LIBPQ-CONNECT-SCRAM-SERVER-KEY" class="id_link">#</a></dt><dd><p>
+        The base64-encoded SCRAM server key.  This can be used by foreign-data
+        wrappers or similar middleware to enable pass-through SCRAM
+        authentication. See <a class="xref" href="postgres-fdw.html#POSTGRES-FDW-OPTIONS-CONNECTION-MANAGEMENT" title="F.38.1.10. Connection Management Options">Section F.38.1.10</a> for one such
+        implementation.  It is not meant to be specified directly by users or
+        client applications.
        </p></dd><dt id="LIBPQ-CONNECT-SERVICE"><span class="term"><code class="literal">service</code></span> <a href="#LIBPQ-CONNECT-SERVICE" class="id_link">#</a></dt><dd><p>
         Service name to use for additional parameters.  It specifies a service
         name in <code class="filename">pg_service.conf</code> that holds additional connection parameters.
@@ -1336,5 +1402,67 @@ postgresql://%2Fvar%2Flib%2Fpostgresql/dbname
             if one of the nodes that are used for load balancing is not responding,
             a new node will be tried.
            </p></dd></dl></div><p>
+       </p></dd><dt id="LIBPQ-CONNECT-OAUTH-ISSUER"><span class="term"><code class="literal">oauth_issuer</code></span> <a href="#LIBPQ-CONNECT-OAUTH-ISSUER" class="id_link">#</a></dt><dd><p>
+        The HTTPS URL of a trusted issuer to contact if the server requests an
+        OAuth token for the connection. This parameter is required for all OAuth
+        connections; it should exactly match the <code class="literal">issuer</code>
+        setting in <a class="link" href="auth-oauth.html" title="20.15. OAuth Authorization/Authentication">the server's HBA configuration</a>.
+       </p><p>
+        As part of the standard authentication handshake, <span class="application">libpq</span>
+        will ask the server for a <span class="emphasis"><em>discovery document:</em></span> a URL
+        providing a set of OAuth configuration parameters. The server must
+        provide a URL that is directly constructed from the components of the
+        <code class="literal">oauth_issuer</code>, and this value must exactly match the
+        issuer identifier that is declared in the discovery document itself, or
+        the connection will fail. This is required to prevent a class of
+        <a class="ulink" href="https://mailarchive.ietf.org/arch/msg/oauth/JIVxFBGsJBVtm7ljwJhPUm3Fr-w/" target="_top">
+        "mix-up attacks"</a> on OAuth clients.
+       </p><p>
+        You may also explicitly set <code class="literal">oauth_issuer</code> to the
+        <code class="literal">/.well-known/</code> URI used for OAuth discovery. In this
+        case, if the server asks for a different URL, the connection will fail,
+        but a <a class="link" href="libpq-oauth.html#LIBPQ-OAUTH-AUTHDATA-HOOKS" title="32.20.1. Authdata Hooks">custom OAuth flow</a>
+        may be able to speed up the standard handshake by using previously
+        cached tokens. (In this case, it is recommended that
+        <a class="xref" href="libpq-connect.html#LIBPQ-CONNECT-OAUTH-SCOPE">oauth_scope</a> be set as well, since the
+        client will not have a chance to ask the server for a correct scope
+        setting, and the default scopes for a token may not be sufficient to
+        connect.) <span class="application">libpq</span> currently supports the
+        following well-known endpoints:
+        </p><div class="itemizedlist"><ul class="itemizedlist compact" style="list-style-type: disc; "><li class="listitem"><p><code class="literal">/.well-known/openid-configuration</code></p></li><li class="listitem"><p><code class="literal">/.well-known/oauth-authorization-server</code></p></li></ul></div><p>
+       </p><div class="warning"><h3 class="title">Warning</h3><p>
+         Issuers are highly privileged during the OAuth connection handshake. As
+         a rule of thumb, if you would not trust the operator of a URL to handle
+         access to your servers, or to impersonate you directly, that URL should
+         not be trusted as an <code class="literal">oauth_issuer</code>.
+        </p></div></dd><dt id="LIBPQ-CONNECT-OAUTH-CLIENT-ID"><span class="term"><code class="literal">oauth_client_id</code></span> <a href="#LIBPQ-CONNECT-OAUTH-CLIENT-ID" class="id_link">#</a></dt><dd><p>
+        An OAuth 2.0 client identifier, as issued by the authorization server.
+        If the <span class="productname">PostgreSQL</span> server
+        <a class="link" href="auth-oauth.html" title="20.15. OAuth Authorization/Authentication">requests an OAuth token</a> for the
+        connection (and if no <a class="link" href="libpq-oauth.html#LIBPQ-OAUTH-AUTHDATA-HOOKS" title="32.20.1. Authdata Hooks">custom
+        OAuth hook</a> is installed to provide one), then this parameter must
+        be set; otherwise, the connection will fail.
+       </p></dd><dt id="LIBPQ-CONNECT-OAUTH-CLIENT-SECRET"><span class="term"><code class="literal">oauth_client_secret</code></span> <a href="#LIBPQ-CONNECT-OAUTH-CLIENT-SECRET" class="id_link">#</a></dt><dd><p>
+        The client password, if any, to use when contacting the OAuth
+        authorization server. Whether this parameter is required or not is
+        determined by the OAuth provider; "public" clients generally do not use
+        a secret, whereas "confidential" clients generally do.
+       </p></dd><dt id="LIBPQ-CONNECT-OAUTH-SCOPE"><span class="term"><code class="literal">oauth_scope</code></span> <a href="#LIBPQ-CONNECT-OAUTH-SCOPE" class="id_link">#</a></dt><dd><p>
+        The scope of the access request sent to the authorization server,
+        specified as a (possibly empty) space-separated list of OAuth scope
+        identifiers. This parameter is optional and intended for advanced usage.
+       </p><p>
+        Usually the client will obtain appropriate scope settings from the
+        <span class="productname">PostgreSQL</span> server. If this parameter is used,
+        the server's requested scope list will be ignored. This can prevent a
+        less-trusted server from requesting inappropriate access scopes from the
+        end user. However, if the client's scope setting does not contain the
+        server's required scopes, the server is likely to reject the issued
+        token, and the connection will fail.
+       </p><p>
+        The meaning of an empty scope list is provider-dependent. An OAuth
+        authorization server may choose to issue a token with "default scope",
+        whatever that happens to be, or it may reject the token request
+        entirely.
        </p></dd></dl></div><p>
-   </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="libpq.html" title="Chapter 32. libpq — C Library">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="libpq.html" title="Chapter 32. libpq — C Library">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="libpq-status.html" title="32.2. Connection Status Functions">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter 32. <span class="application">libpq</span> — C Library </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 32.2. Connection Status Functions</td></tr></table></div></body></html>
+   </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="libpq.html" title="Chapter 32. libpq — C Library">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="libpq.html" title="Chapter 32. libpq — C Library">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="libpq-status.html" title="32.2. Connection Status Functions">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter 32. <span class="application">libpq</span> — C Library </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 32.2. Connection Status Functions</td></tr></table></div></body></html>

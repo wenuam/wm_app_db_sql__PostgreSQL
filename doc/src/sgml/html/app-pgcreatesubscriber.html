@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>pg_createsubscriber</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="app-pgcontroldata.html" title="pg_controldata" /><link rel="next" href="app-pg-ctl.html" title="pg_ctl" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center"><span class="application">pg_createsubscriber</span></th></tr><tr><td width="10%" align="left"><a accesskey="p" href="app-pgcontroldata.html" title="pg_controldata">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="reference-server.html" title="PostgreSQL Server Applications">Up</a></td><th width="60%" align="center">PostgreSQL Server Applications</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="app-pg-ctl.html" title="pg_ctl">Next</a></td></tr></table><hr /></div><div class="refentry" id="APP-PGCREATESUBSCRIBER"><div class="titlepage"></div><a id="id-1.9.5.7.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle"><span class="application">pg_createsubscriber</span></span></h2><p>pg_createsubscriber — convert a physical replica into a new logical replica</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><div class="cmdsynopsis"><p id="id-1.9.5.7.4.1"><code class="command">pg_createsubscriber</code> [<em class="replaceable"><code>option</code></em>...]  { <code class="option">-d</code>  |   <code class="option">--database</code> }<em class="replaceable"><code>dbname</code></em> { <code class="option">-D</code>   |   <code class="option">--pgdata</code> }<em class="replaceable"><code>datadir</code></em> { <code class="option">-P</code>  |   <code class="option">--publisher-server</code> }<em class="replaceable"><code>connstr</code></em> </p></div></div><div class="refsect1" id="id-1.9.5.7.5"><h2>Description</h2><p>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>pg_createsubscriber</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="app-pgcontroldata.html" title="pg_controldata" /><link rel="next" href="app-pg-ctl.html" title="pg_ctl" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center"><span class="application">pg_createsubscriber</span></th></tr><tr><td width="10%" align="left"><a accesskey="p" href="app-pgcontroldata.html" title="pg_controldata">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="reference-server.html" title="PostgreSQL Server Applications">Up</a></td><th width="60%" align="center">PostgreSQL Server Applications</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="app-pg-ctl.html" title="pg_ctl">Next</a></td></tr></table><hr /></div><div class="refentry" id="APP-PGCREATESUBSCRIBER"><div class="titlepage"></div><a id="id-1.9.5.7.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle"><span class="application">pg_createsubscriber</span></span></h2><p>pg_createsubscriber — convert a physical replica into a new logical replica</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><div class="cmdsynopsis"><p id="id-1.9.5.7.4.1"><code class="command">pg_createsubscriber</code> [<em class="replaceable"><code>option</code></em>...]  { <code class="option">-d</code>  |   <code class="option">--database</code> }<em class="replaceable"><code>dbname</code></em> { <code class="option">-D</code>   |   <code class="option">--pgdata</code> }<em class="replaceable"><code>datadir</code></em> { <code class="option">-P</code>  |   <code class="option">--publisher-server</code> }<em class="replaceable"><code>connstr</code></em> </p></div></div><div class="refsect1" id="id-1.9.5.7.5"><h2>Description</h2><p>
    <span class="application">pg_createsubscriber</span> creates a new logical
    replica from a physical standby server.  All tables in the specified
    database are included in the <a class="link" href="logical-replication.html" title="Chapter 29. Logical Replication">logical
@@ -29,10 +29,28 @@
    <span class="application">pg_createsubscriber</span> accepts the following
    command-line arguments:
 
-   </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="option">-d <em class="replaceable"><code>dbname</code></em></code><br /></span><span class="term"><code class="option">--database=<em class="replaceable"><code>dbname</code></em></code></span></dt><dd><p>
+   </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="option">-a</code><br /></span><span class="term"><code class="option">--all</code></span></dt><dd><p>
+       Create one subscription per database on the target server. Exceptions
+       are template databases and databases that don't allow connections.
+       To discover the list of all databases, connect to the source server
+       using the database name specified in the <code class="option">--publisher-server</code>
+       connection string, or if not specified, the <code class="literal">postgres</code>
+       database will be used, or if that does not exist, <code class="literal">template1</code>
+       will be used.
+       Automatically generated names for subscriptions, publications, and
+       replication slots are used when this option is specified.
+       This option cannot be used along with <code class="option">--database</code>,
+       <code class="option">--publication</code>, <code class="option">--replication-slot</code>, or
+       <code class="option">--subscription</code>.
+      </p></dd><dt><span class="term"><code class="option">-d <em class="replaceable"><code>dbname</code></em></code><br /></span><span class="term"><code class="option">--database=<em class="replaceable"><code>dbname</code></em></code></span></dt><dd><p>
        The name of the database in which to create a subscription.  Multiple
        databases can be selected by writing multiple <code class="option">-d</code>
-       switches.
+       switches. This option cannot be used together with <code class="option">-a</code>.
+       If <code class="option">-d</code> option is not provided, the database name will be
+       obtained from <code class="option">-P</code> option. If the database name is not
+       specified in either the <code class="option">-d</code> option, or the
+       <code class="option">-P</code> option, and <code class="option">-a</code> option is not
+       specified, an error will be reported.
       </p></dd><dt><span class="term"><code class="option">-D <em class="replaceable"><code>directory</code></em></code><br /></span><span class="term"><code class="option">--pgdata=<em class="replaceable"><code>directory</code></em></code></span></dt><dd><p>
        The target directory that contains a cluster directory from a physical
        replica.
@@ -50,6 +68,11 @@
       </p></dd><dt><span class="term"><code class="option">-t <em class="replaceable"><code>seconds</code></em></code><br /></span><span class="term"><code class="option">--recovery-timeout=<em class="replaceable"><code>seconds</code></em></code></span></dt><dd><p>
        The maximum number of seconds to wait for recovery to end.  Setting to
        0 disables.  The default is 0.
+      </p></dd><dt><span class="term"><code class="option">-T</code><br /></span><span class="term"><code class="option">--enable-two-phase</code></span></dt><dd><p>
+       Enables <a class="link" href="sql-createsubscription.html#SQL-CREATESUBSCRIPTION-PARAMS-WITH-TWO-PHASE"><code class="literal">two_phase</code></a>
+       commit for the subscription. When multiple databases are specified, this
+       option applies uniformly to all subscriptions created on those databases.
+       The default is <code class="literal">false</code>.
       </p></dd><dt><span class="term"><code class="option">-U <em class="replaceable"><code>username</code></em></code><br /></span><span class="term"><code class="option">--subscriber-username=<em class="replaceable"><code>username</code></em></code></span></dt><dd><p>
        The user name to connect as on target server.  Defaults to the current
        operating system user name.
@@ -59,6 +82,22 @@
        messages and detailed information about each step to standard error.
        Repeating the option causes additional debug-level messages to appear
        on standard error.
+      </p></dd><dt><span class="term"><code class="option">--clean=<em class="replaceable"><code>objtype</code></em></code></span></dt><dd><p>
+       Drop all objects of the specified type from specified databases on the
+       target server.
+      </p><p>
+       </p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+          <code class="literal">publications</code>:
+          The <code class="literal">FOR ALL TABLES</code> publications established for this
+          subscriber are always dropped; specifying this object type causes all
+          other publications replicated from the source server to be dropped as
+          well.
+         </p></li></ul></div><p>
+      </p><p>
+       The objects selected to be dropped are individually logged, including during
+       a <code class="option">--dry-run</code>.  There is no opportunity to affect or stop the
+       dropping of the selected objects, so consider taking a backup of them
+       using <span class="application">pg_dump</span>.
       </p></dd><dt><span class="term"><code class="option">--config-file=<em class="replaceable"><code>filename</code></em></code></span></dt><dd><p>
        Use the specified main server configuration file for the target data
        directory.  <span class="application">pg_createsubscriber</span> internally uses
@@ -73,7 +112,8 @@
        names must match the number of specified databases, otherwise an error
        is reported.  The order of the multiple publication name switches must
        match the order of database switches.  If this option is not specified,
-       a generated name is assigned to the publication name.
+       a generated name is assigned to the publication name. This option cannot
+       be used together with <code class="option">--all</code>.
       </p></dd><dt><span class="term"><code class="option">--replication-slot=<em class="replaceable"><code>name</code></em></code></span></dt><dd><p>
        The replication slot name to set up the logical replication.  Multiple
        replication slots can be specified by writing multiple
@@ -82,7 +122,8 @@
        otherwise an error is reported.  The order of the multiple replication
        slot name switches must match the order of database switches.  If this
        option is not specified, the subscription name is assigned to the
-       replication slot name.
+       replication slot name. This option cannot be used together with
+       <code class="option">--all</code>.
       </p></dd><dt><span class="term"><code class="option">--subscription=<em class="replaceable"><code>name</code></em></code></span></dt><dd><p>
        The subscription name to set up the logical replication.  Multiple
        subscriptions can be specified by writing multiple
@@ -90,7 +131,8 @@
        names must match the number of specified databases, otherwise an error
        is reported.  The order of the multiple subscription name switches must
        match the order of database switches.  If this option is not specified,
-       a generated name is assigned to the subscription name.
+       a generated name is assigned to the subscription name. This option cannot
+       be used together with <code class="option">--all</code>.
       </p></dd><dt><span class="term"><code class="option">-V</code><br /></span><span class="term"><code class="option">--version</code></span></dt><dd><p>
        Print the <span class="application">pg_createsubscriber</span> version and exit.
       </p></dd><dt><span class="term"><code class="option">-?</code><br /></span><span class="term"><code class="option">--help</code></span></dt><dd><p>
@@ -108,11 +150,13 @@
     privileges for creating <a class="link" href="sql-createsubscription.html" title="CREATE SUBSCRIPTION">subscriptions</a> and using <a class="link" href="functions-admin.html#PG-REPLICATION-ORIGIN-ADVANCE"><code class="function">pg_replication_origin_advance()</code></a>.
    </p><p>
     The target server must be used as a physical standby.  The target server
-    must have <a class="xref" href="runtime-config-replication.html#GUC-MAX-REPLICATION-SLOTS">max_replication_slots</a> and <a class="xref" href="runtime-config-replication.html#GUC-MAX-LOGICAL-REPLICATION-WORKERS">max_logical_replication_workers</a> configured to a value
+    must have <a class="xref" href="runtime-config-replication.html#GUC-MAX-ACTIVE-REPLICATION-ORIGINS">max_active_replication_origins</a> and <a class="xref" href="runtime-config-replication.html#GUC-MAX-LOGICAL-REPLICATION-WORKERS">max_logical_replication_workers</a> configured to a value
     greater than or equal to the number of specified databases.  The target
     server must have <a class="xref" href="runtime-config-resource.html#GUC-MAX-WORKER-PROCESSES">max_worker_processes</a> configured to a
     value greater than the number of specified databases.  The target server
-    must accept local connections.
+    must accept local connections. If you are planning to use the
+    <code class="option">--enable-two-phase</code> switch then you will also need to set
+    the <a class="xref" href="runtime-config-resource.html#GUC-MAX-PREPARED-TRANSACTIONS">max_prepared_transactions</a> appropriately.
    </p><p>
     The source server must accept connections from the target server.  The
     source server must not be in recovery. The source server must have <a class="xref" href="runtime-config-wal.html#GUC-WAL-LEVEL">wal_level</a> as <code class="literal">logical</code>.  The source server
@@ -150,6 +194,7 @@
     primary might wait for replication while running
     <span class="application">pg_createsubscriber</span>.
    </p><p>
+    Unless the <code class="option">--enable-two-phase</code> switch is specified,
     <span class="application">pg_createsubscriber</span> sets up logical
     replication with two-phase commit disabled.  This means that any
     prepared transactions will be replicated at the time
@@ -164,6 +209,11 @@
     situations in which the target server might use WAL files from the source
     server.  If the target server has a standby, replication will break and a
     fresh standby should be created.
+   </p><p>
+    Replication failures can occur if required WAL files are missing. To prevent
+    this, the source server must set
+    <a class="xref" href="runtime-config-replication.html#GUC-MAX-SLOT-WAL-KEEP-SIZE">max_slot_wal_keep_size</a> to <code class="literal">-1</code> to
+    ensure that required WAL files are not prematurely removed.
    </p></div><div class="refsect2" id="id-1.9.5.7.7.4"><h3>How It Works</h3><p>
     The basic idea is to have a replication start point from the source server
     and set up a logical replication to start from this point:
@@ -253,4 +303,4 @@
 </p><pre class="screen">
 <code class="prompt">$</code> <strong class="userinput"><code>pg_createsubscriber -D /usr/local/pgsql/data -P "host=foo" -d hr -d finance</code></strong>
 </pre><p>
-  </p></div><div class="refsect1" id="id-1.9.5.7.9"><h2>See Also</h2><span class="simplelist"><a class="xref" href="app-pgbasebackup.html" title="pg_basebackup"><span class="refentrytitle"><span class="application">pg_basebackup</span></span></a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="app-pgcontroldata.html" title="pg_controldata">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="reference-server.html" title="PostgreSQL Server Applications">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="app-pg-ctl.html" title="pg_ctl">Next</a></td></tr><tr><td width="40%" align="left" valign="top"><span class="application">pg_controldata</span> </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> <span class="application">pg_ctl</span></td></tr></table></div></body></html>
+  </p></div><div class="refsect1" id="id-1.9.5.7.9"><h2>See Also</h2><span class="simplelist"><a class="xref" href="app-pgbasebackup.html" title="pg_basebackup"><span class="refentrytitle"><span class="application">pg_basebackup</span></span></a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="app-pgcontroldata.html" title="pg_controldata">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="reference-server.html" title="PostgreSQL Server Applications">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="app-pg-ctl.html" title="pg_ctl">Next</a></td></tr><tr><td width="40%" align="left" valign="top"><span class="application">pg_controldata</span> </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> <span class="application">pg_ctl</span></td></tr></table></div></body></html>

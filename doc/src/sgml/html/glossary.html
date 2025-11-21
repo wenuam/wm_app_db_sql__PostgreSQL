@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Appendix M. Glossary</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="acronyms.html" title="Appendix L. Acronyms" /><link rel="next" href="color.html" title="Appendix N. Color Support" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">Appendix M. Glossary</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="acronyms.html" title="Appendix L. Acronyms">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="appendixes.html" title="Part VIII. Appendixes">Up</a></td><th width="60%" align="center">Part VIII. Appendixes</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="color.html" title="Appendix N. Color Support">Next</a></td></tr></table><hr /></div><div class="appendix" id="GLOSSARY"><div class="titlepage"><div><div><h2 class="title">Appendix M. Glossary</h2></div></div></div><p>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Appendix M. Glossary</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="acronyms.html" title="Appendix L. Acronyms" /><link rel="next" href="color.html" title="Appendix N. Color Support" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">Appendix M. Glossary</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="acronyms.html" title="Appendix L. Acronyms">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="appendixes.html" title="Part VIII. Appendixes">Up</a></td><th width="60%" align="center">Part VIII. Appendixes</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="color.html" title="Appendix N. Color Support">Next</a></td></tr></table><hr /></div><div class="appendix" id="GLOSSARY"><div class="titlepage"><div><div><h2 class="title">Appendix M. Glossary</h2></div></div></div><p>
   This is a list of terms and their meaning in the context of
   <span class="productname">PostgreSQL</span> and relational database
   systems in general.
@@ -24,8 +24,8 @@
      access data in tables and indexes.  This abstraction allows for adding
      support for new types of data storage.
     </p><p>
-     For more information, see <a class="xref" href="tableam.html" title="Chapter 61. Table Access Method Interface Definition">Chapter 61</a> and
-     <a class="xref" href="indexam.html" title="Chapter 62. Index Access Method Interface Definition">Chapter 62</a>.
+     For more information, see <a class="xref" href="tableam.html" title="Chapter 62. Table Access Method Interface Definition">Chapter 62</a> and
+     <a class="xref" href="indexam.html" title="Chapter 63. Index Access Method Interface Definition">Chapter 63</a>.
     </p></dd><dt><span class="glossterm">Analytic function</span></dt><dd><p>See <a class="glosssee" href="glossary.html#GLOSSARY-WINDOW-FUNCTION">Window function (routine)</a>.</p></dd><dt id="GLOSSARY-ANALYZE"><span class="glossterm">Analyze (operation)</span></dt><dd class="glossdef"><p>
      The act of collecting statistics from data in
      <a class="glossterm" href="glossary.html#GLOSSARY-TABLE"><em class="glossterm"><a class="glossterm" href="glossary.html#GLOSSARY-TABLE" title="Table">tables</a></em></a>
@@ -39,7 +39,19 @@
     </p><p>
      For more information, see
      <a class="xref" href="sql-analyze.html" title="ANALYZE"><span class="refentrytitle">ANALYZE</span></a>.
-    </p></dd><dt id="GLOSSARY-ATOMIC"><span class="glossterm">Atomic</span></dt><dd class="glossdef"><p>
+    </p></dd><dt id="GLOSSARY-AIO"><span class="glossterm">Asynchronous <acronym class="acronym">I/O</acronym></span> (AIO)<a id="id-1.11.14.3.6.3" class="indexterm"></a></dt><dd class="glossdef"><p>
+     Asynchronous <acronym class="acronym">I/O</acronym> (<acronym class="acronym">AIO</acronym>) describes
+     performing <acronym class="acronym">I/O</acronym> in a non-blocking way (asynchronously),
+     in contrast to synchronous <acronym class="acronym">I/O</acronym>, which blocks for the
+     entire duration of the <acronym class="acronym">I/O</acronym>.
+    </p><p>
+     With <acronym class="acronym">AIO</acronym>, starting an <acronym class="acronym">I/O</acronym> operation
+     is separated from waiting for the result of the operation, allowing
+     multiple <acronym class="acronym">I/O</acronym> operations to be initiated concurrently,
+     as well as performing <acronym class="acronym">CPU</acronym> heavy operations
+     concurrently with <acronym class="acronym">I/O</acronym>. The price for that increased
+     concurrency is increased complexity.
+    </p><p>See Also <a class="glossseealso" href="glossary.html#GLOSSARY-IO">Input/Output</a>.</p></dd><dt id="GLOSSARY-ATOMIC"><span class="glossterm">Atomic</span></dt><dd class="glossdef"><p>
      In reference to a <a class="glossterm" href="glossary.html#GLOSSARY-DATUM"><em class="glossterm"><a class="glossterm" href="glossary.html#GLOSSARY-DATUM" title="Datum">datum</a></em></a>:
      the fact that its value cannot be broken down into smaller
      components.
@@ -115,7 +127,7 @@
      <acronym class="acronym">I/O</acronym> peaks which could block other processes.
     </p><p>
      For more information, see
-     <a class="xref" href="runtime-config-resource.html#RUNTIME-CONFIG-RESOURCE-BACKGROUND-WRITER" title="19.4.5. Background Writer">Section 19.4.5</a>.
+     <a class="xref" href="runtime-config-resource.html#RUNTIME-CONFIG-RESOURCE-BACKGROUND-WRITER" title="19.4.4. Background Writer">Section 19.4.4</a>.
     </p></dd><dt id="GLOSSARY-BASEBACKUP"><span class="glossterm">Base Backup</span></dt><dd class="glossdef"><p>
      A binary copy of all
      <a class="glossterm" href="glossary.html#GLOSSARY-DB-CLUSTER"><em class="glossterm"><a class="glossterm" href="glossary.html#GLOSSARY-DB-CLUSTER" title="Database cluster">database cluster</a></em></a>
@@ -315,7 +327,7 @@
      space comprises the data directory plus any additional tablespaces.
     </p><p>
      For more information, see
-     <a class="xref" href="storage-file-layout.html" title="65.1. Database File Layout">Section 65.1</a>.
+     <a class="xref" href="storage-file-layout.html" title="66.1. Database File Layout">Section 66.1</a>.
     </p></dd><dt id="GLOSSARY-DATA-PAGE"><span class="glossterm">Data page</span></dt><dd class="glossdef"><p>
      The basic structure used to store relation data.
      All pages are of the same size.
@@ -363,7 +375,7 @@
      so if a relation exceeds that size, it is split into multiple segments.
     </p><p>
      For more information, see
-     <a class="xref" href="storage-file-layout.html" title="65.1. Database File Layout">Section 65.1</a>.
+     <a class="xref" href="storage-file-layout.html" title="66.1. Database File Layout">Section 66.1</a>.
     </p><p>
      (Don't confuse this term with the similar term
      <a class="glossterm" href="glossary.html#GLOSSARY-WAL-FILE"><em class="glossterm"><a class="glossterm" href="glossary.html#GLOSSARY-WAL-FILE" title="WAL file">WAL segment</a></em></a>).
@@ -422,7 +434,7 @@
      size.
     </p><p>
      For more information, see
-     <a class="xref" href="storage-fsm.html" title="65.3. Free Space Map">Section 65.3</a>.
+     <a class="xref" href="storage-fsm.html" title="66.3. Free Space Map">Section 66.3</a>.
     </p></dd><dt id="GLOSSARY-FUNCTION"><span class="glossterm">Function (routine)</span></dt><dd class="glossdef"><p>
      A type of routine that receives zero or more arguments, returns zero or more
      output values, and is constrained to run within one transaction.
@@ -481,7 +493,12 @@
      a consistent state.
     </p><p>
      For more information, see <a class="xref" href="continuous-archiving.html#BACKUP-INCREMENTAL-BACKUP" title="25.3.3. Making an Incremental Backup">Section 25.3.3</a>.
-    </p></dd><dt id="GLOSSARY-INSERT"><span class="glossterm">Insert</span></dt><dd class="glossdef"><p>
+    </p></dd><dt id="GLOSSARY-IO"><span class="glossterm">Input/Output</span> (I/O)</dt><dd class="glossdef"><p>
+     Input/Output (<acronym class="acronym">I/O</acronym>) describes the communication between
+     a program and peripheral devices. In the context of database systems,
+     <acronym class="acronym">I/O</acronym> commonly, but not exclusively, refers to
+     interaction with storage devices or the network.
+    </p><p>See Also <a class="glossseealso" href="glossary.html#GLOSSARY-AIO">Asynchronous <acronym class="acronym">I/O</acronym></a>.</p></dd><dt id="GLOSSARY-INSERT"><span class="glossterm">Insert</span></dt><dd class="glossdef"><p>
      An <acronym class="acronym">SQL</acronym> command used to add new data into a
      <a class="glossterm" href="glossary.html#GLOSSARY-TABLE"><em class="glossterm"><a class="glossterm" href="glossary.html#GLOSSARY-TABLE" title="Table">table</a></em></a>.
     </p><p>
@@ -549,6 +566,9 @@
     </p><p>
      For more information, see
      <a class="xref" href="runtime-config-logging.html" title="19.8. Error Reporting and Logging">Section 19.8</a>.
+    </p></dd><dt id="GLOSSARY-LOGICAL-REPLICATION-CLUSTER"><span class="glossterm">Logical replication cluster</span></dt><dd class="glossdef"><p>
+     A set of publisher and subscriber instances with the publisher instance
+     replicating changes to the subscriber instance.
     </p></dd><dt id="GLOSSARY-LOG-RECORD"><span class="glossterm">Log record</span></dt><dd class="glossdef"><p>
       Archaic term for a <a class="glossterm" href="glossary.html#GLOSSARY-WAL-RECORD"><em class="glossterm"><a class="glossterm" href="glossary.html#GLOSSARY-WAL-RECORD" title="WAL record">WAL record</a></em></a>.
      </p></dd><dt id="GLOSSARY-LOG-SEQUENCE-NUMBER"><span class="glossterm">Log sequence number</span> (LSN)</dt><dd class="glossdef"><p>
@@ -945,7 +965,7 @@
      Each relation with large attributes has its own TOAST table.
     </p><p>
      For more information, see
-     <a class="xref" href="storage-toast.html" title="65.2. TOAST">Section 65.2</a>.
+     <a class="xref" href="storage-toast.html" title="66.2. TOAST">Section 66.2</a>.
     </p></dd><dt id="GLOSSARY-TRANSACTION"><span class="glossterm">Transaction</span></dt><dd class="glossdef"><p>
      A combination of commands that must act as a single
      <a class="glossterm" href="glossary.html#GLOSSARY-ATOMIC"><em class="glossterm"><a class="glossterm" href="glossary.html#GLOSSARY-ATOMIC" title="Atomic">atomic</a></em></a> command: they all
@@ -968,7 +988,7 @@
      <code class="literal">3</code> (values under that are reserved) and the
      epoch value is incremented by one.
      In some contexts, the epoch and xid values are
-     considered together as a single 64-bit value;  see <a class="xref" href="transaction-id.html" title="66.1. Transactions and Identifiers">Section 66.1</a> for more details.
+     considered together as a single 64-bit value;  see <a class="xref" href="transaction-id.html" title="67.1. Transactions and Identifiers">Section 67.1</a> for more details.
     </p><p>
      For more information, see
      <a class="xref" href="datatype-oid.html" title="8.19. Object Identifier Types">Section 8.19</a>.
@@ -1165,4 +1185,4 @@
      It comprises many individual
      <a class="glossterm" href="glossary.html#GLOSSARY-WAL-RECORD"><em class="glossterm"><a class="glossterm" href="glossary.html#GLOSSARY-WAL-RECORD" title="WAL record">WAL records</a></em></a> written
      sequentially to <a class="glossterm" href="glossary.html#GLOSSARY-WAL-FILE"><em class="glossterm"><a class="glossterm" href="glossary.html#GLOSSARY-WAL-FILE" title="WAL file">WAL files</a></em></a>.
-    </p></dd></dl></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="acronyms.html" title="Appendix L. Acronyms">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="appendixes.html" title="Part VIII. Appendixes">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="color.html" title="Appendix N. Color Support">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Appendix L. Acronyms </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> Appendix N. Color Support</td></tr></table></div></body></html>
+    </p></dd></dl></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="acronyms.html" title="Appendix L. Acronyms">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="appendixes.html" title="Part VIII. Appendixes">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="color.html" title="Appendix N. Color Support">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Appendix L. Acronyms </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> Appendix N. Color Support</td></tr></table></div></body></html>

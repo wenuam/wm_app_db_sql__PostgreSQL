@@ -120,7 +120,6 @@ function insertTabWithUnit({ state, dispatch }) {
 /* React wrapper for CodeMirror */
 const defaultExtensions = [
   highlightSpecialChars(),
-  drawSelection(),
   rectangularSelection(),
   dropCursor(),
   crosshairCursor(),
@@ -285,14 +284,15 @@ export default function Editor({
   useEffect(() => {
     if (!checkIsMounted()) return;
     let pref = preferencesStore.getPreferencesForModule('sqleditor');
+    let editorPref = preferencesStore.getPreferencesForModule('editor');
     let newConfigExtn = [];
 
-    const fontSize = calcFontSize(pref.sql_font_size);
+    const fontSize = calcFontSize(editorPref.sql_font_size);
     newConfigExtn.push(EditorView.theme({
       '& .cm-scroller .cm-content': {
         fontSize: fontSize,
-        fontVariantLigatures: pref.sql_font_ligatures ? 'normal' : 'none',
-        fontFamily: `${pref.sql_font_family}, ${theme.typography.fontFamilySourceCode}`,
+        fontVariantLigatures: editorPref.sql_font_ligatures ? 'normal' : 'none',
+        fontFamily: `${editorPref.sql_font_family}, ${theme.typography.fontFamilySourceCode}`,
       },
       '.cm-gutters': {
         fontSize: fontSize,
@@ -336,11 +336,11 @@ export default function Editor({
     }
 
     newConfigExtn.push(
-      EditorState.tabSize.of(pref.tab_size),
+      EditorState.tabSize.of(editorPref.tab_size),
     );
-    if (pref.use_spaces) {
+    if (editorPref.use_spaces) {
       newConfigExtn.push(
-        indentUnit.of(' '.repeat(pref.tab_size)),
+        indentUnit.of(' '.repeat(editorPref.tab_size)),
       );
     } else {
       newConfigExtn.push(
@@ -348,34 +348,34 @@ export default function Editor({
       );
     }
 
-    if(pref.indent_new_line) {
+    if(editorPref.indent_new_line) {
       newConfigExtn.push(indentNewLine.of(true));
     } else {
       newConfigExtn.push(indentNewLine.of(false));
     }
 
-    if (pref.wrap_code) {
+    if (editorPref.wrap_code) {
       newConfigExtn.push(
         EditorView.lineWrapping
       );
     }
 
-    if (pref.insert_pair_brackets) {
+    if (editorPref.insert_pair_brackets) {
       newConfigExtn.push(closeBrackets());
     }
 
-    if (pref.highlight_selection_matches){
+    if (editorPref.highlight_selection_matches){
       newConfigExtn.push(highlightSelectionMatches());
     }
 
-    if (pref.brace_matching) {
+    if (editorPref.brace_matching) {
       newConfigExtn.push(bracketMatching());
     }
     if (pref.underline_query_cursor){
       newConfigExtn.push(currentQueryHighlighterExtn());
     }
 
-    if(!pref.plain_editor_mode) {
+    if(!editorPref.plain_editor_mode) {
       // lang override
       if(language == 'json') {
         newConfigExtn.push(json());
@@ -384,7 +384,7 @@ export default function Editor({
       }
     }
 
-    if(pref.code_folding && finalOptions.foldGutter) {
+    if(editorPref.code_folding && finalOptions.foldGutter) {
       newConfigExtn.push(foldGutter({
         markerDOM: (open)=>{
           let icon = document.createElement('span');
@@ -398,8 +398,18 @@ export default function Editor({
       }));
     }
 
+    const CURSOR_BLINK_RATE_MAP = {
+      'none': 0,
+      'slow': 1800,
+      'medium': 1200,
+      'fast': 600,
+    };
+    newConfigExtn.push(drawSelection({
+      cursorBlinkRate: CURSOR_BLINK_RATE_MAP[editorPref.cursor_blink_rate] ?? 1200
+    }));
+
     // add fold service conditionally
-    if(!pref.plain_editor_mode && pref.code_folding && language == 'pgsql') {
+    if(!editorPref.plain_editor_mode && editorPref.code_folding && language == 'pgsql') {
       newConfigExtn.push(plpgsqlFoldService);
     }
 

@@ -14,13 +14,6 @@ License: MIT
 */
 
 /*!
-	 * The buffer module from node.js, for the browser.
-	 *
-	 * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
-	 * @license  MIT
-	 */
-
-/*!
 	Copyright (c) 2018 Jed Watson.
 	Licensed under the MIT License (MIT), see
 	http://jedwatson.github.io/classnames
@@ -66,7 +59,7 @@ License: MIT
  * Released under the MIT License
  */
 
-/*! Axios v1.10.0 Copyright (c) 2025 Matt Zabriskie and contributors */
+/*! Axios v1.11.0 Copyright (c) 2025 Matt Zabriskie and contributors */
 
 /*! Hammer.JS - v2.0.7 - 2016-04-22
  * http://hammerjs.github.io/
@@ -129,7 +122,7 @@ License: MIT
  */
 
 /**! 
- * hotkeys-js v3.13.14 
+ * hotkeys-js v3.13.15 
  * A simple micro-library for defining and dispatching keyboard shortcuts. It has no dependencies. 
  * 
  * Copyright (c) 2025 kenny wong <wowohoo@qq.com> 

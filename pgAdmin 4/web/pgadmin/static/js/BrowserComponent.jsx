@@ -21,7 +21,7 @@ import Dependencies from '../../misc/dependencies/static/js/Dependencies';
 import Dependents from '../../misc/dependents/static/js/Dependents';
 import ModalProvider from './helpers/ModalProvider';
 import { NotifierProvider } from './helpers/Notifier';
-import ObjectExplorerToolbar from './helpers/ObjectExplorerToolbar';
+import ObjectExplorerToolbar from './tree/ObjectExplorer/ObjectExplorerToolbar';
 import MainMoreToolbar from './helpers/MainMoreToolbar';
 import Dashboard from '../../dashboard/static/js/Dashboard';
 import usePreferences from '../../preferences/static/js/store';
@@ -35,7 +35,7 @@ import { useWorkspace, WorkspaceProvider } from '../../misc/workspaces/static/js
 import { PgAdminProvider, usePgAdmin } from './PgAdminProvider';
 import PreferencesComponent from '../../preferences/static/js/components/PreferencesComponent';
 import { ApplicationStateProvider } from '../../settings/static/ApplicationStateProvider';
-
+import { appAutoUpdateNotifier } from './helpers/appAutoUpdateNotifier';
 
 const objectExplorerGroup  = {
   tabLocked: true,
@@ -91,8 +91,10 @@ let defaultLayout = {
             size: 20,
             tabs: [
               LayoutDocker.getPanel({
-                id: BROWSER_PANELS.OBJECT_EXPLORER, title: gettext('Object Explorer'),
-                content: <ObjectExplorer />, group: 'object-explorer'
+                id: BROWSER_PANELS.OBJECT_EXPLORER,
+                title: gettext('Object Explorer'),
+                content: <ObjectExplorer />,
+                group: 'object-explorer'
               }),
             ],
           },
@@ -122,7 +124,7 @@ function Layouts({browser}) {
           }}
           defaultLayout={defaultLayout}
           layoutId='Browser/Layout'
-          savedLayout={pgAdmin.Browser.utils.layout}
+          savedLayout={pgAdmin.Browser.utils.layout['Browser/Layout']}
           groups={{
             'object-explorer': objectExplorerGroup,
             'playground': getMorePanelGroup(defaultTabsData),
@@ -141,7 +143,7 @@ function Layouts({browser}) {
             }}
             defaultLayout={item.layout}
             layoutId={`Workspace/Layout-${item.workspace}`}
-            savedLayout={pgAdmin.Browser.utils.layout}
+            savedLayout={pgAdmin.Browser.utils.layout[`Workspace/Layout-${item.workspace}`]}
             groups={{
               'playground': item?.tabsData ? getMorePanelGroup(item?.tabsData) : {...getDefaultGroup()},
             }}
@@ -180,6 +182,36 @@ export default function BrowserComponent({pgAdmin}) {
     },
     isNewTab: true,
   });
+
+  // Called when Install and Restart btn called for auto-update install
+  function installUpdate() {
+    if (window.electronUI) {
+      window.electronUI.sendDataForAppUpdate({
+        'install_update_now': true
+      });
+    }}
+  
+  // Listen for auto-update events from the Electron main process and display notifications
+  // to the user based on the update status (e.g., update available, downloading, downloaded, installed, or error).
+  if (window.electronUI && typeof window.electronUI.notifyAppAutoUpdate === 'function') {
+    window.electronUI.notifyAppAutoUpdate((data)=>{
+      if (data?.check_version_update) {
+        pgAdmin.Browser.check_version_update(true);
+      } else if (data.update_downloading) {
+        appAutoUpdateNotifier('Update downloading...', 'info', null, 10000);
+      } else if (data.no_update_available) {
+        appAutoUpdateNotifier('No update available...', 'info', null, 10000);
+      } else if (data.update_downloaded) {
+        const UPDATE_DOWNLOADED_MESSAGE = gettext('An update is ready. Restart the app now to install it, or later to keep using the current version.');
+        appAutoUpdateNotifier(UPDATE_DOWNLOADED_MESSAGE, 'warning', installUpdate, null, 'Update downloaded', 'update_downloaded');
+      } else if (data.error) {
+        appAutoUpdateNotifier(`${data.errMsg}`, 'error');
+      } else if (data.update_installed) {
+        const UPDATE_INSTALLED_MESSAGE = gettext('Update installed successfully!');
+        appAutoUpdateNotifier(UPDATE_INSTALLED_MESSAGE, 'success');
+      }
+    });
+  }
 
   useEffect(()=>{
     if(uiReady) {

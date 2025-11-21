@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>28.5. WAL Configuration</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="wal-async-commit.html" title="28.4. Asynchronous Commit" /><link rel="next" href="wal-internals.html" title="28.6. WAL Internals" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">28.5. <acronym class="acronym">WAL</acronym> Configuration</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="wal-async-commit.html" title="28.4. Asynchronous Commit">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="wal.html" title="Chapter 28. Reliability and the Write-Ahead Log">Up</a></td><th width="60%" align="center">Chapter 28. Reliability and the Write-Ahead Log</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="wal-internals.html" title="28.6. WAL Internals">Next</a></td></tr></table><hr /></div><div class="sect1" id="WAL-CONFIGURATION"><div class="titlepage"><div><div><h2 class="title" style="clear: both">28.5. <acronym class="acronym">WAL</acronym> Configuration <a href="#WAL-CONFIGURATION" class="id_link">#</a></h2></div></div></div><p>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>28.5. WAL Configuration</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="wal-async-commit.html" title="28.4. Asynchronous Commit" /><link rel="next" href="wal-internals.html" title="28.6. WAL Internals" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">28.5. <acronym class="acronym">WAL</acronym> Configuration</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="wal-async-commit.html" title="28.4. Asynchronous Commit">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="wal.html" title="Chapter 28. Reliability and the Write-Ahead Log">Up</a></td><th width="60%" align="center">Chapter 28. Reliability and the Write-Ahead Log</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="wal-internals.html" title="28.6. WAL Internals">Next</a></td></tr></table><hr /></div><div class="sect1" id="WAL-CONFIGURATION"><div class="titlepage"><div><div><h2 class="title" style="clear: both">28.5. <acronym class="acronym">WAL</acronym> Configuration <a href="#WAL-CONFIGURATION" class="id_link">#</a></h2></div></div></div><p>
    There are several <acronym class="acronym">WAL</acronym>-related configuration parameters that
    affect database performance. This section explains their use.
    Consult <a class="xref" href="runtime-config.html" title="Chapter 19. Server Configuration">Chapter 19</a> for general information about
@@ -174,11 +174,11 @@
    view counts the restartpoints that have really been performed.
   </p><p>
    In some cases, when the WAL size on the primary increases quickly,
-   for instance during massive INSERT,
+   for instance during massive <code class="command">INSERT</code>,
    the <code class="structfield">restartpoints_req</code> counter on the standby
    may demonstrate a peak growth.
    This occurs because requests to create a new restartpoint due to increased
-   XLOG consumption cannot be performed because the safe checkpoint record
+   WAL consumption cannot be performed because the safe checkpoint record
    since the last restartpoint has not yet been replayed on the standby.
    This behavior is normal and does not lead to an increase in system resource
    consumption.
@@ -289,8 +289,9 @@
    When <a class="xref" href="runtime-config-statistics.html#GUC-TRACK-WAL-IO-TIMING">track_wal_io_timing</a> is enabled, the total
    amounts of time <code class="function">XLogWrite</code> writes and
    <code class="function">issue_xlog_fsync</code> syncs WAL data to disk are counted as
-   <code class="literal">wal_write_time</code> and <code class="literal">wal_sync_time</code> in
-   <a class="xref" href="monitoring-stats.html#PG-STAT-WAL-VIEW" title="Table 27.26. pg_stat_wal View">pg_stat_wal</a>, respectively.
+   <code class="varname">write_time</code> and <code class="varname">fsync_time</code> in
+   <a class="xref" href="monitoring-stats.html#PG-STAT-IO-VIEW" title="Table 27.23. pg_stat_io View">pg_stat_io</a> for the <code class="varname">object</code>
+   <code class="literal">wal</code>, respectively.
    <code class="function">XLogWrite</code> is normally called by
    <code class="function">XLogInsertRecord</code> (when there is no space for the new
    record in WAL buffers), <code class="function">XLogFlush</code> and the WAL writer,
@@ -308,8 +309,9 @@
    of the setting of <code class="varname">track_wal_io_timing</code>, the number
    of times <code class="function">XLogWrite</code> writes and
    <code class="function">issue_xlog_fsync</code> syncs WAL data to disk are also
-   counted as <code class="literal">wal_write</code> and <code class="literal">wal_sync</code>
-   in <code class="structname">pg_stat_wal</code>, respectively.
+   counted as <code class="varname">writes</code> and <code class="varname">fsyncs</code>
+   in <code class="structname">pg_stat_io</code> for the <code class="varname">object</code>
+   <code class="literal">wal</code>, respectively.
   </p><p>
    The <a class="xref" href="runtime-config-wal.html#GUC-RECOVERY-PREFETCH">recovery_prefetch</a> parameter can be used to reduce
    I/O wait times during recovery by instructing the kernel to initiate reads
@@ -318,6 +320,6 @@
    The <a class="xref" href="runtime-config-resource.html#GUC-MAINTENANCE-IO-CONCURRENCY">maintenance_io_concurrency</a> and
    <a class="xref" href="runtime-config-wal.html#GUC-WAL-DECODE-BUFFER-SIZE">wal_decode_buffer_size</a> settings limit prefetching
    concurrency and distance, respectively.  By default, it is set to
-   <code class="literal">try</code>, which enables the feature on systems where
-   <code class="function">posix_fadvise</code> is available.
-  </p></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="wal-async-commit.html" title="28.4. Asynchronous Commit">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="wal.html" title="Chapter 28. Reliability and the Write-Ahead Log">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="wal-internals.html" title="28.6. WAL Internals">Next</a></td></tr><tr><td width="40%" align="left" valign="top">28.4. Asynchronous Commit </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 28.6. WAL Internals</td></tr></table></div></body></html>
+   <code class="literal">try</code>, which enables the feature on systems that support
+   issuing read-ahead advice.
+  </p></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="wal-async-commit.html" title="28.4. Asynchronous Commit">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="wal.html" title="Chapter 28. Reliability and the Write-Ahead Log">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="wal-internals.html" title="28.6. WAL Internals">Next</a></td></tr><tr><td width="40%" align="left" valign="top">28.4. Asynchronous Commit </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 28.6. WAL Internals</td></tr></table></div></body></html>

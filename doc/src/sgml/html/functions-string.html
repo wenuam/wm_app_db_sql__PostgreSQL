@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>9.4. String Functions and Operators</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="functions-math.html" title="9.3. Mathematical Functions and Operators" /><link rel="next" href="functions-binarystring.html" title="9.5. Binary String Functions and Operators" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">9.4. String Functions and Operators</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="functions-math.html" title="9.3. Mathematical Functions and Operators">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="functions.html" title="Chapter 9. Functions and Operators">Up</a></td><th width="60%" align="center">Chapter 9. Functions and Operators</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="functions-binarystring.html" title="9.5. Binary String Functions and Operators">Next</a></td></tr></table><hr /></div><div class="sect1" id="FUNCTIONS-STRING"><div class="titlepage"><div><div><h2 class="title" style="clear: both">9.4. String Functions and Operators <a href="#FUNCTIONS-STRING" class="id_link">#</a></h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="functions-string.html#FUNCTIONS-STRING-FORMAT">9.4.1. <code class="function">format</code></a></span></dt></dl></div><p>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>9.4. String Functions and Operators</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="functions-math.html" title="9.3. Mathematical Functions and Operators" /><link rel="next" href="functions-binarystring.html" title="9.5. Binary String Functions and Operators" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">9.4. String Functions and Operators</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="functions-math.html" title="9.3. Mathematical Functions and Operators">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="functions.html" title="Chapter 9. Functions and Operators">Up</a></td><th width="60%" align="center">Chapter 9. Functions and Operators</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="functions-binarystring.html" title="9.5. Binary String Functions and Operators">Next</a></td></tr></table><hr /></div><div class="sect1" id="FUNCTIONS-STRING"><div class="titlepage"><div><div><h2 class="title" style="clear: both">9.4. String Functions and Operators <a href="#FUNCTIONS-STRING" class="id_link">#</a></h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="functions-string.html#FUNCTIONS-STRING-FORMAT">9.4.1. <code class="function">format</code></a></span></dt></dl></div><p>
     This section describes functions and operators for examining and
     manipulating string values.  Strings in this context include values
     of the types <code class="type">character</code>, <code class="type">character varying</code>,
@@ -123,7 +123,7 @@
         <code class="literal">char_length('josé')</code>
         → <code class="returnvalue">4</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.5.2.2.7.1.1.1" class="indexterm"></a>
+        <a id="FUNCTION-LOWER" class="indexterm"></a>
         <code class="function">lower</code> ( <code class="type">text</code> )
         → <code class="returnvalue">text</code>
        </p>
@@ -166,7 +166,7 @@
         <code class="literal">ltrim('zzzytest', 'xyz')</code>
         → <code class="returnvalue">test</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.5.2.2.10.1.1.1" class="indexterm"></a>
+        <a id="FUNCTION-NORMALIZE" class="indexterm"></a>
         <a id="id-1.5.8.10.5.2.2.10.1.1.2" class="indexterm"></a>
         <code class="function">normalize</code> ( <code class="type">text</code>
         [<span class="optional">, <em class="parameter"><code>form</code></em> </span>] )
@@ -429,7 +429,7 @@
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
         <a id="id-1.5.8.10.7.2.2.4.1.1.1" class="indexterm"></a>
         <code class="function">concat</code> ( <em class="parameter"><code>val1</code></em> <code class="type">"any"</code>
-         [, <em class="parameter"><code>val2</code></em> <code class="type">"any"</code> [, ...] ] )
+         [<span class="optional">, <em class="parameter"><code>val2</code></em> <code class="type">"any"</code> [<span class="optional">, ...</span>] </span>] )
         → <code class="returnvalue">text</code>
        </p>
        <p>
@@ -443,7 +443,7 @@
         <a id="id-1.5.8.10.7.2.2.5.1.1.1" class="indexterm"></a>
         <code class="function">concat_ws</code> ( <em class="parameter"><code>sep</code></em> <code class="type">text</code>,
         <em class="parameter"><code>val1</code></em> <code class="type">"any"</code>
-        [, <em class="parameter"><code>val2</code></em> <code class="type">"any"</code> [, ...] ] )
+        [<span class="optional">, <em class="parameter"><code>val2</code></em> <code class="type">"any"</code> [<span class="optional">, ...</span>] </span>] )
         → <code class="returnvalue">text</code>
        </p>
        <p>
@@ -457,7 +457,7 @@
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
         <a id="id-1.5.8.10.7.2.2.6.1.1.1" class="indexterm"></a>
         <code class="function">format</code> ( <em class="parameter"><code>formatstr</code></em> <code class="type">text</code>
-        [, <em class="parameter"><code>formatarg</code></em> <code class="type">"any"</code> [, ...] ] )
+        [<span class="optional">, <em class="parameter"><code>formatarg</code></em> <code class="type">"any"</code> [<span class="optional">, ...</span>] </span>] )
         → <code class="returnvalue">text</code>
        </p>
        <p>
@@ -483,6 +483,37 @@
         → <code class="returnvalue">Hi Thomas</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
         <a id="id-1.5.8.10.7.2.2.8.1.1.1" class="indexterm"></a>
+        <code class="function">casefold</code> ( <code class="type">text</code> )
+        → <code class="returnvalue">text</code>
+       </p>
+       <p>
+        Performs case folding of the input string according to the collation.
+        Case folding is similar to case conversion, but the purpose of case
+        folding is to facilitate case-insensitive matching of strings,
+        whereas the purpose of case conversion is to convert to a particular
+        cased form.  This function can only be used when the server encoding
+        is <code class="literal">UTF8</code>.
+       </p>
+       <p>
+        Ordinarily, case folding simply converts to lowercase, but there may
+        be exceptions depending on the collation.  For instance, some
+        characters have more than two lowercase variants, or fold to uppercase.
+       </p>
+       <p>
+        Case folding may change the length of the string.  For instance, in
+        the <code class="literal">PG_UNICODE_FAST</code> collation, <code class="literal">ß</code>
+        (U+00DF) folds to <code class="literal">ss</code>.
+       </p>
+       <p>
+        <code class="function">casefold</code> can be used for Unicode Default Caseless
+        Matching.  It does not always preserve the normalized form of the
+        input string (see <a class="xref" href="functions-string.html#FUNCTION-NORMALIZE">normalize</a>).
+       </p>
+       <p>
+        The <code class="literal">libc</code> provider doesn't support case folding, so
+        <code class="function">casefold</code> is identical to <a class="xref" href="functions-string.html#FUNCTION-LOWER">lower</a>.
+       </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
+        <a id="id-1.5.8.10.7.2.2.9.1.1.1" class="indexterm"></a>
         <code class="function">left</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code>,
         <em class="parameter"><code>n</code></em> <code class="type">integer</code> )
         → <code class="returnvalue">text</code>
@@ -496,7 +527,7 @@
         <code class="literal">left('abcde', 2)</code>
         → <code class="returnvalue">ab</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.9.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.10.1.1.1" class="indexterm"></a>
         <code class="function">length</code> ( <code class="type">text</code> )
         → <code class="returnvalue">integer</code>
        </p>
@@ -507,7 +538,7 @@
         <code class="literal">length('jose')</code>
         → <code class="returnvalue">4</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.10.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.11.1.1.1" class="indexterm"></a>
         <code class="function">md5</code> ( <code class="type">text</code> )
         → <code class="returnvalue">text</code>
        </p>
@@ -519,9 +550,9 @@
         <code class="literal">md5('abc')</code>
         → <code class="returnvalue">900150983cd24fb0​d6963f7d28e17f72</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.11.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.12.1.1.1" class="indexterm"></a>
         <code class="function">parse_ident</code> ( <em class="parameter"><code>qualified_identifier</code></em> <code class="type">text</code>
-        [, <em class="parameter"><code>strict_mode</code></em> <code class="type">boolean</code> <code class="literal">DEFAULT</code> <code class="literal">true</code> ] )
+        [<span class="optional">, <em class="parameter"><code>strict_mode</code></em> <code class="type">boolean</code> <code class="literal">DEFAULT</code> <code class="literal">true</code> </span>] )
         → <code class="returnvalue">text[]</code>
        </p>
        <p>
@@ -538,7 +569,7 @@
         <code class="literal">parse_ident('"SomeSchema".someTable')</code>
         → <code class="returnvalue">{SomeSchema,sometable}</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.12.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.13.1.1.1" class="indexterm"></a>
         <code class="function">pg_client_encoding</code> ( )
         → <code class="returnvalue">name</code>
        </p>
@@ -549,7 +580,7 @@
         <code class="literal">pg_client_encoding()</code>
         → <code class="returnvalue">UTF8</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.13.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.14.1.1.1" class="indexterm"></a>
         <code class="function">quote_ident</code> ( <code class="type">text</code> )
         → <code class="returnvalue">text</code>
        </p>
@@ -565,7 +596,7 @@
         <code class="literal">quote_ident('Foo bar')</code>
         → <code class="returnvalue">"Foo bar"</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.14.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.15.1.1.1" class="indexterm"></a>
         <code class="function">quote_literal</code> ( <code class="type">text</code> )
         → <code class="returnvalue">text</code>
        </p>
@@ -593,7 +624,7 @@
         <code class="literal">quote_literal(42.5)</code>
         → <code class="returnvalue">'42.5'</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.16.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.17.1.1.1" class="indexterm"></a>
         <code class="function">quote_nullable</code> ( <code class="type">text</code> )
         → <code class="returnvalue">text</code>
        </p>
@@ -620,10 +651,10 @@
         <code class="literal">quote_nullable(42.5)</code>
         → <code class="returnvalue">'42.5'</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.18.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.19.1.1.1" class="indexterm"></a>
         <code class="function">regexp_count</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code>, <em class="parameter"><code>pattern</code></em> <code class="type">text</code>
-         [, <em class="parameter"><code>start</code></em> <code class="type">integer</code>
-         [, <em class="parameter"><code>flags</code></em> <code class="type">text</code> ] ] )
+         [<span class="optional">, <em class="parameter"><code>start</code></em> <code class="type">integer</code>
+         [<span class="optional">, <em class="parameter"><code>flags</code></em> <code class="type">text</code> </span>] </span>] )
         → <code class="returnvalue">integer</code>
        </p>
        <p>
@@ -636,13 +667,13 @@
         <code class="literal">regexp_count('123456789012', '\d\d\d', 2)</code>
         → <code class="returnvalue">3</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.19.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.20.1.1.1" class="indexterm"></a>
         <code class="function">regexp_instr</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code>, <em class="parameter"><code>pattern</code></em> <code class="type">text</code>
-         [, <em class="parameter"><code>start</code></em> <code class="type">integer</code>
-         [, <em class="parameter"><code>N</code></em> <code class="type">integer</code>
-         [, <em class="parameter"><code>endoption</code></em> <code class="type">integer</code>
-         [, <em class="parameter"><code>flags</code></em> <code class="type">text</code>
-         [, <em class="parameter"><code>subexpr</code></em> <code class="type">integer</code> ] ] ] ] ] )
+         [<span class="optional">, <em class="parameter"><code>start</code></em> <code class="type">integer</code>
+         [<span class="optional">, <em class="parameter"><code>N</code></em> <code class="type">integer</code>
+         [<span class="optional">, <em class="parameter"><code>endoption</code></em> <code class="type">integer</code>
+         [<span class="optional">, <em class="parameter"><code>flags</code></em> <code class="type">text</code>
+         [<span class="optional">, <em class="parameter"><code>subexpr</code></em> <code class="type">integer</code> </span>] </span>] </span>] </span>] </span>] )
         → <code class="returnvalue">integer</code>
        </p>
        <p>
@@ -659,9 +690,9 @@
         <code class="literal">regexp_instr('ABCDEF', 'c(.)(..)', 1, 1, 0, 'i', 2)</code>
         → <code class="returnvalue">5</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.20.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.21.1.1.1" class="indexterm"></a>
         <code class="function">regexp_like</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code>, <em class="parameter"><code>pattern</code></em> <code class="type">text</code>
-         [, <em class="parameter"><code>flags</code></em> <code class="type">text</code> ] )
+         [<span class="optional">, <em class="parameter"><code>flags</code></em> <code class="type">text</code> </span>] )
         → <code class="returnvalue">boolean</code>
        </p>
        <p>
@@ -674,8 +705,8 @@
         <code class="literal">regexp_like('Hello World', 'world$', 'i')</code>
         → <code class="returnvalue">t</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.21.1.1.1" class="indexterm"></a>
-        <code class="function">regexp_match</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code>, <em class="parameter"><code>pattern</code></em> <code class="type">text</code> [, <em class="parameter"><code>flags</code></em> <code class="type">text</code> ] )
+        <a id="id-1.5.8.10.7.2.2.22.1.1.1" class="indexterm"></a>
+        <code class="function">regexp_match</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code>, <em class="parameter"><code>pattern</code></em> <code class="type">text</code> [<span class="optional">, <em class="parameter"><code>flags</code></em> <code class="type">text</code> </span>] )
         → <code class="returnvalue">text[]</code>
        </p>
        <p>
@@ -688,8 +719,8 @@
         <code class="literal">regexp_match('foobarbequebaz', '(bar)(beque)')</code>
         → <code class="returnvalue">{bar,beque}</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.22.1.1.1" class="indexterm"></a>
-        <code class="function">regexp_matches</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code>, <em class="parameter"><code>pattern</code></em> <code class="type">text</code> [, <em class="parameter"><code>flags</code></em> <code class="type">text</code> ] )
+        <a id="id-1.5.8.10.7.2.2.23.1.1.1" class="indexterm"></a>
+        <code class="function">regexp_matches</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code>, <em class="parameter"><code>pattern</code></em> <code class="type">text</code> [<span class="optional">, <em class="parameter"><code>flags</code></em> <code class="type">text</code> </span>] )
         → <code class="returnvalue">setof text[]</code>
        </p>
        <p>
@@ -707,10 +738,9 @@
  {baz}
 </pre><p>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.23.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.24.1.1.1" class="indexterm"></a>
         <code class="function">regexp_replace</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code>, <em class="parameter"><code>pattern</code></em> <code class="type">text</code>, <em class="parameter"><code>replacement</code></em> <code class="type">text</code>
-         [, <em class="parameter"><code>start</code></em> <code class="type">integer</code> ]
-         [, <em class="parameter"><code>flags</code></em> <code class="type">text</code> ] )
+         [<span class="optional">, <em class="parameter"><code>flags</code></em> <code class="type">text</code> </span>] )
         → <code class="returnvalue">text</code>
        </p>
        <p>
@@ -724,23 +754,30 @@
         → <code class="returnvalue">ThM</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
         <code class="function">regexp_replace</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code>, <em class="parameter"><code>pattern</code></em> <code class="type">text</code>, <em class="parameter"><code>replacement</code></em> <code class="type">text</code>,
-         <em class="parameter"><code>start</code></em> <code class="type">integer</code>,
-         <em class="parameter"><code>N</code></em> <code class="type">integer</code>
-         [, <em class="parameter"><code>flags</code></em> <code class="type">text</code> ] )
+         <em class="parameter"><code>start</code></em> <code class="type">integer</code>
+         [<span class="optional">, <em class="parameter"><code>N</code></em> <code class="type">integer</code>
+         [<span class="optional">, <em class="parameter"><code>flags</code></em> <code class="type">text</code> </span>] </span>] )
         → <code class="returnvalue">text</code>
        </p>
        <p>
         Replaces the substring that is the <em class="parameter"><code>N</code></em>'th
         match to the POSIX regular expression <em class="parameter"><code>pattern</code></em>,
-        or all such matches if <em class="parameter"><code>N</code></em> is zero; see
+        or all such matches if <em class="parameter"><code>N</code></em> is zero, with the
+        search beginning at the <em class="parameter"><code>start</code></em>'th character
+        of <em class="parameter"><code>string</code></em>.  If <em class="parameter"><code>N</code></em> is
+        omitted, it defaults to 1.  See
         <a class="xref" href="functions-matching.html#FUNCTIONS-POSIX-REGEXP" title="9.7.3. POSIX Regular Expressions">Section 9.7.3</a>.
        </p>
        <p>
         <code class="literal">regexp_replace('Thomas', '.', 'X', 3, 2)</code>
         → <code class="returnvalue">ThoXas</code>
+       </p>
+       <p>
+        <code class="literal">regexp_replace(string=&gt;'hello world', pattern=&gt;'l', replacement=&gt;'XX', start=&gt;1, "N"=&gt;2)</code>
+        → <code class="returnvalue">helXXo world</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.25.1.1.1" class="indexterm"></a>
-        <code class="function">regexp_split_to_array</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code>, <em class="parameter"><code>pattern</code></em> <code class="type">text</code> [, <em class="parameter"><code>flags</code></em> <code class="type">text</code> ] )
+        <a id="id-1.5.8.10.7.2.2.26.1.1.1" class="indexterm"></a>
+        <code class="function">regexp_split_to_array</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code>, <em class="parameter"><code>pattern</code></em> <code class="type">text</code> [<span class="optional">, <em class="parameter"><code>flags</code></em> <code class="type">text</code> </span>] )
         → <code class="returnvalue">text[]</code>
        </p>
        <p>
@@ -752,8 +789,8 @@
         <code class="literal">regexp_split_to_array('hello world', '\s+')</code>
         → <code class="returnvalue">{hello,world}</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.26.1.1.1" class="indexterm"></a>
-        <code class="function">regexp_split_to_table</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code>, <em class="parameter"><code>pattern</code></em> <code class="type">text</code> [, <em class="parameter"><code>flags</code></em> <code class="type">text</code> ] )
+        <a id="id-1.5.8.10.7.2.2.27.1.1.1" class="indexterm"></a>
+        <code class="function">regexp_split_to_table</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code>, <em class="parameter"><code>pattern</code></em> <code class="type">text</code> [<span class="optional">, <em class="parameter"><code>flags</code></em> <code class="type">text</code> </span>] )
         → <code class="returnvalue">setof text</code>
        </p>
        <p>
@@ -769,12 +806,12 @@
  world
 </pre><p>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.27.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.28.1.1.1" class="indexterm"></a>
         <code class="function">regexp_substr</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code>, <em class="parameter"><code>pattern</code></em> <code class="type">text</code>
-         [, <em class="parameter"><code>start</code></em> <code class="type">integer</code>
-         [, <em class="parameter"><code>N</code></em> <code class="type">integer</code>
-         [, <em class="parameter"><code>flags</code></em> <code class="type">text</code>
-         [, <em class="parameter"><code>subexpr</code></em> <code class="type">integer</code> ] ] ] ] )
+         [<span class="optional">, <em class="parameter"><code>start</code></em> <code class="type">integer</code>
+         [<span class="optional">, <em class="parameter"><code>N</code></em> <code class="type">integer</code>
+         [<span class="optional">, <em class="parameter"><code>flags</code></em> <code class="type">text</code>
+         [<span class="optional">, <em class="parameter"><code>subexpr</code></em> <code class="type">integer</code> </span>] </span>] </span>] </span>] )
         → <code class="returnvalue">text</code>
        </p>
        <p>
@@ -792,7 +829,7 @@
         <code class="literal">regexp_substr('ABCDEF', 'c(.)(..)', 1, 1, 'i', 2)</code>
         → <code class="returnvalue">EF</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.28.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.29.1.1.1" class="indexterm"></a>
         <code class="function">repeat</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code>, <em class="parameter"><code>number</code></em> <code class="type">integer</code> )
         → <code class="returnvalue">text</code>
        </p>
@@ -804,7 +841,7 @@
         <code class="literal">repeat('Pg', 4)</code>
         → <code class="returnvalue">PgPgPgPg</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.29.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.30.1.1.1" class="indexterm"></a>
         <code class="function">replace</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code>,
         <em class="parameter"><code>from</code></em> <code class="type">text</code>,
         <em class="parameter"><code>to</code></em> <code class="type">text</code> )
@@ -819,7 +856,7 @@
         <code class="literal">replace('abcdefabcdef', 'cd', 'XX')</code>
         → <code class="returnvalue">abXXefabXXef</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.30.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.31.1.1.1" class="indexterm"></a>
         <code class="function">reverse</code> ( <code class="type">text</code> )
         → <code class="returnvalue">text</code>
        </p>
@@ -830,7 +867,7 @@
         <code class="literal">reverse('abcde')</code>
         → <code class="returnvalue">edcba</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.31.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.32.1.1.1" class="indexterm"></a>
         <code class="function">right</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code>,
          <em class="parameter"><code>n</code></em> <code class="type">integer</code> )
         → <code class="returnvalue">text</code>
@@ -844,7 +881,7 @@
         <code class="literal">right('abcde', 2)</code>
         → <code class="returnvalue">de</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.32.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.33.1.1.1" class="indexterm"></a>
         <code class="function">split_part</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code>,
         <em class="parameter"><code>delimiter</code></em> <code class="type">text</code>,
         <em class="parameter"><code>n</code></em> <code class="type">integer</code> )
@@ -865,7 +902,7 @@
         <code class="literal">split_part('abc,def,ghi,jkl', ',', -2)</code>
         → <code class="returnvalue">ghi</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.33.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.34.1.1.1" class="indexterm"></a>
         <code class="function">starts_with</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code>, <em class="parameter"><code>prefix</code></em> <code class="type">text</code> )
         → <code class="returnvalue">boolean</code>
        </p>
@@ -899,7 +936,7 @@
         <code class="literal">string_to_array('xx~~yy~~zz', '~~', 'yy')</code>
         → <code class="returnvalue">{xx,NULL,zz}</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.35.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.36.1.1.1" class="indexterm"></a>
         <code class="function">string_to_table</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code>, <em class="parameter"><code>delimiter</code></em> <code class="type">text</code> [<span class="optional">, <em class="parameter"><code>null_string</code></em> <code class="type">text</code> </span>] )
         → <code class="returnvalue">setof text</code>
        </p>
@@ -925,7 +962,7 @@
  zz
 </pre><p>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.36.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.37.1.1.1" class="indexterm"></a>
         <code class="function">strpos</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code>, <em class="parameter"><code>substring</code></em> <code class="type">text</code> )
         → <code class="returnvalue">integer</code>
        </p>
@@ -940,7 +977,7 @@
         <code class="literal">strpos('high', 'ig')</code>
         → <code class="returnvalue">2</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.37.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.38.1.1.1" class="indexterm"></a>
         <code class="function">substr</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code>, <em class="parameter"><code>start</code></em> <code class="type">integer</code> [<span class="optional">, <em class="parameter"><code>count</code></em> <code class="type">integer</code> </span>] )
         → <code class="returnvalue">text</code>
        </p>
@@ -961,7 +998,7 @@
         <code class="literal">substr('alphabet', 3, 2)</code>
         → <code class="returnvalue">ph</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.38.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.39.1.1.1" class="indexterm"></a>
         <code class="function">to_ascii</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code> )
         → <code class="returnvalue">text</code>
        </p>
@@ -984,14 +1021,14 @@
         Conversion is only supported
         from <code class="literal">LATIN1</code>, <code class="literal">LATIN2</code>,
         <code class="literal">LATIN9</code>, and <code class="literal">WIN1250</code> encodings.
-        (See the <a class="xref" href="unaccent.html" title="F.46. unaccent — a text search dictionary which removes diacritics">unaccent</a> module for another, more flexible
+        (See the <a class="xref" href="unaccent.html" title="F.48. unaccent — a text search dictionary which removes diacritics">unaccent</a> module for another, more flexible
         solution.)
        </p>
        <p>
         <code class="literal">to_ascii('Karél')</code>
         → <code class="returnvalue">Karel</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.39.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.40.1.1.1" class="indexterm"></a>
         <code class="function">to_bin</code> ( <code class="type">integer</code> )
         → <code class="returnvalue">text</code>
        </p>
@@ -1011,7 +1048,7 @@
         <code class="literal">to_bin(-1234)</code>
         → <code class="returnvalue">11111111111111111111101100101110</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.40.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.41.1.1.1" class="indexterm"></a>
         <code class="function">to_hex</code> ( <code class="type">integer</code> )
         → <code class="returnvalue">text</code>
        </p>
@@ -1031,7 +1068,7 @@
         <code class="literal">to_hex(-1234)</code>
         → <code class="returnvalue">fffffb2e</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.41.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.42.1.1.1" class="indexterm"></a>
         <code class="function">to_oct</code> ( <code class="type">integer</code> )
         → <code class="returnvalue">text</code>
        </p>
@@ -1051,7 +1088,7 @@
         <code class="literal">to_oct(-1234)</code>
         → <code class="returnvalue">37777775456</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.42.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.43.1.1.1" class="indexterm"></a>
         <code class="function">translate</code> ( <em class="parameter"><code>string</code></em> <code class="type">text</code>,
         <em class="parameter"><code>from</code></em> <code class="type">text</code>,
         <em class="parameter"><code>to</code></em> <code class="type">text</code> )
@@ -1069,7 +1106,7 @@
         <code class="literal">translate('12345', '143', 'ax')</code>
         → <code class="returnvalue">a2x5</code>
        </p></td></tr><tr><td class="func_table_entry"><p class="func_signature">
-        <a id="id-1.5.8.10.7.2.2.43.1.1.1" class="indexterm"></a>
+        <a id="id-1.5.8.10.7.2.2.44.1.1.1" class="indexterm"></a>
         <code class="function">unistr</code> ( <code class="type">text</code> )
         → <code class="returnvalue">text</code>
        </p>
@@ -1123,7 +1160,7 @@
      <code class="function">sprintf</code>.
     </p><p>
 </p><pre class="synopsis">
-<code class="function">format</code>(<em class="parameter"><code>formatstr</code></em> <code class="type">text</code> [, <em class="parameter"><code>formatarg</code></em> <code class="type">"any"</code> [, ...] ])
+<code class="function">format</code>(<em class="parameter"><code>formatstr</code></em> <code class="type">text</code> [<span class="optional">, <em class="parameter"><code>formatarg</code></em> <code class="type">"any"</code> [<span class="optional">, ...</span>] </span>])
 </pre><p>
      <em class="parameter"><code>formatstr</code></em> is a format string that specifies how the
      result should be formatted.  Text in the format string is copied
@@ -1260,4 +1297,4 @@ SELECT format('Testing %3$s, %2$s, %s', 'one', 'two', 'three');
      The <code class="literal">%I</code> and <code class="literal">%L</code> format specifiers are particularly
      useful for safely constructing dynamic SQL statements.  See
      <a class="xref" href="plpgsql-statements.html#PLPGSQL-QUOTE-LITERAL-EXAMPLE" title="Example 41.1. Quoting Values in Dynamic Queries">Example 41.1</a>.
-    </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="functions-math.html" title="9.3. Mathematical Functions and Operators">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="functions.html" title="Chapter 9. Functions and Operators">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="functions-binarystring.html" title="9.5. Binary String Functions and Operators">Next</a></td></tr><tr><td width="40%" align="left" valign="top">9.3. Mathematical Functions and Operators </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 9.5. Binary String Functions and Operators</td></tr></table></div></body></html>
+    </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="functions-math.html" title="9.3. Mathematical Functions and Operators">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="functions.html" title="Chapter 9. Functions and Operators">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="functions-binarystring.html" title="9.5. Binary String Functions and Operators">Next</a></td></tr><tr><td width="40%" align="left" valign="top">9.3. Mathematical Functions and Operators </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 9.5. Binary String Functions and Operators</td></tr></table></div></body></html>

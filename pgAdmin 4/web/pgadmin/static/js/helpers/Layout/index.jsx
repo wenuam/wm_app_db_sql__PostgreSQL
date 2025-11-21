@@ -219,9 +219,9 @@ export class LayoutDocker {
     }
   }
 
-  loadLayout(savedLayout, layoutId) {
+  loadLayout(savedLayout) {
     try {
-      this.layoutObj.loadLayout(JSON.parse(savedLayout[layoutId]));
+      this.layoutObj.loadLayout(JSON.parse(savedLayout));
     } catch {
       /* Fallback to default */
       this.layoutObj.loadLayout(this.defaultLayout);
@@ -396,6 +396,7 @@ export default function Layout({groups, noContextGroups, getLayoutInstance, layo
   const layoutDockerObj = React.useMemo(()=>new LayoutDocker(layoutId, props.defaultLayout, resetToTabPanel, noContextGroups), []);
   const prefStore = usePreferences();
   const dynamicTabsStyleRef = useRef();
+  const saveAppStateRef = useRef(prefStore?.getPreferencesForModule('misc')?.save_app_state);
   const { deleteToolData } = useApplicationState();
 
   useEffect(()=>{
@@ -411,6 +412,8 @@ export default function Layout({groups, noContextGroups, getLayoutInstance, layo
 
   useEffect(()=>{
     const dynamicTabs = prefStore.getPreferencesForModule('browser')?.dynamic_tabs;
+    const saveAppState = prefStore?.getPreferencesForModule('misc')?.save_app_state;
+
     // Add a class to set max width for non dynamic Tabs
     if(!dynamicTabs && !dynamicTabsStyleRef.current) {
       const css = '.dock-tab:not(div.dock-tab-active) { max-width: 180px; }',
@@ -423,6 +426,12 @@ export default function Layout({groups, noContextGroups, getLayoutInstance, layo
       dynamicTabsStyleRef.current.remove();
       dynamicTabsStyleRef.current = null;
     }
+
+    if(!saveAppState && saveAppStateRef.current){
+      layoutDockerObj.saveLayout();
+    }
+    saveAppStateRef.current = saveAppState;
+
   }, [prefStore]);
 
   const getTabMenuItems = (panelId)=>{
@@ -470,10 +479,8 @@ export default function Layout({groups, noContextGroups, getLayoutInstance, layo
   const saveTab = (tab) => {
   // 'tab' here is the full TabData object, potentially with 'title', 'content', etc.
   // We only want to save the 'id' and any custom properties needed by loadTab.
-    const savedTab = {
-      id: tab.id,
-    };
-    if (tab.metaData && !BROWSER_PANELS.DEBUGGER_TOOL.includes(tab.id.split('_')[0])) {
+    const savedTab = { id: tab.id };
+    if (saveAppStateRef.current && tab.metaData && !BROWSER_PANELS.DEBUGGER_TOOL.includes(tab.id.split('_')[0])) {
     // add custom properties that were part of the original TabBase
       const updatedMetaData = {
         ...tab.metaData,
@@ -505,7 +512,7 @@ export default function Layout({groups, noContextGroups, getLayoutInstance, layo
     flattenLayout(props.defaultLayout.dockbox);
     return flat;
   }, [props.defaultLayout]);
-  
+
   const loadTab = (tab)=>{
     const tabData = flatDefaultLayout.find((t)=>t.id == tab.id);
     if(!tabData && tab.metaData) {
@@ -529,7 +536,7 @@ export default function Layout({groups, noContextGroups, getLayoutInstance, layo
               if(obj) {
                 layoutDockerObj.layoutObj = obj;
                 getLayoutInstance?.(layoutDockerObj);
-                layoutDockerObj.loadLayout(savedLayout, layoutId);
+                layoutDockerObj.loadLayout(savedLayout);
               }
             }}
             loadTab={loadTab}
@@ -565,7 +572,7 @@ Layout.propTypes = {
   noContextGroups: PropTypes.array,
   getLayoutInstance: PropTypes.func,
   layoutId: PropTypes.string,
-  savedLayout: PropTypes.any,
+  savedLayout: PropTypes.string,
   resetToTabPanel: PropTypes.string,
   enableToolEvents: PropTypes.bool,
   isLayoutVisible: PropTypes.bool

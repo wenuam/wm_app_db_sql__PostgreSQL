@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>UPDATE</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="sql-unlisten.html" title="UNLISTEN" /><link rel="next" href="sql-vacuum.html" title="VACUUM" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">UPDATE</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="sql-unlisten.html" title="UNLISTEN">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><th width="60%" align="center">SQL Commands</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="sql-vacuum.html" title="VACUUM">Next</a></td></tr></table><hr /></div><div class="refentry" id="SQL-UPDATE"><div class="titlepage"></div><a id="id-1.9.3.183.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle">UPDATE</span></h2><p>UPDATE — update rows of a table</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><pre class="synopsis">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>UPDATE</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="sql-unlisten.html" title="UNLISTEN" /><link rel="next" href="sql-vacuum.html" title="VACUUM" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">UPDATE</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="sql-unlisten.html" title="UNLISTEN">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><th width="60%" align="center">SQL Commands</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="sql-vacuum.html" title="VACUUM">Next</a></td></tr></table><hr /></div><div class="refentry" id="SQL-UPDATE"><div class="titlepage"></div><a id="id-1.9.3.183.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle">UPDATE</span></h2><p>UPDATE — update rows of a table</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><pre class="synopsis">
 [ WITH [ RECURSIVE ] <em class="replaceable"><code>with_query</code></em> [, ...] ]
 UPDATE [ ONLY ] <em class="replaceable"><code>table_name</code></em> [ * ] [ [ AS ] <em class="replaceable"><code>alias</code></em> ]
     SET { <em class="replaceable"><code>column_name</code></em> = { <em class="replaceable"><code>expression</code></em> | DEFAULT } |
@@ -8,7 +8,8 @@ UPDATE [ ONLY ] <em class="replaceable"><code>table_name</code></em> [ * ] [ [ A
         } [, ...]
     [ FROM <em class="replaceable"><code>from_item</code></em> [, ...] ]
     [ WHERE <em class="replaceable"><code>condition</code></em> | WHERE CURRENT OF <em class="replaceable"><code>cursor_name</code></em> ]
-    [ RETURNING { * | <em class="replaceable"><code>output_expression</code></em> [ [ AS ] <em class="replaceable"><code>output_name</code></em> ] } [, ...] ]
+    [ RETURNING [ WITH ( { OLD | NEW } AS <em class="replaceable"><code>output_alias</code></em> [, ...] ) ]
+                { * | <em class="replaceable"><code>output_expression</code></em> [ [ AS ] <em class="replaceable"><code>output_name</code></em> ] } [, ...] ]
 </pre></div><div class="refsect1" id="id-1.9.3.183.5"><h2>Description</h2><p>
    <code class="command">UPDATE</code> changes the values of the specified
    columns in all rows that satisfy the condition. Only the columns to
@@ -25,7 +26,8 @@ UPDATE [ ONLY ] <em class="replaceable"><code>table_name</code></em> [ * ] [ [ A
    to compute and return value(s) based on each row actually updated.
    Any expression using the table's columns, and/or columns of other
    tables mentioned in <code class="literal">FROM</code>, can be computed.
-   The new (post-update) values of the table's columns are used.
+   By default, the new (post-update) values of the table's columns are used,
+   but it is also possible to request the old (pre-update) values.
    The syntax of the <code class="literal">RETURNING</code> list is identical to that of the
    output list of <code class="command">SELECT</code>.
   </p><p>
@@ -99,12 +101,31 @@ UPDATE [ ONLY ] <em class="replaceable"><code>table_name</code></em> [ * ] [ [ A
       <a class="xref" href="sql-declare.html" title="DECLARE"><span class="refentrytitle">DECLARE</span></a>
       for more information about using cursors with
       <code class="literal">WHERE CURRENT OF</code>.
+     </p></dd><dt><span class="term"><em class="replaceable"><code>output_alias</code></em></span></dt><dd><p>
+      An optional substitute name for <code class="literal">OLD</code> or
+      <code class="literal">NEW</code> rows in the <code class="literal">RETURNING</code> list.
+     </p><p>
+      By default, old values from the target table can be returned by writing
+      <code class="literal">OLD.<em class="replaceable"><code>column_name</code></em></code>
+      or <code class="literal">OLD.*</code>, and new values can be returned by writing
+      <code class="literal">NEW.<em class="replaceable"><code>column_name</code></em></code>
+      or <code class="literal">NEW.*</code>.  When an alias is provided, these names are
+      hidden and the old or new rows must be referred to using the alias.
+      For example <code class="literal">RETURNING WITH (OLD AS o, NEW AS n) o.*, n.*</code>.
      </p></dd><dt><span class="term"><em class="replaceable"><code>output_expression</code></em></span></dt><dd><p>
       An expression to be computed and returned by the <code class="command">UPDATE</code>
       command after each row is updated.  The expression can use any
       column names of the table named by <em class="replaceable"><code>table_name</code></em>
       or table(s) listed in <code class="literal">FROM</code>.
       Write <code class="literal">*</code> to return all columns.
+     </p><p>
+      A column name or <code class="literal">*</code> may be qualified using
+      <code class="literal">OLD</code> or <code class="literal">NEW</code>, or the corresponding
+      <em class="replaceable"><code>output_alias</code></em> for
+      <code class="literal">OLD</code> or <code class="literal">NEW</code>, to cause old or new
+      values to be returned.  An unqualified column name, or
+      <code class="literal">*</code>, or a column name or <code class="literal">*</code> qualified
+      using the target table name or alias will return new values.
      </p></dd><dt><span class="term"><em class="replaceable"><code>output_name</code></em></span></dt><dd><p>
       A name to use for a returned column.
      </p></dd></dl></div></div><div class="refsect1" id="id-1.9.3.183.7"><h2>Outputs</h2><p>
@@ -189,12 +210,13 @@ UPDATE weather SET temp_lo = temp_lo+1, temp_hi = temp_lo+15, prcp = DEFAULT
   WHERE city = 'San Francisco' AND date = '2003-07-03';
 </pre><p>
   </p><p>
-   Perform the same operation and return the updated entries:
+   Perform the same operation and return the updated entries, and the old
+   precipitation value:
 
 </p><pre class="programlisting">
 UPDATE weather SET temp_lo = temp_lo+1, temp_hi = temp_lo+15, prcp = DEFAULT
   WHERE city = 'San Francisco' AND date = '2003-07-03'
-  RETURNING temp_lo, temp_hi, prcp;
+  RETURNING temp_lo, temp_hi, prcp, old.prcp AS old_prcp;
 </pre><p>
   </p><p>
    Use the alternative column-list syntax to do the same update:
@@ -323,4 +345,4 @@ UPDATE work_item SET status = 'failed'
    constructor</a> or a sub-<code class="literal">SELECT</code>.  An individual column's
    updated value can be specified as <code class="literal">DEFAULT</code> in the
    row-constructor case, but not inside a sub-<code class="literal">SELECT</code>.
-  </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="sql-unlisten.html" title="UNLISTEN">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="sql-vacuum.html" title="VACUUM">Next</a></td></tr><tr><td width="40%" align="left" valign="top">UNLISTEN </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> VACUUM</td></tr></table></div></body></html>
+  </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="sql-unlisten.html" title="UNLISTEN">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="sql-vacuum.html" title="VACUUM">Next</a></td></tr><tr><td width="40%" align="left" valign="top">UNLISTEN </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> VACUUM</td></tr></table></div></body></html>

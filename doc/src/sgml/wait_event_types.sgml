@@ -30,6 +30,14 @@
       <entry>Waiting in main loop of checkpointer process.</entry>
      </row>
      <row>
+      <entry><literal>CheckpointerShutdown</literal></entry>
+      <entry>Waiting for checkpointer process to be terminated.</entry>
+     </row>
+     <row>
+      <entry><literal>IoWorkerMain</literal></entry>
+      <entry>Waiting in main loop of IO Worker process.</entry>
+     </row>
+     <row>
       <entry><literal>LogicalApplyMain</literal></entry>
       <entry>Waiting in main loop of logical replication apply process.</entry>
      </row>
@@ -178,6 +186,18 @@
 
     <tbody>
      <row>
+      <entry><literal>AioIoCompletion</literal></entry>
+      <entry>Waiting for another process to complete IO.</entry>
+     </row>
+     <row>
+      <entry><literal>AioIoUringExecution</literal></entry>
+      <entry>Waiting for IO execution via io_uring.</entry>
+     </row>
+     <row>
+      <entry><literal>AioIoUringSubmit</literal></entry>
+      <entry>Waiting for IO submission via io_uring.</entry>
+     </row>
+     <row>
       <entry><literal>BasebackupRead</literal></entry>
       <entry>Waiting for base backup to read from a file.</entry>
      </row>
@@ -220,6 +240,10 @@
      <row>
       <entry><literal>ControlFileWriteUpdate</literal></entry>
       <entry>Waiting for a write to update the <filename>pg_control</filename> file.</entry>
+     </row>
+     <row>
+      <entry><literal>CopyFileCopy</literal></entry>
+      <entry>Waiting for a file copy operation.</entry>
      </row>
      <row>
       <entry><literal>CopyFileRead</literal></entry>
@@ -811,6 +835,14 @@
       <entry>Waiting to manage an extension's space allocation in shared memory.</entry>
      </row>
      <row>
+      <entry><literal>AioUringCompletion</literal></entry>
+      <entry>Waiting for another process to complete IO via io_uring.</entry>
+     </row>
+     <row>
+      <entry><literal>AioWorkerSubmissionQueue</literal></entry>
+      <entry>Waiting to access AIO worker submission queue.</entry>
+     </row>
+     <row>
       <entry><literal>AutoFile</literal></entry>
       <entry>Waiting to update the <filename>postgresql.auto.conf</filename> file.</entry>
      </row>
@@ -945,6 +977,10 @@
      <row>
       <entry><literal>ParallelAppend</literal></entry>
       <entry>Waiting to choose the next subplan during Parallel Append plan execution.</entry>
+     </row>
+     <row>
+      <entry><literal>ParallelBtreeScan</literal></entry>
+      <entry>Waiting to synchronize workers during Parallel B-tree scan plan execution.</entry>
      </row>
      <row>
       <entry><literal>ParallelHashJoin</literal></entry>

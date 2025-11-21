@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>pg_dump</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="app-pgconfig.html" title="pg_config" /><link rel="next" href="app-pg-dumpall.html" title="pg_dumpall" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center"><span class="application">pg_dump</span></th></tr><tr><td width="10%" align="left"><a accesskey="p" href="app-pgconfig.html" title="pg_config">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="reference-client.html" title="PostgreSQL Client Applications">Up</a></td><th width="60%" align="center">PostgreSQL Client Applications</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="app-pg-dumpall.html" title="pg_dumpall">Next</a></td></tr></table><hr /></div><div class="refentry" id="APP-PGDUMP"><div class="titlepage"></div><a id="id-1.9.4.14.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle"><span class="application">pg_dump</span></span></h2><p>pg_dump — 
-   extract a <span class="productname">PostgreSQL</span> database into a script file or other archive file
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>pg_dump</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="app-pgconfig.html" title="pg_config" /><link rel="next" href="app-pg-dumpall.html" title="pg_dumpall" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center"><span class="application">pg_dump</span></th></tr><tr><td width="10%" align="left"><a accesskey="p" href="app-pgconfig.html" title="pg_config">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="reference-client.html" title="PostgreSQL Client Applications">Up</a></td><th width="60%" align="center">PostgreSQL Client Applications</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="app-pg-dumpall.html" title="pg_dumpall">Next</a></td></tr></table><hr /></div><div class="refentry" id="APP-PGDUMP"><div class="titlepage"></div><a id="id-1.9.4.14.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle"><span class="application">pg_dump</span></span></h2><p>pg_dump — 
+   export a <span class="productname">PostgreSQL</span> database as an SQL script or to other formats
   </p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><div class="cmdsynopsis"><p id="id-1.9.4.14.4.1"><code class="command">pg_dump</code> [<em class="replaceable"><code>connection-option</code></em>...] [<em class="replaceable"><code>option</code></em>...] [<em class="replaceable"><code>dbname</code></em>]</p></div></div><div class="refsect1" id="PG-DUMP-DESCRIPTION"><h2>Description</h2><p>
-   <span class="application">pg_dump</span> is a utility for backing up a
+   <span class="application">pg_dump</span> is a utility for exporting a
    <span class="productname">PostgreSQL</span> database. It makes consistent
-   backups even if the database is being used concurrently.
+   exports even if the database is being used concurrently.
    <span class="application">pg_dump</span> does not block other users
    accessing the database (readers or writers).
+   Note, however, that except in simple cases,
+   <span class="application">pg_dump</span> is generally not the right choice for
+   taking regular backups of production databases.  See <a class="xref" href="backup.html" title="Chapter 25. Backup and Restore">Chapter 25</a> for further discussion.
   </p><p>
    <span class="application">pg_dump</span> only dumps a single database.
-   To back up an entire cluster, or to back up global objects that are
+   To export an entire cluster, or to export global objects that are
    common to all databases in a cluster (such as roles and tablespaces),
    use <a class="xref" href="app-pg-dumpall.html" title="pg_dumpall"><span class="refentrytitle"><span class="application">pg_dumpall</span></span></a>.
   </p><p>
@@ -33,7 +36,7 @@
    <span class="application">pg_restore</span>,
    <span class="application">pg_dump</span> provides a flexible archival and
    transfer mechanism. <span class="application">pg_dump</span> can be used to
-   backup an entire database, then <span class="application">pg_restore</span>
+   export an entire database, then <span class="application">pg_restore</span>
    can be used to examine the archive and/or select which parts of the
    database are to be restored. The most flexible output file formats are
    the <span class="quote">“<span class="quote">custom</span>”</span> format (<code class="option">-Fc</code>) and the
@@ -63,20 +66,22 @@
         <code class="envar">PGDATABASE</code> is used.  If that is not set, the
         user name specified for the connection is used.
        </p></dd><dt><span class="term"><code class="option">-a</code><br /></span><span class="term"><code class="option">--data-only</code></span></dt><dd><p>
-        Dump only the data, not the schema (data definitions).
+        Dump only the data, not the schema (data definitions) or statistics.
         Table data, large objects, and sequence values are dumped.
        </p><p>
         This option is similar to, but for historical reasons not identical
         to, specifying <code class="option">--section=data</code>.
        </p></dd><dt><span class="term"><code class="option">-b</code><br /></span><span class="term"><code class="option">--large-objects</code><br /></span><span class="term"><code class="option">--blobs</code> (deprecated)</span></dt><dd><p>
         Include large objects in the dump.  This is the default behavior
-        except when <code class="option">--schema</code>, <code class="option">--table</code>, or
-        <code class="option">--schema-only</code> is specified.  The <code class="option">-b</code>
-        switch is therefore only useful to add large objects to dumps
-        where a specific schema or table has been requested.  Note that
-        large objects are considered data and therefore will be included when
-        <code class="option">--data-only</code> is used, but not
-        when <code class="option">--schema-only</code> is.
+        except when <code class="option">--schema</code>, <code class="option">--table</code>,
+        <code class="option">--schema-only</code>, <code class="option">--statistics-only</code>, or
+        <code class="option">--no-data</code> is specified.  The <code class="option">-b</code>
+        switch is therefore only useful to add large objects to dumps where a
+        specific schema or table has been requested.  Note that large objects
+        are considered data and therefore will be included when
+        <code class="option">--data-only</code> is used, but not when
+        <code class="option">--schema-only</code> or <code class="option">--statistics-only</code>
+        is.
        </p></dd><dt><span class="term"><code class="option">-B</code><br /></span><span class="term"><code class="option">--no-large-objects</code><br /></span><span class="term"><code class="option">--no-blobs</code> (deprecated)</span></dt><dd><p>
         Exclude large objects in the dump.
        </p><p>
@@ -274,9 +279,10 @@
         This option is obsolete but still accepted for backwards
         compatibility.
        </p></dd><dt><span class="term"><code class="option">-s</code><br /></span><span class="term"><code class="option">--schema-only</code></span></dt><dd><p>
-        Dump only the object definitions (schema), not data.
+        Dump only the object definitions (schema), not data or statistics.
        </p><p>
-        This option is the inverse of <code class="option">--data-only</code>.
+        This option cannot be used with <code class="option">--data-only</code>
+        or <code class="option">--statistics-only</code>.
         It is similar to, but for historical reasons not identical to,
         specifying
         <code class="option">--section=pre-data --section=post-data</code>.
@@ -391,7 +397,8 @@
         This option disables the use of dollar quoting for function bodies,
         and forces them to be quoted using SQL standard string syntax.
        </p></dd><dt><span class="term"><code class="option">--disable-triggers</code></span></dt><dd><p>
-        This option is relevant only when creating a data-only dump.
+        This option is relevant only when creating a dump that includes data
+        but does not include schema.
         It instructs <span class="application">pg_dump</span> to include commands
         to temporarily disable triggers on the target tables while
         the data is restored.  Use this if you have referential
@@ -444,7 +451,8 @@
         useful when you need the definition of a particular table even
         though you do not need the data in it.
        </p><p>
-        To exclude data for all tables in the database, see <code class="option">--schema-only</code>.
+        To exclude data for all tables in the database, see <code class="option">--schema-only</code>
+        or <code class="option">--statistics-only</code>.
        </p></dd><dt><span class="term"><code class="option">--exclude-table-data-and-children=<em class="replaceable"><code>pattern</code></em></code></span></dt><dd><p>
         This is the same as the <code class="option">--exclude-table-data</code> option,
         except that it also excludes data of any partitions or inheritance
@@ -584,11 +592,19 @@
         version you are dumping from, but an integer number of milliseconds
         is accepted by all versions.)
        </p></dd><dt><span class="term"><code class="option">--no-comments</code></span></dt><dd><p>
-        Do not dump comments.
+        Do not dump <code class="command">COMMENT</code> commands.
+       </p></dd><dt><span class="term"><code class="option">--no-data</code></span></dt><dd><p>
+        Do not dump data.
+       </p></dd><dt><span class="term"><code class="option">--no-policies</code></span></dt><dd><p>
+        Do not dump row security policies.
        </p></dd><dt><span class="term"><code class="option">--no-publications</code></span></dt><dd><p>
         Do not dump publications.
+       </p></dd><dt><span class="term"><code class="option">--no-schema</code></span></dt><dd><p>
+        Do not dump schema (data definitions).
        </p></dd><dt><span class="term"><code class="option">--no-security-labels</code></span></dt><dd><p>
         Do not dump security labels.
+       </p></dd><dt><span class="term"><code class="option">--no-statistics</code></span></dt><dd><p>
+        Do not dump statistics. This is the default.
        </p></dd><dt><span class="term"><code class="option">--no-subscriptions</code></span></dt><dd><p>
         Do not dump subscriptions.
        </p></dd><dt><span class="term"><code class="option">--no-sync</code></span></dt><dd><p>
@@ -671,11 +687,17 @@
           sections. The default is to dump all sections.
          </p><p>
           The data section contains actual table data, large-object
-          contents, and sequence values.
+          contents, sequence values, and statistics for tables,
+          materialized views, and foreign tables.
           Post-data items include definitions of indexes, triggers, rules,
-          and constraints other than validated check constraints.
+          statistics for indexes, and constraints other than validated check
+          and not-null constraints.
           Pre-data items include all other data definition items.
-         </p></dd><dt><span class="term"><code class="option">--serializable-deferrable</code></span></dt><dd><p>
+         </p></dd><dt><span class="term"><code class="option">--sequence-data</code></span></dt><dd><p>
+        Include sequence data in the dump.  This is the default behavior except
+        when <code class="option">--no-data</code>, <code class="option">--schema-only</code>, or
+        <code class="option">--statistics-only</code> is specified.
+       </p></dd><dt><span class="term"><code class="option">--serializable-deferrable</code></span></dt><dd><p>
         Use a <code class="literal">serializable</code> transaction for the dump, to
         ensure that the snapshot used is consistent with later database
         states; but do this by waiting for a point in the transaction stream
@@ -702,7 +724,7 @@
        </p></dd><dt><span class="term"><code class="option">--snapshot=<em class="replaceable"><code>snapshotname</code></em></code></span></dt><dd><p>
           Use the specified synchronized snapshot when making a dump of the
           database (see
-          <a class="xref" href="functions-admin.html#FUNCTIONS-SNAPSHOT-SYNCHRONIZATION-TABLE" title="Table 9.98. Snapshot Synchronization Functions">Table 9.98</a> for more
+          <a class="xref" href="functions-admin.html#FUNCTIONS-SNAPSHOT-SYNCHRONIZATION-TABLE" title="Table 9.100. Snapshot Synchronization Functions">Table 9.100</a> for more
           details).
          </p><p>
           This option is useful when needing to synchronize the dump with
@@ -711,7 +733,13 @@
          </p><p>
           In the case of a parallel dump, the snapshot name defined by this
           option is used rather than taking a new snapshot.
-         </p></dd><dt><span class="term"><code class="option">--strict-names</code></span></dt><dd><p>
+         </p></dd><dt><span class="term"><code class="option">--statistics</code></span></dt><dd><p>
+        Dump statistics.
+       </p></dd><dt><span class="term"><code class="option">--statistics-only</code></span></dt><dd><p>
+        Dump only the statistics, not the schema (data definitions) or data.
+        Statistics for tables, materialized views, foreign tables,
+        and indexes are dumped.
+       </p></dd><dt><span class="term"><code class="option">--strict-names</code></span></dt><dd><p>
         Require that each
         extension (<code class="option">-e</code>/<code class="option">--extension</code>),
         schema (<code class="option">-n</code>/<code class="option">--schema</code>) and
@@ -845,19 +873,20 @@
 CREATE DATABASE foo WITH TEMPLATE template0;
 </pre><p>
   </p><p>
-   When a data-only dump is chosen and the option <code class="option">--disable-triggers</code>
+   When a dump without schema is chosen and the option <code class="option">--disable-triggers</code>
    is used, <span class="application">pg_dump</span> emits commands
    to disable triggers on user tables before inserting the data,
    and then commands to re-enable them after the data has been
    inserted.  If the restore is stopped in the middle, the system
    catalogs might be left in the wrong state.
   </p><p>
-   The dump file produced by <span class="application">pg_dump</span>
-   does not contain the statistics used by the optimizer to make
-   query planning decisions.  Therefore, it is wise to run
-   <code class="command">ANALYZE</code> after restoring from a dump file
-   to ensure optimal performance; see <a class="xref" href="routine-vacuuming.html#VACUUM-FOR-STATISTICS" title="24.1.3. Updating Planner Statistics">Section 24.1.3</a>
-   and <a class="xref" href="routine-vacuuming.html#AUTOVACUUM" title="24.1.6. The Autovacuum Daemon">Section 24.1.6</a> for more information.
+   If <code class="option">--statistics</code> is specified,
+   <code class="command">pg_dump</code> will include most optimizer statistics in the
+   resulting dump file.  However, some statistics may not be included, such as
+   those created explicitly with <a class="xref" href="sql-createstatistics.html" title="CREATE STATISTICS"><span class="refentrytitle">CREATE STATISTICS</span></a> or
+   custom statistics added by an extension.  Therefore, it may be useful to
+   run <code class="command">ANALYZE</code> after restoring from a dump file to ensure
+   optimal performance; see <a class="xref" href="routine-vacuuming.html#VACUUM-FOR-STATISTICS" title="24.1.3. Updating Planner Statistics">Section 24.1.3</a> and <a class="xref" href="routine-vacuuming.html#AUTOVACUUM" title="24.1.6. The Autovacuum Daemon">Section 24.1.6</a> for more information.
   </p><p>
    Because <span class="application">pg_dump</span> is used to transfer data
    to newer versions of <span class="productname">PostgreSQL</span>, the output of
@@ -1000,4 +1029,4 @@ exclude table mytable2
 
 </p><pre class="screen">
 <code class="prompt">$</code> <strong class="userinput"><code>pg_dump --filter=filter.txt mydb &gt; db.sql</code></strong>
-</pre></div><div class="refsect1" id="id-1.9.4.14.11"><h2>See Also</h2><span class="simplelist"><a class="xref" href="app-pg-dumpall.html" title="pg_dumpall"><span class="refentrytitle"><span class="application">pg_dumpall</span></span></a>, <a class="xref" href="app-pgrestore.html" title="pg_restore"><span class="refentrytitle"><span class="application">pg_restore</span></span></a>, <a class="xref" href="app-psql.html" title="psql"><span class="refentrytitle"><span class="application">psql</span></span></a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="app-pgconfig.html" title="pg_config">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="reference-client.html" title="PostgreSQL Client Applications">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="app-pg-dumpall.html" title="pg_dumpall">Next</a></td></tr><tr><td width="40%" align="left" valign="top"><span class="application">pg_config</span> </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> <span class="application">pg_dumpall</span></td></tr></table></div></body></html>
+</pre></div><div class="refsect1" id="id-1.9.4.14.11"><h2>See Also</h2><span class="simplelist"><a class="xref" href="app-pg-dumpall.html" title="pg_dumpall"><span class="refentrytitle"><span class="application">pg_dumpall</span></span></a>, <a class="xref" href="app-pgrestore.html" title="pg_restore"><span class="refentrytitle"><span class="application">pg_restore</span></span></a>, <a class="xref" href="app-psql.html" title="psql"><span class="refentrytitle"><span class="application">psql</span></span></a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="app-pgconfig.html" title="pg_config">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="reference-client.html" title="PostgreSQL Client Applications">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="app-pg-dumpall.html" title="pg_dumpall">Next</a></td></tr><tr><td width="40%" align="left" valign="top"><span class="application">pg_config</span> </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> <span class="application">pg_dumpall</span></td></tr></table></div></body></html>

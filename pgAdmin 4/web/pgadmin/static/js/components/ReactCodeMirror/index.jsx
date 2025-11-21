@@ -25,7 +25,7 @@ import CustomPropTypes from '../../custom_prop_types';
 import FindDialog from './components/FindDialog';
 import GotoDialog from './components/GotoDialog';
 import usePreferences from '../../../../preferences/static/js/store';
-import { toCodeMirrorKey } from '../../utils';
+import { parseKeyEventValue, parseShortcutValue } from '../../utils';
 
 const Root = styled('div')(() => ({
   position: 'relative',
@@ -69,6 +69,7 @@ export default function CodeMirror({className, currEditor, showCopyBtn=false, cu
   const [showGoto, setShowGoto] = useState(false);
   const [showCopy, setShowCopy] = useState(false);
   const preferences = usePreferences().getPreferencesForModule('sqleditor');
+  const editorPrefs = usePreferences().getPreferencesForModule('editor');
 
   const formatSQL = (view)=>{
     let selection = true, sql = view.getSelection();
@@ -78,17 +79,17 @@ export default function CodeMirror({className, currEditor, showCopyBtn=false, cu
     */
     let formatPrefs = {
       language: 'postgresql',
-      keywordCase: preferences.keyword_case === 'capitalize' ? 'preserve' : preferences.keyword_case,
-      identifierCase: preferences.identifier_case === 'capitalize' ? 'preserve' : preferences.identifier_case,
-      dataTypeCase: preferences.data_type_case,
-      functionCase: preferences.function_case,
-      logicalOperatorNewline: preferences.logical_operator_new_line,
-      expressionWidth: preferences.expression_width,
-      linesBetweenQueries: preferences.lines_between_queries,
-      tabWidth: preferences.tab_size,
-      useTabs: !preferences.use_spaces,
-      denseOperators: !preferences.spaces_around_operators,
-      newlineBeforeSemicolon: preferences.new_line_before_semicolon
+      keywordCase: editorPrefs.keyword_case === 'capitalize' ? 'preserve' : editorPrefs.keyword_case,
+      identifierCase: editorPrefs.identifier_case === 'capitalize' ? 'preserve' : editorPrefs.identifier_case,
+      dataTypeCase: editorPrefs.data_type_case,
+      functionCase: editorPrefs.function_case,
+      logicalOperatorNewline: editorPrefs.logical_operator_new_line,
+      expressionWidth: editorPrefs.expression_width,
+      linesBetweenQueries: editorPrefs.lines_between_queries,
+      tabWidth: editorPrefs.tab_size,
+      useTabs: !editorPrefs.use_spaces,
+      denseOperators: !editorPrefs.spaces_around_operators,
+      newlineBeforeSemicolon: editorPrefs.new_line_before_semicolon
     };
     if(sql == '') {
       sql = view.getValue();
@@ -102,39 +103,46 @@ export default function CodeMirror({className, currEditor, showCopyBtn=false, cu
     }
   };
 
-  const finalCustomKeyMap = useMemo(()=>[{
-    key: toCodeMirrorKey(preferences.find), run: () => {
-      setShowFind(prevVal => [true, false, !prevVal[2]]);
+  // We're not using CodeMirror keymap and using any instead
+  // because on Mac, the alt key combination creates special
+  // chars and https://github.com/codemirror/view/commit/3cea8dba19845fe75bea4eae756c6103694f49f3
+  const customShortcuts = {
+    [parseShortcutValue(editorPrefs.find, true)]: () => {
+      setTimeout(()=>{
+        setShowFind(prevVal => [true, false, !prevVal[2]]);
+      }, 0);
     },
-    preventDefault: true,
-    stopPropagation: true,
-  }, {
-    key: toCodeMirrorKey(preferences.replace), run: () => {
-      setShowFind(prevVal => [true, true, !prevVal[2]]);
+    [parseShortcutValue(editorPrefs.replace, true)]: () => {
+      setTimeout(()=>{
+        setShowFind(prevVal => [true, true, !prevVal[2]]);
+      }, 0);
     },
-    preventDefault: true,
-    stopPropagation: true,
-  }, {
-    key: toCodeMirrorKey(preferences.goto_line_col), run: () => {
+    [parseShortcutValue(editorPrefs.goto_line_col, true)]: () => {
       setShowGoto(true);
     },
-    preventDefault: true,
-    stopPropagation: true,
-  }, {
-    key: toCodeMirrorKey(preferences.comment), run: () => {
+    [parseShortcutValue(editorPrefs.comment, true)]: () => {
       editor.current?.execCommand('toggleComment');
     },
-    preventDefault: true,
-    stopPropagation: true,
-  },{
-    key: toCodeMirrorKey(preferences.format_sql), run: formatSQL,
-    preventDefault: true,
-    stopPropagation: true,
-  },{
-    key: toCodeMirrorKey(preferences.auto_complete), run: startCompletion,
-    preventDefault: true,
-  },
-  ...customKeyMap], [customKeyMap]);
+    [parseShortcutValue(editorPrefs.format_sql, true)]: formatSQL,
+    [parseShortcutValue(preferences.auto_complete, true)]: startCompletion,
+  };
+
+  const finalCustomKeyMap = useMemo(() => [
+    {
+      any: (view, e) => {
+        const eventStr = parseKeyEventValue(e, true);
+        const callback = customShortcuts[eventStr];
+        if(callback) {
+          e.preventDefault();
+          e.stopPropagation();
+          callback(view);
+          return true;
+        }
+        return false;
+      }
+    },
+    ...customKeyMap
+  ], [customKeyMap]);
 
   const closeFind = () => {
     setShowFind([false, false, false]);

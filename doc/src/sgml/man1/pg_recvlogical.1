@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "PG_RECVLOGICAL" "1" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "PG_RECVLOGICAL" "1" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -75,16 +75,27 @@ Create a new logical replication slot with the name specified by
 \fB\-\-dbname\fR\&.
 .sp
 The
-\fB\-\-two\-phase\fR
-can be specified with
-\fB\-\-create\-slot\fR
-to enable decoding of prepared transactions\&.
+\fB\-\-slot\fR
+and
+\fB\-\-dbname\fR
+are required for this action\&.
+.sp
+The
+\fB\-\-enable\-two\-phase\fR
+and
+\fB\-\-enable\-failover\fR
+options can be specified with
+\fB\-\-create\-slot\fR\&.
 .RE
 .PP
 \fB\-\-drop\-slot\fR
 .RS 4
 Drop the replication slot with the name specified by
 \fB\-\-slot\fR, then exit\&.
+.sp
+The
+\fB\-\-slot\fR
+is required for this action\&.
 .RE
 .PP
 \fB\-\-start\fR
@@ -93,6 +104,13 @@ Begin streaming changes from the logical replication slot specified by
 \fB\-\-slot\fR, continuing until terminated by a signal\&. If the server side change stream ends with a server shutdown or disconnect, retry in a loop unless
 \fB\-\-no\-loop\fR
 is specified\&.
+.sp
+The
+\fB\-\-slot\fR
+and
+\fB\-\-dbname\fR,
+\fB\-\-file\fR
+are required for this action\&.
 .sp
 The stream format is determined by the output plugin specified when the slot was created\&.
 .sp
@@ -126,6 +144,12 @@ The
 option is not aware of transaction boundaries and may truncate output partway through a transaction\&. Any partially output transaction will not be consumed and will be replayed again when the slot is next read from\&. Individual messages are never truncated\&.
 .RE
 .PP
+\fB\-\-enable\-failover\fR
+.RS 4
+Enables the slot to be synchronized to the standbys\&. This option may only be specified with
+\fB\-\-create\-slot\fR\&.
+.RE
+.PP
 \fB\-f \fR\fB\fIfilename\fR\fR
 .br
 \fB\-\-file=\fR\fB\fIfilename\fR\fR
@@ -134,6 +158,9 @@ Write received and decoded transaction data into this file\&. Use
 \-
 for
 stdout\&.
+.sp
+This parameter is required for
+\fB\-\-start\fR\&.
 .RE
 .PP
 \fB\-F \fR\fB\fIinterval_seconds\fR\fR
@@ -164,7 +191,7 @@ In
 mode, start replication from the given LSN\&. For details on the effect of this, see the documentation in
 Chapter\ \&47
 and
-Section\ \&53.4\&. Ignored in other modes\&.
+Section\ \&54.4\&. Ignored in other modes\&.
 .RE
 .PP
 \fB\-\-if\-not\-exists\fR
@@ -219,11 +246,15 @@ mode, use the existing logical replication slot named
 mode, create the slot with this name\&. In
 \fB\-\-drop\-slot\fR
 mode, delete the slot with this name\&.
+.sp
+This parameter is required for any of actions\&.
 .RE
 .PP
 \fB\-t\fR
 .br
-\fB\-\-two\-phase\fR
+\fB\-\-enable\-two\-phase\fR
+.br
+\fB\-\-two\-phase\fR (deprecated)
 .RS 4
 Enables decoding of prepared transactions\&. This option may only be specified with
 \fB\-\-create\-slot\fR\&.
@@ -245,7 +276,12 @@ The following command\-line options control the database connection parameters\&
 The database to connect to\&. See the description of the actions for what this means in detail\&. The
 \fIdbname\fR
 can be a
-connection string\&. If so, connection string parameters will override any conflicting command line options\&. Defaults to the user name\&.
+connection string\&. If so, connection string parameters will override any conflicting command line options\&.
+.sp
+This parameter is required for
+\fB\-\-create\-slot\fR
+and
+\fB\-\-start\fR\&.
 .RE
 .PP
 \fB\-h \fR\fB\fIhostname\-or\-ip\fR\fR

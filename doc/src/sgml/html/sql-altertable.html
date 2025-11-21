@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>ALTER TABLE</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="sql-altersystem.html" title="ALTER SYSTEM" /><link rel="next" href="sql-altertablespace.html" title="ALTER TABLESPACE" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">ALTER TABLE</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="sql-altersystem.html" title="ALTER SYSTEM">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><th width="60%" align="center">SQL Commands</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="sql-altertablespace.html" title="ALTER TABLESPACE">Next</a></td></tr></table><hr /></div><div class="refentry" id="SQL-ALTERTABLE"><div class="titlepage"></div><a id="id-1.9.3.35.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle">ALTER TABLE</span></h2><p>ALTER TABLE — change the definition of a table</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><pre class="synopsis">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>ALTER TABLE</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="sql-altersystem.html" title="ALTER SYSTEM" /><link rel="next" href="sql-altertablespace.html" title="ALTER TABLESPACE" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">ALTER TABLE</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="sql-altersystem.html" title="ALTER SYSTEM">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><th width="60%" align="center">SQL Commands</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="sql-altertablespace.html" title="ALTER TABLESPACE">Next</a></td></tr></table><hr /></div><div class="refentry" id="SQL-ALTERTABLE"><div class="titlepage"></div><a id="id-1.9.3.35.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle">ALTER TABLE</span></h2><p>ALTER TABLE — change the definition of a table</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><pre class="synopsis">
 ALTER TABLE [ IF EXISTS ] [ ONLY ] <em class="replaceable"><code>name</code></em> [ * ]
     <em class="replaceable"><code>action</code></em> [, ... ]
 ALTER TABLE [ IF EXISTS ] [ ONLY ] <em class="replaceable"><code>name</code></em> [ * ]
@@ -37,7 +37,8 @@ ALTER TABLE [ IF EXISTS ] <em class="replaceable"><code>name</code></em>
     ALTER [ COLUMN ] <em class="replaceable"><code>column_name</code></em> SET COMPRESSION <em class="replaceable"><code>compression_method</code></em>
     ADD <em class="replaceable"><code>table_constraint</code></em> [ NOT VALID ]
     ADD <em class="replaceable"><code>table_constraint_using_index</code></em>
-    ALTER CONSTRAINT <em class="replaceable"><code>constraint_name</code></em> [ DEFERRABLE | NOT DEFERRABLE ] [ INITIALLY DEFERRED | INITIALLY IMMEDIATE ]
+    ALTER CONSTRAINT <em class="replaceable"><code>constraint_name</code></em> [ DEFERRABLE | NOT DEFERRABLE ] [ INITIALLY DEFERRED | INITIALLY IMMEDIATE ] [ ENFORCED | NOT ENFORCED ]
+    ALTER CONSTRAINT <em class="replaceable"><code>constraint_name</code></em> [ INHERIT | NO INHERIT ]
     VALIDATE CONSTRAINT <em class="replaceable"><code>constraint_name</code></em>
     DROP CONSTRAINT [ IF EXISTS ]  <em class="replaceable"><code>constraint_name</code></em> [ RESTRICT | CASCADE ]
     DISABLE TRIGGER [ <em class="replaceable"><code>trigger_name</code></em> | ALL | USER ]
@@ -77,28 +78,29 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
 <span class="phrase">and <em class="replaceable"><code>column_constraint</code></em> is:</span>
 
 [ CONSTRAINT <em class="replaceable"><code>constraint_name</code></em> ]
-{ NOT NULL |
+{ NOT NULL [ NO INHERIT ] |
   NULL |
   CHECK ( <em class="replaceable"><code>expression</code></em> ) [ NO INHERIT ] |
   DEFAULT <em class="replaceable"><code>default_expr</code></em> |
-  GENERATED ALWAYS AS ( <em class="replaceable"><code>generation_expr</code></em> ) STORED |
+  GENERATED ALWAYS AS ( <em class="replaceable"><code>generation_expr</code></em> ) [ STORED | VIRTUAL ] |
   GENERATED { ALWAYS | BY DEFAULT } AS IDENTITY [ ( <em class="replaceable"><code>sequence_options</code></em> ) ] |
   UNIQUE [ NULLS [ NOT ] DISTINCT ] <em class="replaceable"><code>index_parameters</code></em> |
   PRIMARY KEY <em class="replaceable"><code>index_parameters</code></em> |
   REFERENCES <em class="replaceable"><code>reftable</code></em> [ ( <em class="replaceable"><code>refcolumn</code></em> ) ] [ MATCH FULL | MATCH PARTIAL | MATCH SIMPLE ]
     [ ON DELETE <em class="replaceable"><code>referential_action</code></em> ] [ ON UPDATE <em class="replaceable"><code>referential_action</code></em> ] }
-[ DEFERRABLE | NOT DEFERRABLE ] [ INITIALLY DEFERRED | INITIALLY IMMEDIATE ]
+[ DEFERRABLE | NOT DEFERRABLE ] [ INITIALLY DEFERRED | INITIALLY IMMEDIATE ] [ ENFORCED | NOT ENFORCED ]
 
 <span class="phrase">and <em class="replaceable"><code>table_constraint</code></em> is:</span>
 
 [ CONSTRAINT <em class="replaceable"><code>constraint_name</code></em> ]
 { CHECK ( <em class="replaceable"><code>expression</code></em> ) [ NO INHERIT ] |
-  UNIQUE [ NULLS [ NOT ] DISTINCT ] ( <em class="replaceable"><code>column_name</code></em> [, ... ] ) <em class="replaceable"><code>index_parameters</code></em> |
-  PRIMARY KEY ( <em class="replaceable"><code>column_name</code></em> [, ... ] ) <em class="replaceable"><code>index_parameters</code></em> |
+  NOT NULL <em class="replaceable"><code>column_name</code></em> [ NO INHERIT ] |
+  UNIQUE [ NULLS [ NOT ] DISTINCT ] ( <em class="replaceable"><code>column_name</code></em> [, ... ] [, <em class="replaceable"><code>column_name</code></em> WITHOUT OVERLAPS ] ) <em class="replaceable"><code>index_parameters</code></em> |
+  PRIMARY KEY ( <em class="replaceable"><code>column_name</code></em> [, ... ] [, <em class="replaceable"><code>column_name</code></em> WITHOUT OVERLAPS ] ) <em class="replaceable"><code>index_parameters</code></em> |
   EXCLUDE [ USING <em class="replaceable"><code>index_method</code></em> ] ( <em class="replaceable"><code>exclude_element</code></em> WITH <em class="replaceable"><code>operator</code></em> [, ... ] ) <em class="replaceable"><code>index_parameters</code></em> [ WHERE ( <em class="replaceable"><code>predicate</code></em> ) ] |
-  FOREIGN KEY ( <em class="replaceable"><code>column_name</code></em> [, ... ] ) REFERENCES <em class="replaceable"><code>reftable</code></em> [ ( <em class="replaceable"><code>refcolumn</code></em> [, ... ] ) ]
+  FOREIGN KEY ( <em class="replaceable"><code>column_name</code></em> [, ... ] [, PERIOD <em class="replaceable"><code>column_name</code></em> ] ) REFERENCES <em class="replaceable"><code>reftable</code></em> [ ( <em class="replaceable"><code>refcolumn</code></em> [, ... ]  [, PERIOD <em class="replaceable"><code>refcolumn</code></em> ] ) ]
     [ MATCH FULL | MATCH PARTIAL | MATCH SIMPLE ] [ ON DELETE <em class="replaceable"><code>referential_action</code></em> ] [ ON UPDATE <em class="replaceable"><code>referential_action</code></em> ] }
-[ DEFERRABLE | NOT DEFERRABLE ] [ INITIALLY DEFERRED | INITIALLY IMMEDIATE ]
+[ DEFERRABLE | NOT DEFERRABLE ] [ INITIALLY DEFERRED | INITIALLY IMMEDIATE ] [ ENFORCED | NOT ENFORCED ]
 
 <span class="phrase">and <em class="replaceable"><code>table_constraint_using_index</code></em> is:</span>
 
@@ -161,6 +163,8 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
       When this form is used, the column's statistics are removed,
       so running <a class="link" href="sql-analyze.html" title="ANALYZE"><code class="command">ANALYZE</code></a>
       on the table afterwards is recommended.
+      For a virtual generated column, <code class="command">ANALYZE</code>
+      is not necessary because such columns never have statistics.
      </p></dd><dt id="SQL-ALTERTABLE-DESC-SET-DROP-DEFAULT"><span class="term"><code class="literal">SET</code>/<code class="literal">DROP DEFAULT</code></span> <a href="#SQL-ALTERTABLE-DESC-SET-DROP-DEFAULT" class="id_link">#</a></dt><dd><p>
       These forms set or remove the default value for a column (where
       removal is equivalent to setting the default value to NULL).  The new
@@ -175,10 +179,12 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
       provided none of the records in the table contain a
       <code class="literal">NULL</code> value for the column.  Ordinarily this is
       checked during the <code class="literal">ALTER TABLE</code> by scanning the
-      entire table;
+      entire table, unless <code class="literal">NOT VALID</code> is specified;
       however, if a valid <code class="literal">CHECK</code> constraint exists
       (and is not dropped in the same command) which proves no
       <code class="literal">NULL</code> can exist, then the table scan is skipped.
+      If a column has an invalid not-null constraint,
+      <code class="literal">SET NOT NULL</code> validates it.
      </p><p>
       If this table is a partition, one cannot perform <code class="literal">DROP NOT NULL</code>
       on a column if it is marked <code class="literal">NOT NULL</code> in the parent
@@ -187,23 +193,31 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
       table.  Even if there is no <code class="literal">NOT NULL</code> constraint on the
       parent, such a constraint can still be added to individual partitions,
       if desired; that is, the children can disallow nulls even if the parent
-      allows them, but not the other way around.
+      allows them, but not the other way around.  It is also possible to drop
+      the <code class="literal">NOT NULL</code> constraint from <code class="literal">ONLY</code>
+      the parent table, which does not remove it from the children.
      </p></dd><dt id="SQL-ALTERTABLE-DESC-SET-EXPRESSION"><span class="term"><code class="literal">SET EXPRESSION AS</code></span> <a href="#SQL-ALTERTABLE-DESC-SET-EXPRESSION" class="id_link">#</a></dt><dd><p>
       This form replaces the expression of a generated column.  Existing data
-      in the column is rewritten and all the future changes will apply the new
-      generation expression.
+      in a stored generated column is rewritten and all the future changes
+      will apply the new generation expression.
      </p><p>
-      When this form is used, the column's statistics are removed,
-      so running <a class="link" href="sql-analyze.html" title="ANALYZE"><code class="command">ANALYZE</code></a>
+      When this form is used on a stored generated column, its statistics
+      are removed, so running
+      <a class="link" href="sql-analyze.html" title="ANALYZE"><code class="command">ANALYZE</code></a>
       on the table afterwards is recommended.
+      For a virtual generated column, <code class="command">ANALYZE</code>
+      is not necessary because such columns never have statistics.
      </p></dd><dt id="SQL-ALTERTABLE-DESC-DROP-EXPRESSION"><span class="term"><code class="literal">DROP EXPRESSION [ IF EXISTS ]</code></span> <a href="#SQL-ALTERTABLE-DESC-DROP-EXPRESSION" class="id_link">#</a></dt><dd><p>
       This form turns a stored generated column into a normal base column.
       Existing data in the columns is retained, but future changes will no
       longer apply the generation expression.
      </p><p>
+      This form is currently only supported for stored generated columns (not
+      virtual ones).
+     </p><p>
       If <code class="literal">DROP EXPRESSION IF EXISTS</code> is specified and the
-      column is not a stored generated column, no error is thrown.  In this
-      case a notice is issued instead.
+      column is not a generated column, no error is thrown.  In this case a
+      notice is issued instead.
      </p></dd><dt id="SQL-ALTERTABLE-DESC-GENERATED-IDENTITY"><span class="term"><code class="literal">ADD GENERATED { ALWAYS | BY DEFAULT } AS IDENTITY</code><br /></span><span class="term"><code class="literal">SET GENERATED { ALWAYS | BY DEFAULT }</code><br /></span><span class="term"><code class="literal">DROP IDENTITY [ IF EXISTS ]</code></span> <a href="#SQL-ALTERTABLE-DESC-GENERATED-IDENTITY" class="id_link">#</a></dt><dd><p>
       These forms change whether a column is an identity column or change the
       generation attribute of an existing identity column.
@@ -286,7 +300,7 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
       Note that <code class="literal">ALTER TABLE ... SET STORAGE</code> doesn't itself
       change anything in the table; it just sets the strategy to be pursued
       during future table updates.
-      See <a class="xref" href="storage-toast.html" title="65.2. TOAST">Section 65.2</a> for more information.
+      See <a class="xref" href="storage-toast.html" title="66.2. TOAST">Section 66.2</a> for more information.
      </p></dd><dt id="SQL-ALTERTABLE-DESC-SET-COMPRESSION"><span class="term">
      <code class="literal">SET COMPRESSION <em class="replaceable"><code>compression_method</code></em></code>
     </span> <a href="#SQL-ALTERTABLE-DESC-SET-COMPRESSION" class="id_link">#</a></dt><dd><p>
@@ -313,14 +327,14 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
      </p></dd><dt id="SQL-ALTERTABLE-DESC-ADD-TABLE-CONSTRAINT"><span class="term"><code class="literal">ADD <em class="replaceable"><code>table_constraint</code></em> [ NOT VALID ]</code></span> <a href="#SQL-ALTERTABLE-DESC-ADD-TABLE-CONSTRAINT" class="id_link">#</a></dt><dd><p>
       This form adds a new constraint to a table using the same constraint
       syntax as <a class="link" href="sql-createtable.html" title="CREATE TABLE"><code class="command">CREATE TABLE</code></a>, plus the option <code class="literal">NOT
-      VALID</code>, which is currently only allowed for foreign key
-      and CHECK constraints.
+      VALID</code>, which is currently only allowed for foreign-key,
+      <code class="literal">CHECK</code>, and not-null constraints.
      </p><p>
       Normally, this form will cause a scan of the table to verify that all
       existing rows in the table satisfy the new constraint.  But if
       the <code class="literal">NOT VALID</code> option is used, this
       potentially-lengthy scan is skipped.  The constraint will still be
-      enforced against subsequent inserts or updates (that is, they'll fail
+      applied against subsequent inserts or updates (that is, they'll fail
       unless there is a matching row in the referenced table, in the case
       of foreign keys, or they'll fail unless the new row matches the
       specified check condition).  But the
@@ -341,8 +355,6 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
      </p><p>
       Additional restrictions apply when unique or primary key constraints
       are added to partitioned tables; see <a class="link" href="sql-createtable.html" title="CREATE TABLE"><code class="command">CREATE TABLE</code></a>.
-      Also, foreign key constraints on partitioned
-      tables may not be declared <code class="literal">NOT VALID</code> at present.
      </p></dd><dt id="SQL-ALTERTABLE-DESC-ADD-TABLE-CONSTRAINT-USING-INDEX"><span class="term"><code class="literal">ADD <em class="replaceable"><code>table_constraint_using_index</code></em></code></span> <a href="#SQL-ALTERTABLE-DESC-ADD-TABLE-CONSTRAINT-USING-INDEX" class="id_link">#</a></dt><dd><p>
       This form adds a new <code class="literal">PRIMARY KEY</code> or <code class="literal">UNIQUE</code>
       constraint to a table based on an existing unique index.  All the
@@ -379,12 +391,25 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
        constraint using this syntax.  See the example below.
       </p></div></dd><dt id="SQL-ALTERTABLE-DESC-ALTER-CONSTRAINT"><span class="term"><code class="literal">ALTER CONSTRAINT</code></span> <a href="#SQL-ALTERTABLE-DESC-ALTER-CONSTRAINT" class="id_link">#</a></dt><dd><p>
       This form alters the attributes of a constraint that was previously
-      created. Currently only foreign key constraints may be altered.
-     </p></dd><dt id="SQL-ALTERTABLE-DESC-VALIDATE-CONSTRAINT"><span class="term"><code class="literal">VALIDATE CONSTRAINT</code></span> <a href="#SQL-ALTERTABLE-DESC-VALIDATE-CONSTRAINT" class="id_link">#</a></dt><dd><p>
-      This form validates a foreign key or check constraint that was
+      created. Currently only foreign key constraints may be altered in
+      this fashion, but see below.
+     </p></dd><dt id="SQL-ALTERTABLE-DESC-ALTER-CONSTRAINT-INHERIT"><span class="term"><code class="literal">ALTER CONSTRAINT ... INHERIT</code><br /></span><span class="term"><code class="literal">ALTER CONSTRAINT ... NO INHERIT</code></span> <a href="#SQL-ALTERTABLE-DESC-ALTER-CONSTRAINT-INHERIT" class="id_link">#</a></dt><dd><p>
+      These forms modify a inheritable constraint so that it becomes not
+      inheritable, or vice-versa. Only not-null constraints may be altered
+      in this fashion at present.
+      In addition to changing the inheritability status of the constraint,
+      in the case where a non-inheritable constraint is being marked
+      inheritable, if the table has children, an equivalent constraint
+      will be added to them. If marking an inheritable constraint as
+      non-inheritable on a table with children, then the corresponding
+      constraint on children will be marked as no longer inherited,
+      but not removed.
+      </p></dd><dt id="SQL-ALTERTABLE-DESC-VALIDATE-CONSTRAINT"><span class="term"><code class="literal">VALIDATE CONSTRAINT</code></span> <a href="#SQL-ALTERTABLE-DESC-VALIDATE-CONSTRAINT" class="id_link">#</a></dt><dd><p>
+      This form validates a foreign key, check, or not-null constraint that was
       previously created as <code class="literal">NOT VALID</code>, by scanning the
       table to ensure there are no rows for which the constraint is not
-      satisfied.  Nothing happens if the constraint is already marked valid.
+      satisfied.  If the constraint was set to <code class="literal">NOT ENFORCED</code>, an error is thrown.
+      Nothing happens if the constraint is already marked valid.
       (See <a class="xref" href="sql-altertable.html#SQL-ALTERTABLE-NOTES" title="Notes">Notes</a> below for an explanation
       of the usefulness of this command.)
      </p><p>
@@ -482,7 +507,7 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
       <code class="literal">DEFAULT</code> selects the access method set as the
       <a class="xref" href="runtime-config-client.html#GUC-DEFAULT-TABLE-ACCESS-METHOD">default_table_access_method</a> configuration
       parameter.
-      See <a class="xref" href="tableam.html" title="Chapter 61. Table Access Method Interface Definition">Chapter 61</a> for more information.
+      See <a class="xref" href="tableam.html" title="Chapter 62. Table Access Method Interface Definition">Chapter 62</a> for more information.
      </p><p>
       When applied to a partitioned table, there is no data to rewrite,
       but partitions created afterwards will default to the given access
@@ -521,6 +546,8 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
       This also changes the persistence of any sequences linked to the table
       (for identity or serial columns).  However, it is also possible to
       change the persistence of such sequences separately.
+     </p><p>
+      This form is not supported for partitioned tables.
      </p></dd><dt id="SQL-ALTERTABLE-DESC-SET-STORAGE-PARAMETER"><span class="term"><code class="literal">SET ( <em class="replaceable"><code>storage_parameter</code></em> [= <em class="replaceable"><code>value</code></em>] [, ... ] )</code></span> <a href="#SQL-ALTERTABLE-DESC-SET-STORAGE-PARAMETER" class="id_link">#</a></dt><dd><p>
       This form changes one or more storage parameters for the table.  See
       <a class="xref" href="sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS" title="Storage Parameters">Storage Parameters</a> in the
@@ -547,17 +574,14 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
       table.  Subsequently, queries against the parent will include records
       of the target table.  To be added as a child, the target table must
       already contain all the same columns as the parent (it could have
-      additional columns, too).  The columns must have matching data types,
-      and if they have <code class="literal">NOT NULL</code> constraints in the parent
-      then they must also have <code class="literal">NOT NULL</code> constraints in the
-      child.
+      additional columns, too).  The columns must have matching data types.
      </p><p>
-      There must also be matching child-table constraints for all
-      <code class="literal">CHECK</code> constraints of the parent, except those
-      marked non-inheritable (that is, created with <code class="literal">ALTER TABLE ... ADD CONSTRAINT ... NO INHERIT</code>)
-      in the parent, which are ignored; all child-table constraints matched
-      must not be marked non-inheritable.
-      Currently
+      In addition, all <code class="literal">CHECK</code> and <code class="literal">NOT NULL</code>
+      constraints on the parent must also exist on the child, except those
+      marked non-inheritable (that is, created with
+      <code class="literal">ALTER TABLE ... ADD CONSTRAINT ... NO INHERIT</code>), which
+      are ignored.  All child-table constraints matched must not be marked
+      non-inheritable.  Currently
       <code class="literal">UNIQUE</code>, <code class="literal">PRIMARY KEY</code>, and
       <code class="literal">FOREIGN KEY</code> constraints are not considered, but
       this might change in the future.
@@ -586,8 +610,9 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
       always logged regardless of whether it changed.
       This option has no effect except when logical replication is in use.
      </p><div class="variablelist"><dl class="variablelist"><dt id="SQL-ALTERTABLE-REPLICA-IDENTITY-DEFAULT"><span class="term"><code class="literal">DEFAULT</code></span> <a href="#SQL-ALTERTABLE-REPLICA-IDENTITY-DEFAULT" class="id_link">#</a></dt><dd><p>
-         Records the old values of the columns of the primary key, if any.
+         Records the old values of the columns of the primary key.
          This is the default for non-system tables.
+         When there is no primary key, the behavior is the same as <code class="literal">NOTHING</code>.
         </p></dd><dt id="SQL-ALTERTABLE-REPLICA-IDENTITY-USING-INDEX"><span class="term"><code class="literal">USING INDEX <em class="replaceable"><code>index_name</code></em></code></span> <a href="#SQL-ALTERTABLE-REPLICA-IDENTITY-USING-INDEX" class="id_link">#</a></dt><dd><p>
          Records the old values of the columns covered by the named index,
          that must be unique, not partial, not deferrable, and include only
@@ -709,8 +734,8 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
       a time.
      </p></dd></dl></div><p>
   </p><p>
-   All the forms of ALTER TABLE that act on a single table, except
-   <code class="literal">RENAME</code>, <code class="literal">SET SCHEMA</code>,
+   All the forms of <code class="command">ALTER TABLE</code> that act on a single table,
+   except <code class="literal">RENAME</code>, <code class="literal">SET SCHEMA</code>,
    <code class="literal">ATTACH PARTITION</code>, and
    <code class="literal">DETACH PARTITION</code> can be combined into
    a list of multiple alterations to be applied together.  For example, it
@@ -803,32 +828,45 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
     The key word <code class="literal">COLUMN</code> is noise and can be omitted.
    </p><p>
     When a column is added with <code class="literal">ADD COLUMN</code> and a
-    non-volatile <code class="literal">DEFAULT</code> is specified, the default is
+    non-volatile <code class="literal">DEFAULT</code> is specified, the default value is
     evaluated at the time of the statement and the result stored in the
-    table's metadata.  That value will be used for the column for all existing
-    rows.  If no <code class="literal">DEFAULT</code> is specified, NULL is used.  In
-    neither case is a rewrite of the table required.
+    table's metadata, where it will be returned when any existing rows are
+    accessed.  The value will be only applied when the table is rewritten,
+    making the <code class="command">ALTER TABLE</code> very fast even on large tables.
+    If no column constraints are specified, NULL is used as the
+    <code class="literal">DEFAULT</code>.  In neither case is a rewrite of the table
+    required.
    </p><p>
-    Adding a column with a volatile <code class="literal">DEFAULT</code> or
-    changing the type of an existing column will require the entire table and
-    its indexes to be rewritten. As an exception, when changing the type of an
-    existing column, if the <code class="literal">USING</code> clause does not change
-    the column contents and the old type is either binary coercible to the new
-    type or an unconstrained domain over the new type, a table rewrite is not
-    needed. However, indexes must always be rebuilt unless the system can
-    verify that the new index would be logically equivalent to the existing
-    one.  For example, if the collation for a column has been changed, an index
-    rebuild is always required because the new sort order might be different.
-    However, in the absence of a collation change, a column can be changed
-    from <code class="type">text</code> to <code class="type">varchar</code> (or vice versa) without
-    rebuilding the indexes because these data types sort identically.
-    Table and/or index rebuilds may take a
-    significant amount of time for a large table; and will temporarily require
-    as much as double the disk space.
+    Adding a column with a volatile <code class="literal">DEFAULT</code>
+    (e.g., <code class="function">clock_timestamp()</code>), a stored generated column,
+    an identity column, or a column with a domain data type that has
+    constraints will cause the entire table and its indexes to be rewritten.
+    Adding a virtual generated column never requires a rewrite.
    </p><p>
-    Adding a <code class="literal">CHECK</code> or <code class="literal">NOT NULL</code> constraint requires
-    scanning the table to verify that existing rows meet the constraint,
-    but does not require a table rewrite.
+    Changing the type of an existing column will normally cause the entire table
+    and its indexes to be rewritten.
+    As an exception, when changing the type of an existing column,
+    if the <code class="literal">USING</code> clause does not change the column
+    contents and the old type is either binary coercible to the new type
+    or an unconstrained domain over the new type, a table rewrite is not
+    needed.  However, indexes will still be rebuilt unless the system
+    can verify that the new index would be logically equivalent to the
+    existing one.  For example, if the collation for a column has been
+    changed, an index rebuild is required because the new sort
+    order might be different.  However, in the absence of a collation
+    change, a column can be changed from <code class="type">text</code> to
+    <code class="type">varchar</code> (or vice versa) without rebuilding the indexes
+    because these data types sort identically.
+   </p><p>
+    Table and/or index
+    rebuilds may take a significant amount of time for a large table,
+    and will temporarily require as much as double the disk space.
+   </p><p>
+    Adding a <code class="literal">CHECK</code> or <code class="literal">NOT NULL</code>
+    constraint requires scanning the table to verify that existing rows meet the
+    constraint, but does not require a table rewrite.  If a <code class="literal">CHECK</code>
+    constraint is added as <code class="literal">NOT ENFORCED</code>, no verification will
+    be performed.
    </p><p>
     Similarly, when attaching a new partition it may be scanned to verify that
     existing rows meet the partition constraint.
@@ -837,7 +875,7 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
     in a single <code class="command">ALTER TABLE</code> is that multiple table scans or
     rewrites can thereby be combined into a single pass over the table.
    </p><p>
-    Scanning a large table to verify a new foreign key or check constraint
+    Scanning a large table to verify new foreign-key, check, or not-null constraints
     can take a long time, and other updates to the table are locked out
     until the <code class="command">ALTER TABLE ADD CONSTRAINT</code> command is
     committed.  The main purpose of the <code class="literal">NOT VALID</code>
@@ -1105,11 +1143,17 @@ ALTER TABLE cities
 ALTER TABLE measurement
     DETACH PARTITION measurement_y2015m12;
 </pre></div><div class="refsect1" id="id-1.9.3.35.9"><h2>Compatibility</h2><p>
-   The forms <code class="literal">ADD</code> (without <code class="literal">USING INDEX</code>),
+   The forms <code class="literal">ADD [COLUMN]</code>,
    <code class="literal">DROP [COLUMN]</code>, <code class="literal">DROP IDENTITY</code>, <code class="literal">RESTART</code>,
    <code class="literal">SET DEFAULT</code>, <code class="literal">SET DATA TYPE</code> (without <code class="literal">USING</code>),
    <code class="literal">SET GENERATED</code>, and <code class="literal">SET <em class="replaceable"><code>sequence_option</code></em></code>
-   conform with the SQL standard.  The other forms are
+   conform with the SQL standard.
+   The form <code class="literal">ADD <em class="replaceable"><code>table_constraint</code></em></code>
+   conforms with the SQL standard when the <code class="literal">USING INDEX</code> and
+   <code class="literal">NOT VALID</code> clauses are omitted and the constraint type is
+   one of <code class="literal">CHECK</code>, <code class="literal">UNIQUE</code>, <code class="literal">PRIMARY KEY</code>,
+   or <code class="literal">REFERENCES</code>.
+   The other forms are
    <span class="productname">PostgreSQL</span> extensions of the SQL standard.
    Also, the ability to specify more than one manipulation in a single
    <code class="command">ALTER TABLE</code> command is an extension.
@@ -1117,4 +1161,4 @@ ALTER TABLE measurement
    <code class="command">ALTER TABLE DROP COLUMN</code> can be used to drop the only
    column of a table, leaving a zero-column table.  This is an
    extension of SQL, which disallows zero-column tables.
-  </p></div><div class="refsect1" id="id-1.9.3.35.10"><h2>See Also</h2><span class="simplelist"><a class="xref" href="sql-createtable.html" title="CREATE TABLE"><span class="refentrytitle">CREATE TABLE</span></a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="sql-altersystem.html" title="ALTER SYSTEM">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="sql-altertablespace.html" title="ALTER TABLESPACE">Next</a></td></tr><tr><td width="40%" align="left" valign="top">ALTER SYSTEM </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> ALTER TABLESPACE</td></tr></table></div></body></html>
+  </p></div><div class="refsect1" id="id-1.9.3.35.10"><h2>See Also</h2><span class="simplelist"><a class="xref" href="sql-createtable.html" title="CREATE TABLE"><span class="refentrytitle">CREATE TABLE</span></a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="sql-altersystem.html" title="ALTER SYSTEM">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="sql-altertablespace.html" title="ALTER TABLESPACE">Next</a></td></tr><tr><td width="40%" align="left" valign="top">ALTER SYSTEM </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> ALTER TABLESPACE</td></tr></table></div></body></html>

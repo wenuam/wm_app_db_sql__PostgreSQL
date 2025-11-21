@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>5.5. Constraints</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="ddl-generated-columns.html" title="5.4. Generated Columns" /><link rel="next" href="ddl-system-columns.html" title="5.6. System Columns" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">5.5. Constraints</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="ddl-generated-columns.html" title="5.4. Generated Columns">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="ddl.html" title="Chapter 5. Data Definition">Up</a></td><th width="60%" align="center">Chapter 5. Data Definition</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="ddl-system-columns.html" title="5.6. System Columns">Next</a></td></tr></table><hr /></div><div class="sect1" id="DDL-CONSTRAINTS"><div class="titlepage"><div><div><h2 class="title" style="clear: both">5.5. Constraints <a href="#DDL-CONSTRAINTS" class="id_link">#</a></h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="ddl-constraints.html#DDL-CONSTRAINTS-CHECK-CONSTRAINTS">5.5.1. Check Constraints</a></span></dt><dt><span class="sect2"><a href="ddl-constraints.html#DDL-CONSTRAINTS-NOT-NULL">5.5.2. Not-Null Constraints</a></span></dt><dt><span class="sect2"><a href="ddl-constraints.html#DDL-CONSTRAINTS-UNIQUE-CONSTRAINTS">5.5.3. Unique Constraints</a></span></dt><dt><span class="sect2"><a href="ddl-constraints.html#DDL-CONSTRAINTS-PRIMARY-KEYS">5.5.4. Primary Keys</a></span></dt><dt><span class="sect2"><a href="ddl-constraints.html#DDL-CONSTRAINTS-FK">5.5.5. Foreign Keys</a></span></dt><dt><span class="sect2"><a href="ddl-constraints.html#DDL-CONSTRAINTS-EXCLUSION">5.5.6. Exclusion Constraints</a></span></dt></dl></div><a id="id-1.5.4.7.2" class="indexterm"></a><p>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>5.5. Constraints</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="ddl-generated-columns.html" title="5.4. Generated Columns" /><link rel="next" href="ddl-system-columns.html" title="5.6. System Columns" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">5.5. Constraints</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="ddl-generated-columns.html" title="5.4. Generated Columns">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="ddl.html" title="Chapter 5. Data Definition">Up</a></td><th width="60%" align="center">Chapter 5. Data Definition</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="ddl-system-columns.html" title="5.6. System Columns">Next</a></td></tr></table><hr /></div><div class="sect1" id="DDL-CONSTRAINTS"><div class="titlepage"><div><div><h2 class="title" style="clear: both">5.5. Constraints <a href="#DDL-CONSTRAINTS" class="id_link">#</a></h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="ddl-constraints.html#DDL-CONSTRAINTS-CHECK-CONSTRAINTS">5.5.1. Check Constraints</a></span></dt><dt><span class="sect2"><a href="ddl-constraints.html#DDL-CONSTRAINTS-NOT-NULL">5.5.2. Not-Null Constraints</a></span></dt><dt><span class="sect2"><a href="ddl-constraints.html#DDL-CONSTRAINTS-UNIQUE-CONSTRAINTS">5.5.3. Unique Constraints</a></span></dt><dt><span class="sect2"><a href="ddl-constraints.html#DDL-CONSTRAINTS-PRIMARY-KEYS">5.5.4. Primary Keys</a></span></dt><dt><span class="sect2"><a href="ddl-constraints.html#DDL-CONSTRAINTS-FK">5.5.5. Foreign Keys</a></span></dt><dt><span class="sect2"><a href="ddl-constraints.html#DDL-CONSTRAINTS-EXCLUSION">5.5.6. Exclusion Constraints</a></span></dt></dl></div><a id="id-1.5.4.7.2" class="indexterm"></a><p>
    Data types are a way to limit the kind of data that can be stored
    in a table.  For many applications, however, the constraint they
    provide is too coarse.  For example, a column containing a product
@@ -172,15 +172,34 @@ CREATE TABLE products (
     price numeric
 );
 </pre><p>
+    An explicit constraint name can also be specified, for example:
+</p><pre class="programlisting">
+CREATE TABLE products (
+    product_no integer NOT NULL,
+    name text <span class="emphasis"><strong>CONSTRAINT products_name_not_null</strong></span> NOT NULL,
+    price numeric
+);
+</pre><p>
    </p><p>
-    A not-null constraint is always written as a column constraint.  A
-    not-null constraint is functionally equivalent to creating a check
+    A not-null constraint is usually written as a column constraint.  The
+    syntax for writing it as a table constraint is
+</p><pre class="programlisting">
+CREATE TABLE products (
+    product_no integer,
+    name text,
+    price numeric,
+    <span class="emphasis"><strong>NOT NULL product_no</strong></span>,
+    <span class="emphasis"><strong>NOT NULL name</strong></span>
+);
+</pre><p>
+    But this syntax is not standard and mainly intended for use by
+    <span class="application">pg_dump</span>.
+   </p><p>
+    A not-null constraint is functionally equivalent to creating a check
     constraint <code class="literal">CHECK (<em class="replaceable"><code>column_name</code></em>
     IS NOT NULL)</code>, but in
     <span class="productname">PostgreSQL</span> creating an explicit
-    not-null constraint is more efficient.  The drawback is that you
-    cannot give explicit names to not-null constraints created this
-    way.
+    not-null constraint is more efficient.
    </p><p>
     Of course, a column can have more than one constraint.  Just write
     the constraints one after another:
@@ -193,6 +212,8 @@ CREATE TABLE products (
 </pre><p>
     The order doesn't matter.  It does not necessarily determine in which
     order the constraints are checked.
+   </p><p>
+    However, a column can have at most one explicit not-null constraint.
    </p><p>
     The <code class="literal">NOT NULL</code> constraint has an inverse: the
     <code class="literal">NULL</code> constraint.  This does not mean that the
@@ -333,7 +354,7 @@ CREATE TABLE example (
     force the column(s) to be marked <code class="literal">NOT NULL</code>.
    </p><p>
     A table can have at most one primary key.  (There can be any number
-    of unique and not-null constraints, which are functionally almost the
+    of unique constraints, which combined with not-null constraints are functionally almost the
     same thing, but only one can be identified as the primary key.)
     Relational database theory
     dictates that every table must have a primary key.  This rule is
@@ -489,16 +510,26 @@ CREATE TABLE order_items (
 );
 </pre><p>
    </p><p>
-    Restricting and cascading deletes are the two most common options.
-    <code class="literal">RESTRICT</code> prevents deletion of a
-    referenced row. <code class="literal">NO ACTION</code> means that if any
-    referencing rows still exist when the constraint is checked, an error
-    is raised; this is the default behavior if you do not specify anything.
-    (The essential difference between these two choices is that
-    <code class="literal">NO ACTION</code> allows the check to be deferred until
-    later in the transaction, whereas <code class="literal">RESTRICT</code> does not.)
+    The default <code class="literal">ON DELETE</code> action is <code class="literal">ON DELETE NO
+    ACTION</code>; this does not need to be specified.  This means that the
+    deletion in the referenced table is allowed to proceed.  But the
+    foreign-key constraint is still required to be satisfied, so this
+    operation will usually result in an error.  But checking of foreign-key
+    constraints can also be deferred to later in the transaction (not covered
+    in this chapter).  In that case, the <code class="literal">NO ACTION</code> setting
+    would allow other commands to <span class="quote">“<span class="quote">fix</span>”</span> the situation before the
+    constraint is checked, for example by inserting another suitable row into
+    the referenced table or by deleting the now-dangling rows from the
+    referencing table.
+   </p><p>
+    <code class="literal">RESTRICT</code> is a stricter setting than <code class="literal">NO
+    ACTION</code>.  It prevents deletion of a referenced row.
+    <code class="literal">RESTRICT</code> does not allow the check to be deferred until
+    later in the transaction.
+   </p><p>
     <code class="literal">CASCADE</code> specifies that when a referenced row is deleted,
     row(s) referencing it should be automatically deleted as well.
+   </p><p>
     There are two other options:
     <code class="literal">SET NULL</code> and <code class="literal">SET DEFAULT</code>.
     These cause the referencing column(s) in the referencing row(s)
@@ -562,6 +593,15 @@ CREATE TABLE posts (
     NULL</code> and <code class="literal">SET DEFAULT</code>.
     In this case, <code class="literal">CASCADE</code> means that the updated values of the
     referenced column(s) should be copied into the referencing row(s).
+    There is also a noticeable difference between <code class="literal">ON UPDATE NO
+    ACTION</code> (the default) and <code class="literal">ON UPDATE RESTRICT</code>.
+    The former will allow the update to proceed and the foreign-key constraint
+    will be checked against the state after the update.  The latter will
+    prevent the update to run even if the state after the update would still
+    satisfy the constraint.  This prevents updating a referenced row to a
+    value that is distinct but compares as equal (for example, a character
+    string with a different case variant, if a character string type with a
+    case-insensitive collation is used).
    </p><p>
     Normally, a referencing row need not satisfy the foreign key constraint
     if any of its referencing columns are null.  If <code class="literal">MATCH FULL</code>
@@ -604,4 +644,4 @@ CREATE TABLE circles (
    </p><p>
     Adding an exclusion constraint will automatically create an index
     of the type specified in the constraint declaration.
-   </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ddl-generated-columns.html" title="5.4. Generated Columns">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="ddl.html" title="Chapter 5. Data Definition">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="ddl-system-columns.html" title="5.6. System Columns">Next</a></td></tr><tr><td width="40%" align="left" valign="top">5.4. Generated Columns </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 5.6. System Columns</td></tr></table></div></body></html>
+   </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ddl-generated-columns.html" title="5.4. Generated Columns">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="ddl.html" title="Chapter 5. Data Definition">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="ddl-system-columns.html" title="5.6. System Columns">Next</a></td></tr><tr><td width="40%" align="left" valign="top">5.4. Generated Columns </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 5.6. System Columns</td></tr></table></div></body></html>

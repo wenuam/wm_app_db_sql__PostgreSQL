@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "ALTER PUBLICATION" "7" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "ALTER PUBLICATION" "7" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -130,6 +130,31 @@ SET ( \fIpublication_parameter\fR [= \fIvalue\fR] [, \&.\&.\&. ] )
 .RS 4
 This clause alters publication parameters originally set by
 CREATE PUBLICATION (\fBCREATE_PUBLICATION\fR(7))\&. See there for more information\&.
+.if n \{\
+.sp
+.\}
+.RS 4
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBCaution\fR
+.ps -1
+.br
+Altering the
+publish_via_partition_root
+parameter can lead to data loss or duplication at the subscriber because it changes the identity and schema of the published tables\&. Note this happens only when a partition root table is specified as the replication target\&.
+.sp
+This problem can be avoided by refraining from modifying partition leaf tables after the
+\fBALTER PUBLICATION \&.\&.\&. SET\fR
+until the
+\fBALTER SUBSCRIPTION \&.\&.\&. REFRESH PUBLICATION\fR
+is executed and by only refreshing using the
+copy_data = off
+option\&.
+.sp .5v
+.RE
 .RE
 .PP
 \fInew_owner\fR

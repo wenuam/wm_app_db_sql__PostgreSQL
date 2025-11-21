@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>psql</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="app-pgverifybackup.html" title="pg_verifybackup" /><link rel="next" href="app-reindexdb.html" title="reindexdb" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center"><span class="application">psql</span></th></tr><tr><td width="10%" align="left"><a accesskey="p" href="app-pgverifybackup.html" title="pg_verifybackup">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="reference-client.html" title="PostgreSQL Client Applications">Up</a></td><th width="60%" align="center">PostgreSQL Client Applications</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="app-reindexdb.html" title="reindexdb">Next</a></td></tr></table><hr /></div><div class="refentry" id="APP-PSQL"><div class="titlepage"></div><a id="id-1.9.4.21.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle"><span class="application">psql</span></span></h2><p><span class="application">psql</span> — 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>psql</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="app-pgverifybackup.html" title="pg_verifybackup" /><link rel="next" href="app-reindexdb.html" title="reindexdb" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center"><span class="application">psql</span></th></tr><tr><td width="10%" align="left"><a accesskey="p" href="app-pgverifybackup.html" title="pg_verifybackup">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="reference-client.html" title="PostgreSQL Client Applications">Up</a></td><th width="60%" align="center">PostgreSQL Client Applications</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="app-reindexdb.html" title="reindexdb">Next</a></td></tr></table><hr /></div><div class="refentry" id="APP-PSQL"><div class="titlepage"></div><a id="id-1.9.4.21.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle"><span class="application">psql</span></span></h2><p><span class="application">psql</span> — 
       <span class="productname">PostgreSQL</span> interactive terminal
     </p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><div class="cmdsynopsis"><p id="id-1.9.4.21.4.1"><code class="command">psql</code> [<em class="replaceable"><code>option</code></em>...] [<em class="replaceable"><code>dbname</code></em>
     [<em class="replaceable"><code>username</code></em>]]</p></div></div><div class="refsect1" id="id-1.9.4.21.5"><h2>Description</h2><p>
@@ -57,7 +57,7 @@ echo '\x \\ SELECT * FROM foo;' | psql
        if the string contains multiple <acronym class="acronym">SQL</acronym> commands,
        unless there are explicit <code class="command">BEGIN</code>/<code class="command">COMMIT</code>
        commands included in the string to divide it into multiple
-       transactions.  (See <a class="xref" href="protocol-flow.html#PROTOCOL-FLOW-MULTI-STATEMENT" title="53.2.2.1. Multiple Statements in a Simple Query">Section 53.2.2.1</a>
+       transactions.  (See <a class="xref" href="protocol-flow.html#PROTOCOL-FLOW-MULTI-STATEMENT" title="54.2.2.1. Multiple Statements in a Simple Query">Section 54.2.2.1</a>
        for more details about how the server handles multi-query strings.)
       </p><p>
        If having several commands executed in one transaction is not desired,
@@ -346,7 +346,7 @@ $ <strong class="userinput"><code>psql postgresql://dbmaster:5433/mydb?sslmode=r
     the string <code class="literal">=&gt;</code>. For example:
 </p><pre class="programlisting">
 $ <strong class="userinput"><code>psql testdb</code></strong>
-psql (17.6)
+psql (18.0)
 Type "help" for help.
 
 testdb=&gt;
@@ -458,6 +458,11 @@ testdb=&gt;
     input lines as well as any text appearing before the meta-command on the
     same line.
     </p><p>
+    Many of the meta-commands also allow <code class="literal">x</code> to be appended
+    as an option. This will cause the results to be displayed in expanded
+    mode, as if <code class="command">\x</code> or <code class="command">\pset expanded</code>
+    had been used.
+    </p><p>
     The following meta-commands are defined:
 
     </p><div class="variablelist"><dl class="variablelist"><dt id="APP-PSQL-META-COMMAND-A"><span class="term"><code class="literal">\a</code></span> <a href="#APP-PSQL-META-COMMAND-A" class="id_link">#</a></dt><dd><p>
@@ -479,13 +484,31 @@ INSERT INTO tbl1 VALUES ($1, $2) \bind 'first value' 'second value' \g
          <code class="literal">\g</code>, such as <code class="literal">\gx</code> and
          <code class="literal">\gset</code>.
         </p><p>
-         This command causes the extended query protocol (see <a class="xref" href="protocol-overview.html#PROTOCOL-QUERY-CONCEPTS" title="53.1.2. Extended Query Overview">Section 53.1.2</a>) to be used, unlike normal
+         This command causes the extended query protocol (see <a class="xref" href="protocol-overview.html#PROTOCOL-QUERY-CONCEPTS" title="54.1.2. Extended Query Overview">Section 54.1.2</a>) to be used, unlike normal
          <span class="application">psql</span> operation, which uses the simple
          query protocol.  So this command can be useful to test the extended
-         query protocol from psql.  (The extended query protocol is used even
-         if the query has no parameters and this command specifies zero
-         parameters.)  This command affects only the next query executed; all
-         subsequent queries will use the simple query protocol by default.
+         query protocol from <span class="application">psql</span>.  (The extended
+         query protocol is used even if the query has no parameters and this
+         command specifies zero parameters.)  This command affects only the
+         next query executed; all subsequent queries will use the simple query
+         protocol by default.
+        </p></dd><dt id="APP-PSQL-META-COMMAND-BIND-NAMED"><span class="term"><code class="literal">\bind_named</code> <em class="replaceable"><code>statement_name</code></em> [ <em class="replaceable"><code>parameter</code></em> ] ... </span> <a href="#APP-PSQL-META-COMMAND-BIND-NAMED" class="id_link">#</a></dt><dd><p>
+         <code class="literal">\bind_named</code> is equivalent to <code class="literal">\bind</code>,
+         except that it takes the name of an existing prepared statement as
+         first parameter. An empty string denotes the unnamed prepared
+         statement.
+        </p><p>
+         Example:
+</p><pre class="programlisting">
+INSERT INTO tbls1 VALUES ($1, $2) \parse stmt1
+\bind_named stmt1 'first value' 'second value' \g
+</pre><p>
+        </p><p>
+         This command causes the extended query protocol (see
+         <a class="xref" href="protocol-overview.html#PROTOCOL-QUERY-CONCEPTS" title="54.1.2. Extended Query Overview">Section 54.1.2</a>) to be used, unlike normal
+         <span class="application">psql</span> operation, which uses the simple
+         query protocol. So this command can be useful to test the extended
+         query protocol from <span class="application">psql</span>.
         </p></dd><dt id="APP-PSQL-META-COMMAND-C-LC"><span class="term"><code class="literal">\c</code> or <code class="literal">\connect [ -reuse-previous=<em class="replaceable"><code>on|off</code></em> ] [ <em class="replaceable"><code>dbname</code></em> [ <em class="replaceable"><code>username</code></em> ] [ <em class="replaceable"><code>host</code></em> ] [ <em class="replaceable"><code>port</code></em> ] | <em class="replaceable"><code>conninfo</code></em> ]</code></span> <a href="#APP-PSQL-META-COMMAND-C-LC" class="id_link">#</a></dt><dd><p>
         Establishes a new connection to a <span class="productname">PostgreSQL</span>
         server.  The connection parameters to use can be specified either
@@ -560,12 +583,38 @@ INSERT INTO tbl1 VALUES ($1, $2) \bind 'first value' 'second value' \g
         </p></dd><dt id="APP-PSQL-META-COMMAND-CD"><span class="term"><code class="literal">\cd [ <em class="replaceable"><code>directory</code></em> ]</code></span> <a href="#APP-PSQL-META-COMMAND-CD" class="id_link">#</a></dt><dd><p>
          Changes the current working directory to
          <em class="replaceable"><code>directory</code></em>. Without argument, changes
-         to the current user's home directory.
+         to the current user's home directory.  For details on how home
+         directories are found, see <a class="xref" href="libpq-pgpass.html" title="32.16. The Password File">Section 32.16</a>.
         </p><div class="tip"><h3 class="title">Tip</h3><p>
           To print your current working directory, use <code class="literal">\! pwd</code>.
-         </p></div></dd><dt id="APP-PSQL-META-COMMAND-CONNINFO"><span class="term"><code class="literal">\conninfo</code></span> <a href="#APP-PSQL-META-COMMAND-CONNINFO" class="id_link">#</a></dt><dd><p>
-        Outputs information about the current database connection.
-        </p></dd><dt id="APP-PSQL-META-COMMANDS-COPY"><span class="term"><code class="literal">\copy { <em class="replaceable"><code>table</code></em> [ ( <em class="replaceable"><code>column_list</code></em> ) ] }
+         </p></div></dd><dt id="APP-PSQL-META-COMMAND-CLOSE-PREPARED"><span class="term"><code class="literal">\close_prepared</code> <em class="replaceable"><code>prepared_statement_name</code></em></span> <a href="#APP-PSQL-META-COMMAND-CLOSE-PREPARED" class="id_link">#</a></dt><dd><p>
+         Closes the specified prepared statement. An empty string denotes the
+         unnamed prepared statement. If no prepared statement exists with this
+         name, the operation is a no-op.
+        </p><p>
+         Example:
+</p><pre class="programlisting">
+SELECT $1 \parse stmt1
+\close_prepared stmt1
+</pre><p>
+        </p><p>
+         This command causes the extended query protocol to be used,
+         unlike normal <span class="application">psql</span> operation, which
+         uses the simple query protocol. So this command can be useful
+         to test the extended query protocol from
+         <span class="application">psql</span>.
+        </p></dd><dt id="APP-PSQL-META-COMMAND-CONNINFO"><span class="term"><code class="literal">\conninfo</code></span> <a href="#APP-PSQL-META-COMMAND-CONNINFO" class="id_link">#</a></dt><dd><p>
+          Outputs information about the current database connection,
+          including SSL-related information if SSL is in use.
+         </p><p>
+          Note that the <code class="structfield">Client User</code> field shows
+          the user at the time of connection, while the
+          <code class="structfield">Superuser</code> field indicates whether
+          the current user (in the current execution context) has
+          superuser privileges. These users are usually the same, but they can
+          differ, for example, if the current user was changed with the
+          <code class="command">SET ROLE</code> command.
+         </p></dd><dt id="APP-PSQL-META-COMMANDS-COPY"><span class="term"><code class="literal">\copy { <em class="replaceable"><code>table</code></em> [ ( <em class="replaceable"><code>column_list</code></em> ) ] }
         <code class="literal">from</code>
         { <em class="replaceable"><code>'filename'</code></em> | program <em class="replaceable"><code>'command'</code></em> | stdin | pstdin }
         [ [ with ] ( <em class="replaceable"><code>option</code></em> [, ...] ) ]
@@ -593,7 +642,8 @@ INSERT INTO tbl1 VALUES ($1, $2) \bind 'first value' 'second value' \g
         privileges are required.
         </p><p>
         For <code class="literal">\copy ... from stdin</code>, data rows are read from the same
-        source that issued the command, continuing until <code class="literal">\.</code>
+        source that issued the command, continuing until a line containing
+        only <code class="literal">\.</code>
         is read or the stream reaches <acronym class="acronym">EOF</acronym>. This option is useful
         for populating tables in-line within an SQL script file.
         For <code class="literal">\copy ... to stdout</code>, output is sent to the same place
@@ -628,10 +678,6 @@ INSERT INTO tbl1 VALUES ($1, $2) \bind 'first value' 'second value' \g
         destination, because all data must pass through the client/server
         connection.  For large amounts of data the <acronym class="acronym">SQL</acronym>
         command might be preferable.
-        Also, because of this pass-through method, <code class="literal">\copy
-        ... from</code> in <acronym class="acronym">CSV</acronym> mode will erroneously
-        treat a <code class="literal">\.</code> data value alone on a line as an
-        end-of-input marker.
         </p></div></dd><dt id="APP-PSQL-META-COMMAND-COPYRIGHT"><span class="term"><code class="literal">\copyright</code></span> <a href="#APP-PSQL-META-COMMAND-COPYRIGHT" class="id_link">#</a></dt><dd><p>
         Shows the copyright and distribution terms of
         <span class="productname">PostgreSQL</span>.
@@ -692,7 +738,7 @@ INSERT INTO tbl1 VALUES ($1, $2) \bind 'first value' 'second value' \g
         of <em class="replaceable"><code>colV</code></em>
         is <code class="literal">y</code>.  If there is no such row, the cell is empty.  If
         there are multiple such rows, an error is reported.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-D"><span class="term"><code class="literal">\d[S+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-D" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-D"><span class="term"><code class="literal">\d[Sx+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-D" class="id_link">#</a></dt><dd><p>
         For each relation (table, view, materialized view, index, sequence,
         or foreign table)
         or composite type matching the
@@ -728,20 +774,35 @@ INSERT INTO tbl1 VALUES ($1, $2) \bind 'first value' 'second value' \g
         all visible tables, views, materialized views, sequences and
         foreign tables.
         This is purely a convenience measure.
-        </p></div></dd><dt id="APP-PSQL-META-COMMAND-DA-LC"><span class="term"><code class="literal">\da[S] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DA-LC" class="id_link">#</a></dt><dd><p>
+        </p><p>
+        As with many other commands, if <code class="literal">x</code> is appended to
+        the command name, the results are displayed in expanded mode, but note
+        that this only applies when <code class="command">\d</code> is used without a
+        <em class="replaceable"><code>pattern</code></em> argument, and
+        the <code class="literal">x</code> modifier cannot appear immediately after the
+        <code class="command">\d</code> (because <code class="command">\dx</code> is a different
+        command); the <code class="literal">x</code> modifier may only appear after an
+        <code class="literal">S</code> or <code class="literal">+</code> modifier. For example,
+        <code class="command">\d+x</code> is equivalent to <code class="command">\dtvmsE+x</code>
+        and will show a list of all relations in expanded mode.
+        </p></div></dd><dt id="APP-PSQL-META-COMMAND-DA-LC"><span class="term"><code class="literal">\da[Sx] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DA-LC" class="id_link">#</a></dt><dd><p>
         Lists aggregate functions, together with their
         return type and the data types they operate on. If <em class="replaceable"><code>pattern</code></em>
         is specified, only aggregates whose names match the pattern are shown.
         By default, only user-created objects are shown;  supply a
         pattern or the <code class="literal">S</code> modifier to include system
         objects.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DA-UC"><span class="term"><code class="literal">\dA[+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DA-UC" class="id_link">#</a></dt><dd><p>
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DA-UC"><span class="term"><code class="literal">\dA[x+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DA-UC" class="id_link">#</a></dt><dd><p>
         Lists access methods. If <em class="replaceable"><code>pattern</code></em> is specified, only access
-        methods whose names match the pattern are shown. If
-        <code class="literal">+</code> is appended to the command name, each access
+        methods whose names match the pattern are shown.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
+        If <code class="literal">+</code> is appended to the command name, each access
         method is listed with its associated handler function and description.
         </p></dd><dt id="APP-PSQL-META-COMMAND-DAC"><span class="term">
-          <code class="literal">\dAc[+]
+          <code class="literal">\dAc[x+]
             [<a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>access-method-pattern</code></em></a>
               [<a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>input-type-pattern</code></em></a>]]
           </code>
@@ -754,10 +815,12 @@ INSERT INTO tbl1 VALUES ($1, $2) \bind 'first value' 'second value' \g
         If <em class="replaceable"><code>input-type-pattern</code></em>
         is specified, only operator classes associated with input types whose
         names match that pattern are listed.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
         If <code class="literal">+</code> is appended to the command name, each operator
         class is listed with its associated operator family and owner.
         </p></dd><dt id="APP-PSQL-META-COMMAND-DAF"><span class="term">
-          <code class="literal">\dAf[+]
+          <code class="literal">\dAf[x+]
             [<a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>access-method-pattern</code></em></a>
               [<a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>input-type-pattern</code></em></a>]]
           </code>
@@ -770,10 +833,12 @@ INSERT INTO tbl1 VALUES ($1, $2) \bind 'first value' 'second value' \g
         If <em class="replaceable"><code>input-type-pattern</code></em>
         is specified, only operator families associated with input types whose
         names match that pattern are listed.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
         If <code class="literal">+</code> is appended to the command name, each operator
         family is listed with its owner.
         </p></dd><dt id="APP-PSQL-META-COMMAND-DAO"><span class="term">
-          <code class="literal">\dAo[+]
+          <code class="literal">\dAo[x+]
             [<a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>access-method-pattern</code></em></a>
               [<a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>operator-family-pattern</code></em></a>]]
           </code>
@@ -786,10 +851,13 @@ INSERT INTO tbl1 VALUES ($1, $2) \bind 'first value' 'second value' \g
         If <em class="replaceable"><code>operator-family-pattern</code></em>
         is specified, only members of operator families whose names match that
         pattern are listed.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
         If <code class="literal">+</code> is appended to the command name, each operator
-        is listed with its sort operator family (if it is an ordering operator).
+        is listed with its sort operator family (if it is an ordering operator),
+        and whether its underlying function is leakproof.
         </p></dd><dt id="APP-PSQL-META-COMMAND-DAP"><span class="term">
-          <code class="literal">\dAp[+]
+          <code class="literal">\dAp[x+]
             [<a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>access-method-pattern</code></em></a>
               [<a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>operator-family-pattern</code></em></a>]]
           </code>
@@ -802,15 +870,19 @@ INSERT INTO tbl1 VALUES ($1, $2) \bind 'first value' 'second value' \g
         If <em class="replaceable"><code>operator-family-pattern</code></em>
         is specified, only functions of operator families whose names match
         that pattern are listed.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
         If <code class="literal">+</code> is appended to the command name, functions are
         displayed verbosely, with their actual parameter lists.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DB"><span class="term"><code class="literal">\db[+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DB" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DB"><span class="term"><code class="literal">\db[x+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DB" class="id_link">#</a></dt><dd><p>
         Lists tablespaces. If <em class="replaceable"><code>pattern</code></em>
         is specified, only tablespaces whose names match the pattern are shown.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
         If <code class="literal">+</code> is appended to the command name, each tablespace
         is listed with its associated options, on-disk size, permissions and
         description.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DC-LC"><span class="term"><code class="literal">\dc[S+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DC-LC" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DC-LC"><span class="term"><code class="literal">\dc[Sx+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DC-LC" class="id_link">#</a></dt><dd><p>
         Lists conversions between character-set encodings.
         If <em class="replaceable"><code>pattern</code></em>
         is specified, only conversions whose names match the pattern are
@@ -818,27 +890,34 @@ INSERT INTO tbl1 VALUES ($1, $2) \bind 'first value' 'second value' \g
         By default, only user-created objects are shown;  supply a
         pattern or the <code class="literal">S</code> modifier to include system
         objects.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
         If <code class="literal">+</code> is appended to the command name, each object
         is listed with its associated description.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DCONFIG"><span class="term"><code class="literal">\dconfig[+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DCONFIG" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DCONFIG"><span class="term"><code class="literal">\dconfig[x+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DCONFIG" class="id_link">#</a></dt><dd><p>
         Lists server configuration parameters and their values.
         If <em class="replaceable"><code>pattern</code></em> is specified,
         only parameters whose names match the pattern are listed.  Without
         a <em class="replaceable"><code>pattern</code></em>, only
         parameters that are set to non-default values are listed.
         (Use <code class="literal">\dconfig *</code> to see all parameters.)
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
         If <code class="literal">+</code> is appended to the command name, each
         parameter is listed with its data type, context in which the
         parameter can be set, and access privileges (if non-default access
         privileges have been granted).
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DC-UC"><span class="term"><code class="literal">\dC[+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DC-UC" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DC-UC"><span class="term"><code class="literal">\dC[x+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DC-UC" class="id_link">#</a></dt><dd><p>
         Lists type casts.
         If <em class="replaceable"><code>pattern</code></em>
         is specified, only casts whose source or target types match the
         pattern are listed.
-        If <code class="literal">+</code> is appended to the command name, each object
-        is listed with its associated description.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DD-LC"><span class="term"><code class="literal">\dd[S] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DD-LC" class="id_link">#</a></dt><dd><p>
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
+        If <code class="literal">+</code> is appended to the command name, additional
+        information about each cast is shown, including whether its underlying
+        function is leakproof, and the cast's description.
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DD-LC"><span class="term"><code class="literal">\dd[Sx] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DD-LC" class="id_link">#</a></dt><dd><p>
         Shows the descriptions of objects of type <code class="literal">constraint</code>,
         <code class="literal">operator class</code>, <code class="literal">operator family</code>,
         <code class="literal">rule</code>, and <code class="literal">trigger</code>. All
@@ -851,30 +930,36 @@ INSERT INTO tbl1 VALUES ($1, $2) \bind 'first value' 'second value' \g
         By default, only user-created objects are shown;  supply a
         pattern or the <code class="literal">S</code> modifier to include system
         objects.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
         </p><p>
         Descriptions for objects can be created with the <a class="link" href="sql-comment.html" title="COMMENT"><code class="command">COMMENT</code></a>
         <acronym class="acronym">SQL</acronym> command.
-       </p></dd><dt id="APP-PSQL-META-COMMAND-DD-UC"><span class="term"><code class="literal">\dD[S+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DD-UC" class="id_link">#</a></dt><dd><p>
+       </p></dd><dt id="APP-PSQL-META-COMMAND-DD-UC"><span class="term"><code class="literal">\dD[Sx+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DD-UC" class="id_link">#</a></dt><dd><p>
         Lists domains. If <em class="replaceable"><code>pattern</code></em>
         is specified, only domains whose names match the pattern are shown.
         By default, only user-created objects are shown;  supply a
         pattern or the <code class="literal">S</code> modifier to include system
         objects.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
         If <code class="literal">+</code> is appended to the command name, each object
         is listed with its associated permissions and description.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DDP"><span class="term"><code class="literal">\ddp [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DDP" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DDP"><span class="term"><code class="literal">\ddp[x] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DDP" class="id_link">#</a></dt><dd><p>
         Lists default access privilege settings.  An entry is shown for
         each role (and schema, if applicable) for which the default
         privilege settings have been changed from the built-in defaults.
         If <em class="replaceable"><code>pattern</code></em> is
         specified, only entries whose role name or schema name matches
         the pattern are listed.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
         </p><p>
         The <a class="link" href="sql-alterdefaultprivileges.html" title="ALTER DEFAULT PRIVILEGES"><code class="command">ALTER DEFAULT
         PRIVILEGES</code></a> command is used to set default access
         privileges.  The meaning of the privilege display is explained in
         <a class="xref" href="ddl-priv.html" title="5.8. Privileges">Section 5.8</a>.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DE"><span class="term"><code class="literal">\dE[S+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code><br /></span><span class="term"><code class="literal">\di[S+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code><br /></span><span class="term"><code class="literal">\dm[S+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code><br /></span><span class="term"><code class="literal">\ds[S+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code><br /></span><span class="term"><code class="literal">\dt[S+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code><br /></span><span class="term"><code class="literal">\dv[S+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DE" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DE"><span class="term"><code class="literal">\dE[Sx+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code><br /></span><span class="term"><code class="literal">\di[Sx+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code><br /></span><span class="term"><code class="literal">\dm[Sx+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code><br /></span><span class="term"><code class="literal">\ds[Sx+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code><br /></span><span class="term"><code class="literal">\dt[Sx+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code><br /></span><span class="term"><code class="literal">\dv[Sx+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DE" class="id_link">#</a></dt><dd><p>
         In this group of commands, the letters <code class="literal">E</code>,
         <code class="literal">i</code>, <code class="literal">m</code>, <code class="literal">s</code>,
         <code class="literal">t</code>, and <code class="literal">v</code>
@@ -884,7 +969,10 @@ INSERT INTO tbl1 VALUES ($1, $2) \bind 'first value' 'second value' \g
         You can specify any or all of
         these letters, in any order, to obtain a listing of objects
         of these types.  For example, <code class="literal">\dti</code> lists
-        tables and indexes.  If <code class="literal">+</code> is
+        tables and indexes.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
+        If <code class="literal">+</code> is
         appended to the command name, each object is listed with its
         persistence status (permanent, temporary, or unlogged),
         physical size on disk, and associated description if any.
@@ -893,41 +981,53 @@ INSERT INTO tbl1 VALUES ($1, $2) \bind 'first value' 'second value' \g
         By default, only user-created objects are shown; supply a
         pattern or the <code class="literal">S</code> modifier to include system
         objects.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DES"><span class="term"><code class="literal">\des[+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DES" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DES"><span class="term"><code class="literal">\des[x+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DES" class="id_link">#</a></dt><dd><p>
         Lists foreign servers (mnemonic: <span class="quote">“<span class="quote">external
         servers</span>”</span>).
         If <em class="replaceable"><code>pattern</code></em> is
         specified, only those servers whose name matches the pattern
-        are listed.  If the form <code class="literal">\des+</code> is used, a
+        are listed.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
+        If <code class="literal">+</code> is appended to the command name, a
         full description of each server is shown, including the
         server's access privileges, type, version, options, and description.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DET"><span class="term"><code class="literal">\det[+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DET" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DET"><span class="term"><code class="literal">\det[x+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DET" class="id_link">#</a></dt><dd><p>
         Lists foreign tables (mnemonic: <span class="quote">“<span class="quote">external tables</span>”</span>).
         If <em class="replaceable"><code>pattern</code></em> is
         specified, only entries whose table name or schema name matches
-        the pattern are listed.  If the form <code class="literal">\det+</code>
-        is used, generic options and the foreign table description
+        the pattern are listed.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
+        If <code class="literal">+</code> is appended to the command name,
+        generic options and the foreign table description
         are also displayed.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DEU"><span class="term"><code class="literal">\deu[+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DEU" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DEU"><span class="term"><code class="literal">\deu[x+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DEU" class="id_link">#</a></dt><dd><p>
         Lists user mappings (mnemonic: <span class="quote">“<span class="quote">external
         users</span>”</span>).
         If <em class="replaceable"><code>pattern</code></em> is
         specified, only those mappings whose user names match the
-        pattern are listed.  If the form <code class="literal">\deu+</code> is
-        used, additional information about each mapping is shown.
+        pattern are listed.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
+        If <code class="literal">+</code> is appended to the command name,
+        additional information about each mapping is shown.
         </p><div class="caution"><h3 class="title">Caution</h3><p>
         <code class="literal">\deu+</code> might also display the user name and
         password of the remote user, so care should be taken not to
         disclose them.
-        </p></div></dd><dt id="APP-PSQL-META-COMMAND-DEW"><span class="term"><code class="literal">\dew[+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DEW" class="id_link">#</a></dt><dd><p>
+        </p></div></dd><dt id="APP-PSQL-META-COMMAND-DEW"><span class="term"><code class="literal">\dew[x+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DEW" class="id_link">#</a></dt><dd><p>
         Lists foreign-data wrappers (mnemonic: <span class="quote">“<span class="quote">external
         wrappers</span>”</span>).
         If <em class="replaceable"><code>pattern</code></em> is
         specified, only those foreign-data wrappers whose name matches
-        the pattern are listed.  If the form <code class="literal">\dew+</code>
-        is used, the access privileges, options, and description of the
+        the pattern are listed.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
+        If <code class="literal">+</code> is appended to the command name,
+        the access privileges, options, and description of the
         foreign-data wrapper are also shown.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DF-LC"><span class="term"><code class="literal">\df[anptwS+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> [ <em class="replaceable"><code>arg_pattern</code></em> ... ] ]</code></span> <a href="#APP-PSQL-META-COMMAND-DF-LC" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DF-LC"><span class="term"><code class="literal">\df[anptwSx+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> [ <em class="replaceable"><code>arg_pattern</code></em> ... ] ]</code></span> <a href="#APP-PSQL-META-COMMAND-DF-LC" class="id_link">#</a></dt><dd><p>
         Lists functions, together with their result data types, argument data
         types, and function types, which are classified as <span class="quote">“<span class="quote">agg</span>”</span>
         (aggregate), <span class="quote">“<span class="quote">normal</span>”</span>, <span class="quote">“<span class="quote">procedure</span>”</span>, <span class="quote">“<span class="quote">trigger</span>”</span>, or <span class="quote">“<span class="quote">window</span>”</span>.
@@ -944,41 +1044,51 @@ INSERT INTO tbl1 VALUES ($1, $2) \bind 'first value' 'second value' \g
         By default, only user-created
         objects are shown; supply a pattern or the <code class="literal">S</code>
         modifier to include system objects.
-        If the form <code class="literal">\df+</code> is used, additional information
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
+        If <code class="literal">+</code> is appended to the command name, additional information
         about each function is shown, including volatility,
-        parallel safety, owner, security classification, access privileges,
-        language, internal name (for C and internal functions only),
-        and description.
+        parallel safety, owner, security classification, whether it is
+        leakproof, access privileges, language, internal name (for C and
+        internal functions only), and description.
         Source code for a specific function can be seen
         using <code class="literal">\sf</code>.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DF-UC"><span class="term"><code class="literal">\dF[+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DF-UC" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DF-UC"><span class="term"><code class="literal">\dF[x+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DF-UC" class="id_link">#</a></dt><dd><p>
          Lists text search configurations.
          If <em class="replaceable"><code>pattern</code></em> is specified,
          only configurations whose names match the pattern are shown.
-         If the form <code class="literal">\dF+</code> is used, a full description of
+         If <code class="literal">x</code> is appended to the command name, the results
+         are displayed in expanded mode.
+         If <code class="literal">+</code> is appended to the command name, a full description of
          each configuration is shown, including the underlying text search
          parser and the dictionary list for each parser token type.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DFD"><span class="term"><code class="literal">\dFd[+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DFD" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DFD"><span class="term"><code class="literal">\dFd[x+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DFD" class="id_link">#</a></dt><dd><p>
          Lists text search dictionaries.
          If <em class="replaceable"><code>pattern</code></em> is specified,
          only dictionaries whose names match the pattern are shown.
-         If the form <code class="literal">\dFd+</code> is used, additional information
+         If <code class="literal">x</code> is appended to the command name, the results
+         are displayed in expanded mode.
+         If <code class="literal">+</code> is appended to the command name, additional information
          is shown about each selected dictionary, including the underlying
          text search template and the option values.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DFP"><span class="term"><code class="literal">\dFp[+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DFP" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DFP"><span class="term"><code class="literal">\dFp[x+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DFP" class="id_link">#</a></dt><dd><p>
          Lists text search parsers.
          If <em class="replaceable"><code>pattern</code></em> is specified,
          only parsers whose names match the pattern are shown.
-         If the form <code class="literal">\dFp+</code> is used, a full description of
+         If <code class="literal">x</code> is appended to the command name, the results
+         are displayed in expanded mode.
+         If <code class="literal">+</code> is appended to the command name, a full description of
          each parser is shown, including the underlying functions and the
          list of recognized token types.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DFT"><span class="term"><code class="literal">\dFt[+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DFT" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DFT"><span class="term"><code class="literal">\dFt[x+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DFT" class="id_link">#</a></dt><dd><p>
          Lists text search templates.
          If <em class="replaceable"><code>pattern</code></em> is specified,
          only templates whose names match the pattern are shown.
-         If the form <code class="literal">\dFt+</code> is used, additional information
+         If <code class="literal">x</code> is appended to the command name, the results
+         are displayed in expanded mode.
+         If <code class="literal">+</code> is appended to the command name, additional information
          is shown about each template, including the underlying function names.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DG"><span class="term"><code class="literal">\dg[S+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DG" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DG"><span class="term"><code class="literal">\dg[Sx+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DG" class="id_link">#</a></dt><dd><p>
         Lists database roles.
         (Since the concepts of <span class="quote">“<span class="quote">users</span>”</span> and <span class="quote">“<span class="quote">groups</span>”</span> have been
         unified into <span class="quote">“<span class="quote">roles</span>”</span>, this command is now equivalent to
@@ -987,31 +1097,40 @@ INSERT INTO tbl1 VALUES ($1, $2) \bind 'first value' 'second value' \g
         <code class="literal">S</code> modifier to include system roles.
         If <em class="replaceable"><code>pattern</code></em> is specified,
         only those roles whose names match the pattern are listed.
-        If the form <code class="literal">\dg+</code> is used, additional information
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
+        If <code class="literal">+</code> is appended to the command name, additional information
         is shown about each role; currently this adds the comment for each
         role.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DL-LC"><span class="term"><code class="literal">\dl[+]</code></span> <a href="#APP-PSQL-META-COMMAND-DL-LC" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DL-LC"><span class="term"><code class="literal">\dl[x+]</code></span> <a href="#APP-PSQL-META-COMMAND-DL-LC" class="id_link">#</a></dt><dd><p>
         This is an alias for <code class="command">\lo_list</code>, which shows a
         list of large objects.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
         If <code class="literal">+</code> is appended to the command name,
         each large object is listed with its associated permissions,
         if any.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DL-UC"><span class="term"><code class="literal">\dL[S+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DL-UC" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DL-UC"><span class="term"><code class="literal">\dL[Sx+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DL-UC" class="id_link">#</a></dt><dd><p>
         Lists procedural languages. If <em class="replaceable"><code>pattern</code></em>
         is specified, only languages whose names match the pattern are listed.
         By default, only user-created languages
         are shown; supply the <code class="literal">S</code> modifier to include system
-        objects. If <code class="literal">+</code> is appended to the command name, each
+        objects.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
+        If <code class="literal">+</code> is appended to the command name, each
         language is listed with its call handler, validator, access privileges,
         and whether it is a system object.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DN"><span class="term"><code class="literal">\dn[S+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DN" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DN"><span class="term"><code class="literal">\dn[Sx+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DN" class="id_link">#</a></dt><dd><p>
         Lists schemas (namespaces). If <em class="replaceable"><code>pattern</code></em>
         is specified, only schemas whose names match the pattern are listed.
         By default, only user-created objects are shown; supply a
         pattern or the <code class="literal">S</code> modifier to include system objects.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
         If <code class="literal">+</code> is appended to the command name, each object
         is listed with its associated permissions and description, if any.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DO-LC"><span class="term"><code class="literal">\do[S+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> [ <em class="replaceable"><code>arg_pattern</code></em> [ <em class="replaceable"><code>arg_pattern</code></em> ] ] ]</code></span> <a href="#APP-PSQL-META-COMMAND-DO-LC" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DO-LC"><span class="term"><code class="literal">\do[Sx+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> [ <em class="replaceable"><code>arg_pattern</code></em> [ <em class="replaceable"><code>arg_pattern</code></em> ] ] ]</code></span> <a href="#APP-PSQL-META-COMMAND-DO-LC" class="id_link">#</a></dt><dd><p>
         Lists operators with their operand and result types.
         If <em class="replaceable"><code>pattern</code></em> is
         specified, only operators whose names match the pattern are listed.
@@ -1025,22 +1144,27 @@ INSERT INTO tbl1 VALUES ($1, $2) \bind 'first value' 'second value' \g
         By default, only user-created objects are shown; supply a
         pattern or the <code class="literal">S</code> modifier to include system
         objects.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
         If <code class="literal">+</code> is appended to the command name,
-        additional information about each operator is shown, currently just
-        the name of the underlying function.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DO-UC"><span class="term"><code class="literal">\dO[S+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DO-UC" class="id_link">#</a></dt><dd><p>
+        additional information about each operator is shown, including
+        the name of the underlying function, and whether it is leakproof.
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DO-UC"><span class="term"><code class="literal">\dO[Sx+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DO-UC" class="id_link">#</a></dt><dd><p>
         Lists collations.
         If <em class="replaceable"><code>pattern</code></em> is
         specified, only collations whose names match the pattern are
         listed.  By default, only user-created objects are shown;
         supply a pattern or the <code class="literal">S</code> modifier to
-        include system objects.  If <code class="literal">+</code> is appended
+        include system objects.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
+        If <code class="literal">+</code> is appended
         to the command name, each collation is listed with its associated
         description, if any.
         Note that only collations usable with the current database's encoding
         are shown, so the results may vary in different databases of the
         same installation.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DP-LC"><span class="term"><code class="literal">\dp[S] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DP-LC" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DP-LC"><span class="term"><code class="literal">\dp[Sx] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DP-LC" class="id_link">#</a></dt><dd><p>
         Lists tables, views and sequences with their
         associated access privileges.
         If <em class="replaceable"><code>pattern</code></em> is
@@ -1048,13 +1172,15 @@ INSERT INTO tbl1 VALUES ($1, $2) \bind 'first value' 'second value' \g
         pattern are listed.  By default only user-created objects are shown;
         supply a pattern or the <code class="literal">S</code> modifier to include
         system objects.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
         </p><p>
         The <a class="link" href="sql-grant.html" title="GRANT"><code class="command">GRANT</code></a> and
         <a class="link" href="sql-revoke.html" title="REVOKE"><code class="command">REVOKE</code></a>
         commands are used to set access privileges.  The meaning of the
         privilege display is explained in
         <a class="xref" href="ddl-priv.html" title="5.8. Privileges">Section 5.8</a>.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DP-UC"><span class="term"><code class="literal">\dP[itn+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DP-UC" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DP-UC"><span class="term"><code class="literal">\dP[itnx+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DP-UC" class="id_link">#</a></dt><dd><p>
         Lists partitioned relations.
         If <em class="replaceable"><code>pattern</code></em>
         is specified, only entries whose name matches the pattern are listed.
@@ -1068,6 +1194,8 @@ INSERT INTO tbl1 VALUES ($1, $2) \bind 'first value' 'second value' \g
         included, and a column is shown displaying the parent of each
         partitioned relation.
         </p><p>
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
         If <code class="literal">+</code> is appended to the command name, the sum of the
         sizes of each relation's partitions is also displayed, along with the
         relation's description.
@@ -1075,7 +1203,7 @@ INSERT INTO tbl1 VALUES ($1, $2) \bind 'first value' 'second value' \g
         sizes are shown: one including the total size of directly-attached
         leaf partitions, and another showing the total size of all partitions,
         including indirectly attached sub-partitions.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DRDS"><span class="term"><code class="literal">\drds [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>role-pattern</code></em></a> [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>database-pattern</code></em></a> ] ]</code></span> <a href="#APP-PSQL-META-COMMAND-DRDS" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DRDS"><span class="term"><code class="literal">\drds[x] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>role-pattern</code></em></a> [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>database-pattern</code></em></a> ] ]</code></span> <a href="#APP-PSQL-META-COMMAND-DRDS" class="id_link">#</a></dt><dd><p>
         Lists defined configuration settings.  These settings can be
         role-specific, database-specific, or both.
         <em class="replaceable"><code>role-pattern</code></em> and
@@ -1083,12 +1211,14 @@ INSERT INTO tbl1 VALUES ($1, $2) \bind 'first value' 'second value' \g
         specific roles and databases to list, respectively.  If omitted, or if
         <code class="literal">*</code> is specified, all settings are listed, including those
         not role-specific or database-specific, respectively.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
         </p><p>
         The <a class="link" href="sql-alterrole.html" title="ALTER ROLE"><code class="command">ALTER ROLE</code></a> and
         <a class="link" href="sql-alterdatabase.html" title="ALTER DATABASE"><code class="command">ALTER DATABASE</code></a>
         commands are used to define per-role and per-database configuration
         settings.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DRG"><span class="term"><code class="literal">\drg[S] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DRG" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DRG"><span class="term"><code class="literal">\drg[Sx] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DRG" class="id_link">#</a></dt><dd><p>
         Lists information about each granted role membership, including
         assigned options (<code class="literal">ADMIN</code>,
         <code class="literal">INHERIT</code> and/or <code class="literal">SET</code>) and grantor.
@@ -1099,31 +1229,39 @@ INSERT INTO tbl1 VALUES ($1, $2) \bind 'first value' 'second value' \g
         <code class="literal">S</code> modifier to include system roles.
         If <em class="replaceable"><code>pattern</code></em> is specified,
         only grants to those roles whose names match the pattern are listed.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DRP"><span class="term"><code class="literal">\dRp[+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DRP" class="id_link">#</a></dt><dd><p>
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DRP"><span class="term"><code class="literal">\dRp[x+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DRP" class="id_link">#</a></dt><dd><p>
         Lists replication publications.
         If <em class="replaceable"><code>pattern</code></em> is
         specified, only those publications whose names match the pattern are
         listed.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
         If <code class="literal">+</code> is appended to the command name, the tables and
         schemas associated with each publication are shown as well.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DRS"><span class="term"><code class="literal">\dRs[+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DRS" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DRS"><span class="term"><code class="literal">\dRs[x+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DRS" class="id_link">#</a></dt><dd><p>
         Lists replication subscriptions.
         If <em class="replaceable"><code>pattern</code></em> is
         specified, only those subscriptions whose names match the pattern are
         listed.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
         If <code class="literal">+</code> is appended to the command name, additional
         properties of the subscriptions are shown.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DT"><span class="term"><code class="literal">\dT[S+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DT" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DT"><span class="term"><code class="literal">\dT[Sx+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DT" class="id_link">#</a></dt><dd><p>
         Lists data types.
         If <em class="replaceable"><code>pattern</code></em> is
         specified, only types whose names match the pattern are listed.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
         If <code class="literal">+</code> is appended to the command name, each type is
         listed with its internal name and size, its allowed values
         if it is an <code class="type">enum</code> type, and its associated permissions.
         By default, only user-created objects are shown;  supply a
         pattern or the <code class="literal">S</code> modifier to include system
         objects.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DU"><span class="term"><code class="literal">\du[S+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DU" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DU"><span class="term"><code class="literal">\du[Sx+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DU" class="id_link">#</a></dt><dd><p>
         Lists database roles.
         (Since the concepts of <span class="quote">“<span class="quote">users</span>”</span> and <span class="quote">“<span class="quote">groups</span>”</span> have been
         unified into <span class="quote">“<span class="quote">roles</span>”</span>, this command is now equivalent to
@@ -1132,21 +1270,27 @@ INSERT INTO tbl1 VALUES ($1, $2) \bind 'first value' 'second value' \g
         <code class="literal">S</code> modifier to include system roles.
         If <em class="replaceable"><code>pattern</code></em> is specified,
         only those roles whose names match the pattern are listed.
-        If the form <code class="literal">\du+</code> is used, additional information
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
+        If <code class="literal">+</code> is appended to the command name, additional information
         is shown about each role; currently this adds the comment for each
         role.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DX-LC"><span class="term"><code class="literal">\dx[+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DX-LC" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DX-LC"><span class="term"><code class="literal">\dx[x+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DX-LC" class="id_link">#</a></dt><dd><p>
         Lists installed extensions.
         If <em class="replaceable"><code>pattern</code></em>
         is specified, only those extensions whose names match the pattern
         are listed.
-        If the form <code class="literal">\dx+</code> is used, all the objects belonging
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
+        If <code class="literal">+</code> is appended to the command name, all the objects belonging
         to each matching extension are listed.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DX-UC"><span class="term"><code class="literal">\dX [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DX-UC" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DX-UC"><span class="term"><code class="literal">\dX[x] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DX-UC" class="id_link">#</a></dt><dd><p>
         Lists extended statistics.
         If <em class="replaceable"><code>pattern</code></em>
         is specified, only those extended statistics whose names match the
         pattern are listed.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
         </p><p>
         The status of each kind of extended statistics is shown in a column
         named after its statistic kind (e.g. Ndistinct).
@@ -1155,11 +1299,13 @@ INSERT INTO tbl1 VALUES ($1, $2) \bind 'first value' 'second value' \g
         You can use <code class="structname">pg_stats_ext</code> if you'd like to
         know whether <a class="link" href="sql-analyze.html" title="ANALYZE"><code class="command">ANALYZE</code></a>
         was run and statistics are available to the planner.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-DY"><span class="term"><code class="literal">\dy[+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DY" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-DY"><span class="term"><code class="literal">\dy[x+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-DY" class="id_link">#</a></dt><dd><p>
         Lists event triggers.
         If <em class="replaceable"><code>pattern</code></em>
         is specified, only those event triggers whose names match the pattern
         are listed.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
         If <code class="literal">+</code> is appended to the command name, each object
         is listed with its associated description.
         </p></dd><dt id="APP-PSQL-META-COMMAND-EDIT"><span class="term"><code class="literal">\e</code> or <code class="literal">\edit</code> <code class="literal"> [<span class="optional"> <em class="replaceable"><code>filename</code></em> </span>] [<span class="optional"> <em class="replaceable"><code>line_number</code></em> </span>] </code></span> <a href="#APP-PSQL-META-COMMAND-EDIT" class="id_link">#</a></dt><dd><p>
@@ -1521,11 +1667,13 @@ SELECT
         script, <code class="literal">\ir</code> interprets file names relative to the
         directory in which the script is located, rather than the current
         working directory.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-LIST"><span class="term"><code class="literal">\l[+]</code> or <code class="literal">\list[+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-LIST" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-LIST"><span class="term"><code class="literal">\l[x+]</code> or <code class="literal">\list[x+] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-LIST" class="id_link">#</a></dt><dd><p>
         List the databases in the server and show their names, owners,
         character set encodings, and access privileges.
         If <em class="replaceable"><code>pattern</code></em> is specified,
         only databases whose names match the pattern are listed.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
         If <code class="literal">+</code> is appended to the command name, database
         sizes, default tablespaces, and descriptions are also displayed.
         (Size information is only available for databases that the current
@@ -1559,10 +1707,12 @@ lo_import 152801
         <code class="function">lo_import</code> because it acts as the local user
         on the local file system, rather than the server's user and file
         system.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-LO-LIST"><span class="term"><code class="literal">\lo_list[+]</code></span> <a href="#APP-PSQL-META-COMMAND-LO-LIST" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-LO-LIST"><span class="term"><code class="literal">\lo_list[x+]</code></span> <a href="#APP-PSQL-META-COMMAND-LO-LIST" class="id_link">#</a></dt><dd><p>
         Shows a list of all <span class="productname">PostgreSQL</span>
         large objects currently stored in the database,
         along with any comments provided for them.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
         If <code class="literal">+</code> is appended to the command name,
         each large object is listed with its associated permissions,
         if any.
@@ -1597,6 +1747,25 @@ lo_import 152801
         Print the current query buffer to the standard output.
         If the current query buffer is empty, the most recently executed query
         is printed instead.
+        </p></dd><dt id="APP-PSQL-META-COMMAND-PARSE"><span class="term"><code class="literal">\parse <em class="replaceable"><code>statement_name</code></em></code></span> <a href="#APP-PSQL-META-COMMAND-PARSE" class="id_link">#</a></dt><dd><p>
+         Creates a prepared statement from the current query buffer, based on
+         the name of a destination prepared-statement object. An empty string
+         denotes the unnamed prepared statement.
+        </p><p>
+         Example:
+</p><pre class="programlisting">
+SELECT $1 \parse stmt1
+</pre><p>
+        </p><p>
+         This command causes the extended query protocol to be used, unlike
+         normal <span class="application">psql</span> operation, which uses the
+         simple query protocol. A
+         <a class="xref" href="protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-PARSE">Parse (F)</a>
+         message will be issued by this command so it can be useful to
+         test the extended query protocol from
+         <span class="application">psql</span>. This command affects only the next
+         query executed; all subsequent queries will use the simple query
+         protocol by default.
         </p></dd><dt id="APP-PSQL-META-COMMAND-PASSWORD"><span class="term"><code class="literal">\password [ <em class="replaceable"><code>username</code></em> ]</code></span> <a href="#APP-PSQL-META-COMMAND-PASSWORD" class="id_link">#</a></dt><dd><p>
         Changes the password of the specified user (by default, the current
         user).  This command prompts for the new password, encrypts it, and
@@ -1710,7 +1879,7 @@ lo_import 152801
           so <acronym class="acronym">CSV</acronym> format may be better suited for such
           purposes.
           </p><p><code class="literal">csv</code> format
-          <a id="id-1.9.4.21.8.4.10.1.78.2.3.1.8.2.4.2" class="indexterm"></a>
+          <a id="id-1.9.4.21.8.4.11.1.81.2.3.1.8.2.4.2" class="indexterm"></a>
           writes column values separated by commas, applying the quoting
           rules described in
           <a class="ulink" href="https://datatracker.ietf.org/doc/html/rfc4180" target="_top">RFC 4180</a>.
@@ -1984,7 +2153,57 @@ testdb=&gt; <strong class="userinput"><code>\setenv LESS -imx4F</code></strong>
         always taken to be the argument(s) of <code class="command">\sv</code>, and neither
         variable interpolation nor backquote expansion are performed in the
         arguments.
-        </p></dd><dt id="APP-PSQL-META-COMMAND-T-LC"><span class="term"><code class="literal">\t</code></span> <a href="#APP-PSQL-META-COMMAND-T-LC" class="id_link">#</a></dt><dd><p>
+        </p></dd><dt id="APP-PSQL-META-COMMAND-PIPELINE"><span class="term"><code class="literal">\startpipeline</code><br /></span><span class="term"><code class="literal">\sendpipeline</code><br /></span><span class="term"><code class="literal">\syncpipeline</code><br /></span><span class="term"><code class="literal">\endpipeline</code><br /></span><span class="term"><code class="literal">\flushrequest</code><br /></span><span class="term"><code class="literal">\flush</code><br /></span><span class="term"><code class="literal">\getresults [ <em class="replaceable"><code>number_results</code></em> ]</code></span> <a href="#APP-PSQL-META-COMMAND-PIPELINE" class="id_link">#</a></dt><dd><p>
+        This group of commands implements pipelining of SQL statements.
+        A pipeline must begin with a <code class="command">\startpipeline</code>
+        and end with an <code class="command">\endpipeline</code>. In between there
+        may be any number of <code class="command">\syncpipeline</code> commands,
+        which sends a <a class="link" href="protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY" title="54.2.3. Extended Query">sync message</a>
+        without ending the ongoing pipeline and flushing the send buffer.
+        In pipeline mode, statements are sent to the server without waiting
+        for the results of previous statements.
+        See <a class="xref" href="libpq-pipeline-mode.html" title="32.5. Pipeline Mode">Section 32.5</a> for more details.
+       </p><p>
+        All queries executed while a pipeline is ongoing use the extended
+        query protocol. Queries are appended to the pipeline when ending with
+        a semicolon. The meta-commands <code class="literal">\bind</code>,
+        <code class="literal">\bind_named</code>, <code class="literal">\close_prepared</code> or
+        <code class="literal">\parse</code> can be used in an ongoing pipeline. While
+        a pipeline is ongoing, <code class="literal">\sendpipeline</code> will append
+        the current query buffer to the pipeline. Other meta-commands like
+        <code class="literal">\g</code>, <code class="literal">\gx</code> or
+        <code class="literal">\gdesc</code> are not allowed in pipeline mode.
+       </p><p>
+        <code class="command">\flushrequest</code> appends a flush command to the
+        pipeline, allowing to read results with
+        <code class="command">\getresults</code> without issuing a sync or ending the
+        pipeline. <code class="command">\getresults</code> will automatically push
+        unsent data to the server. <code class="command">\flush</code> can be used to
+        manually push unsent data.
+       </p><p>
+        <code class="command">\getresults</code> accepts an optional
+        <em class="replaceable"><code>number_results</code></em> parameter.
+        If provided, only the first
+        <em class="replaceable"><code>number_results</code></em> pending
+        results will be read. If not provided or <code class="literal">0</code>, all
+        pending results are read.
+       </p><p>
+        When pipeline mode is active, a dedicated prompt variable is available
+        to report the pipeline status.
+        See <a class="xref" href="app-psql.html#APP-PSQL-PROMPTING-P-UC"><code class="literal">%P</code></a> for more details
+       </p><p>
+        <code class="command">COPY</code> is not supported while in pipeline mode.
+       </p><p>
+        Example:
+</p><pre class="programlisting">
+\startpipeline
+SELECT * FROM pg_class;
+SELECT 1 \bind \sendpipeline
+\flushrequest
+\getresults
+\endpipeline
+</pre><p>
+       </p></dd><dt id="APP-PSQL-META-COMMAND-T-LC"><span class="term"><code class="literal">\t</code></span> <a href="#APP-PSQL-META-COMMAND-T-LC" class="id_link">#</a></dt><dd><p>
         Toggles the display of output column name headings and row count
         footer. This command is equivalent to <code class="literal">\pset
         tuples_only</code> and is provided for convenience.
@@ -2036,6 +2255,8 @@ testdb=&gt; <strong class="userinput"><code>\setenv LESS -imx4F</code></strong>
         until interrupted, or the query fails, or the execution count limit
         (if given) is reached, or the query no longer returns the minimum number
         of rows. Wait the specified number of seconds (default 2) between executions.
+        The default wait can be changed with the variable
+        <a class="xref" href="app-psql.html#APP-PSQL-VARIABLES-WATCH-INTERVAL"><code class="varname">WATCH_INTERVAL</code></a>.
         For backwards compatibility,
         <em class="replaceable"><code>seconds</code></em> can be specified
         with or without an <code class="literal">interval=</code> prefix.
@@ -2048,7 +2269,7 @@ testdb=&gt; <strong class="userinput"><code>\setenv LESS -imx4F</code></strong>
         </p></dd><dt id="APP-PSQL-META-COMMAND-X"><span class="term"><code class="literal">\x [ <em class="replaceable"><code>on</code></em> | <em class="replaceable"><code>off</code></em> | <em class="replaceable"><code>auto</code></em> ]</code></span> <a href="#APP-PSQL-META-COMMAND-X" class="id_link">#</a></dt><dd><p>
         Sets or toggles expanded table formatting mode. As such it is equivalent to
         <code class="literal">\pset expanded</code>.
-       </p></dd><dt id="APP-PSQL-META-COMMAND-Z"><span class="term"><code class="literal">\z[S] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-Z" class="id_link">#</a></dt><dd><p>
+       </p></dd><dt id="APP-PSQL-META-COMMAND-Z"><span class="term"><code class="literal">\z[Sx] [ <a class="link" href="app-psql.html#APP-PSQL-PATTERNS" title="Patterns"><em class="replaceable"><code>pattern</code></em></a> ]</code></span> <a href="#APP-PSQL-META-COMMAND-Z" class="id_link">#</a></dt><dd><p>
         Lists tables, views and sequences with their
         associated access privileges.
         If a <em class="replaceable"><code>pattern</code></em> is
@@ -2056,6 +2277,8 @@ testdb=&gt; <strong class="userinput"><code>\setenv LESS -imx4F</code></strong>
         pattern are listed.  By default only user-created objects are shown;
         supply a pattern or the <code class="literal">S</code> modifier to include
         system objects.
+        If <code class="literal">x</code> is appended to the command name, the results
+        are displayed in expanded mode.
         </p><p>
         This is an alias for <code class="command">\dp</code> (<span class="quote">“<span class="quote">display
         privileges</span>”</span>).
@@ -2103,10 +2326,10 @@ select 1\; select 2\; select 3;
         The server executes such a request as a single transaction,
         unless there are explicit <code class="command">BEGIN</code>/<code class="command">COMMIT</code>
         commands included in the string to divide it into multiple
-        transactions.  (See <a class="xref" href="protocol-flow.html#PROTOCOL-FLOW-MULTI-STATEMENT" title="53.2.2.1. Multiple Statements in a Simple Query">Section 53.2.2.1</a>
+        transactions.  (See <a class="xref" href="protocol-flow.html#PROTOCOL-FLOW-MULTI-STATEMENT" title="54.2.2.1. Multiple Statements in a Simple Query">Section 54.2.2.1</a>
         for more details about how the server handles multi-query strings.)
         </p></dd></dl></div><p>
-  </p><div class="refsect3" id="APP-PSQL-PATTERNS"><h4>Patterns</h4><a id="id-1.9.4.21.8.4.11.2" class="indexterm"></a><p>
+  </p><div class="refsect3" id="APP-PSQL-PATTERNS"><h4>Patterns</h4><a id="id-1.9.4.21.8.4.12.2" class="indexterm"></a><p>
    The various <code class="literal">\d</code> commands accept a <em class="replaceable"><code>pattern</code></em> parameter to specify the
    object name(s) to be displayed.  In the simplest case, a pattern
    is just the exact name of the object.  The characters within a
@@ -2427,6 +2650,16 @@ bar
         other scripts which it may have in invoked) will be terminated
         immediately.  If the top-level command string contained multiple SQL
         commands, processing will stop with the current command.
+        </p></dd><dt id="APP-PSQL-VARIABLES-PIPELINE-COMMAND-COUNT"><span class="term"><code class="varname">PIPELINE_COMMAND_COUNT</code></span> <a href="#APP-PSQL-VARIABLES-PIPELINE-COMMAND-COUNT" class="id_link">#</a></dt><dd><p>
+        The number of commands queued in an ongoing pipeline.
+        </p></dd><dt id="APP-PSQL-VARIABLES-PIPELINE-RESULT-COUNT"><span class="term"><code class="varname">PIPELINE_RESULT_COUNT</code></span> <a href="#APP-PSQL-VARIABLES-PIPELINE-RESULT-COUNT" class="id_link">#</a></dt><dd><p>
+        The number of commands of an ongoing pipeline that were followed
+        by either a <code class="command">\flushrequest</code> or a
+        <code class="command">\syncpipeline</code>, forcing the server to send the
+        results. These results can be retrieved with
+        <code class="command">\getresults</code>.
+        </p></dd><dt id="APP-PSQL-VARIABLES-PIPELINE-SYNC-COUNT"><span class="term"><code class="varname">PIPELINE_SYNC_COUNT</code></span> <a href="#APP-PSQL-VARIABLES-PIPELINE-SYNC-COUNT" class="id_link">#</a></dt><dd><p>
+        The number of sync messages queued in an ongoing pipeline.
         </p></dd><dt id="APP-PSQL-VARIABLES-PORT"><span class="term"><code class="varname">PORT</code></span> <a href="#APP-PSQL-VARIABLES-PORT" class="id_link">#</a></dt><dd><p>
         The database server port to which you are currently connected.
         This is set every time you connect to a database (including
@@ -2448,6 +2681,8 @@ bar
         example <code class="literal">90602</code> or <code class="literal">100001</code>.
         These are set every time you connect to a database
         (including program start-up), but can be changed or unset.
+        </p></dd><dt id="APP-PSQL-VARIABLES-SERVICE"><span class="term"><code class="varname">SERVICE</code></span> <a href="#APP-PSQL-VARIABLES-SERVICE" class="id_link">#</a></dt><dd><p>
+        The service name, if applicable.
         </p></dd><dt id="APP-PSQL-VARIABLES-SHELL-ERROR"><span class="term"><code class="varname">SHELL_ERROR</code></span> <a href="#APP-PSQL-VARIABLES-SHELL-ERROR" class="id_link">#</a></dt><dd><p>
          <code class="literal">true</code> if the last shell command
          failed, <code class="literal">false</code> if it succeeded.
@@ -2474,7 +2709,8 @@ bar
         When this variable is set to <code class="literal">off</code>, only the last
         result of a combined query (<code class="literal">\;</code>) is shown instead of
         all of them.  The default is <code class="literal">on</code>.  The off behavior
-        is for compatibility with older versions of psql.
+        is for compatibility with older versions of
+        <span class="application">psql</span>.
         </p></dd><dt id="APP-PSQL-VARIABLES-SHOW-CONTEXT"><span class="term"><code class="varname">SHOW_CONTEXT</code></span> <a href="#APP-PSQL-VARIABLES-SHOW-CONTEXT" class="id_link">#</a></dt><dd><p>
         This variable can be set to the
         values <code class="literal">never</code>, <code class="literal">errors</code>, or <code class="literal">always</code>
@@ -2513,6 +2749,11 @@ bar
         a short string (e.g., <code class="literal">9.6.2</code>, <code class="literal">10.1</code>,
         or <code class="literal">11beta1</code>), and a number (e.g., <code class="literal">90602</code>
         or <code class="literal">100001</code>).  They can be changed or unset.
+        </p></dd><dt id="APP-PSQL-VARIABLES-WATCH-INTERVAL"><span class="term"><code class="varname">WATCH_INTERVAL</code></span> <a href="#APP-PSQL-VARIABLES-WATCH-INTERVAL" class="id_link">#</a></dt><dd><p>
+        This variable sets the default interval, in seconds, which
+        <code class="command">\watch</code> waits between executing the query. The
+        default is 2 seconds.  Specifying an interval in the command overrides
+        this variable.
         </p></dd></dl></div></div><div class="refsect3" id="APP-PSQL-INTERPOLATION"><h4><acronym class="acronym">SQL</acronym> Interpolation</h4><p>
     A key feature of <span class="application">psql</span>
     variables is that you can substitute (<span class="quote">“<span class="quote">interpolate</span>”</span>)
@@ -2614,14 +2855,18 @@ testdb=&gt; <strong class="userinput"><code>INSERT INTO my_table VALUES (:'conte
           value might change during a database session as the result
           of the command <code class="command">SET SESSION
           AUTHORIZATION</code>.)
-         </p></dd><dt id="APP-PSQL-PROMPTING-SLASH"><span class="term"><code class="literal">%/</code></span> <a href="#APP-PSQL-PROMPTING-SLASH" class="id_link">#</a></dt><dd><p>The name of the current database.</p></dd><dt id="APP-PSQL-PROMPTING-TILDE"><span class="term"><code class="literal">%~</code></span> <a href="#APP-PSQL-PROMPTING-TILDE" class="id_link">#</a></dt><dd><p>Like <code class="literal">%/</code>, but the output is <code class="literal">~</code>
+         </p></dd><dt id="APP-PSQL-PROMPTING-S"><span class="term"><code class="literal">%s</code></span> <a href="#APP-PSQL-PROMPTING-S" class="id_link">#</a></dt><dd><p>The name of the service.</p></dd><dt id="APP-PSQL-PROMPTING-SLASH"><span class="term"><code class="literal">%/</code></span> <a href="#APP-PSQL-PROMPTING-SLASH" class="id_link">#</a></dt><dd><p>The name of the current database.</p></dd><dt id="APP-PSQL-PROMPTING-TILDE"><span class="term"><code class="literal">%~</code></span> <a href="#APP-PSQL-PROMPTING-TILDE" class="id_link">#</a></dt><dd><p>Like <code class="literal">%/</code>, but the output is <code class="literal">~</code>
          (tilde) if the database is your default database.</p></dd><dt id="APP-PSQL-PROMPTING-NUMBERSIGN"><span class="term"><code class="literal">%#</code></span> <a href="#APP-PSQL-PROMPTING-NUMBERSIGN" class="id_link">#</a></dt><dd><p>
           If the session user is a database superuser, then a
           <code class="literal">#</code>, otherwise a <code class="literal">&gt;</code>.
           (The expansion of this value might change during a database
           session as the result of the command <code class="command">SET SESSION
           AUTHORIZATION</code>.)
-         </p></dd><dt id="APP-PSQL-PROMPTING-P"><span class="term"><code class="literal">%p</code></span> <a href="#APP-PSQL-PROMPTING-P" class="id_link">#</a></dt><dd><p>The process ID of the backend currently connected to.</p></dd><dt id="APP-PSQL-PROMPTING-R"><span class="term"><code class="literal">%R</code></span> <a href="#APP-PSQL-PROMPTING-R" class="id_link">#</a></dt><dd><p>
+         </p></dd><dt id="APP-PSQL-PROMPTING-P"><span class="term"><code class="literal">%p</code></span> <a href="#APP-PSQL-PROMPTING-P" class="id_link">#</a></dt><dd><p>The process ID of the backend currently connected to.</p></dd><dt id="APP-PSQL-PROMPTING-P-UC"><span class="term"><code class="literal">%P</code></span> <a href="#APP-PSQL-PROMPTING-P-UC" class="id_link">#</a></dt><dd><p>
+        Pipeline status: <code class="literal">off</code> when not in a pipeline,
+        <code class="literal">on</code> when in an ongoing pipeline or
+        <code class="literal">abort</code> when in an aborted pipeline.
+        </p></dd><dt id="APP-PSQL-PROMPTING-R"><span class="term"><code class="literal">%R</code></span> <a href="#APP-PSQL-PROMPTING-R" class="id_link">#</a></dt><dd><p>
         In prompt 1 normally <code class="literal">=</code>,
         but <code class="literal">@</code> if the session is in an inactive branch of a
         conditional block, or <code class="literal">^</code> if in single-line mode,
@@ -2826,8 +3071,8 @@ PSQL_EDITOR_LINENUMBER_ARG='--line '
      can be made <span class="application">psql</span>-version-specific
      by appending a dash and the <span class="productname">PostgreSQL</span>
      major or minor release identifier to the file name,
-     for example <code class="filename">~/.psqlrc-17</code> or
-     <code class="filename">~/.psqlrc-17.6</code>.
+     for example <code class="filename">~/.psqlrc-18</code> or
+     <code class="filename">~/.psqlrc-18.0</code>.
      The most specific version-matching file will be read in preference
      to a non-version-specific file.
      These version suffixes are added after determining the file path
@@ -3022,6 +3267,29 @@ testdb=&gt; <strong class="userinput"><code>\df int*pl * bigint</code></strong>
 (3 rows)
 </pre><p>
   </p><p>
+   Here, the <code class="literal">+</code> option is used to display additional
+   information about one of these functions, and <code class="literal">x</code> is used
+   to display the results in expanded mode:
+</p><pre class="programlisting">
+testdb=&gt; <strong class="userinput"><code>\df+x int*pl integer bigint</code></strong>
+List of functions
+-[ RECORD 1 ]-------+-----------------------------
+Schema              | pg_catalog
+Name                | int48pl
+Result data type    | bigint
+Argument data types | integer, bigint
+Type                | func
+Volatility          | immutable
+Parallel            | safe
+Owner               | postgres
+Security            | invoker
+Leakproof?          | no
+Access privileges   |
+Language            | internal
+Internal name       | int48pl
+Description         | implementation of + operator
+</pre><p>
+  </p><p>
   When suitable, query results can be shown in a crosstab representation
   with the <code class="command">\crosstabview</code> command:
 </p><pre class="programlisting">
@@ -3058,4 +3326,4 @@ testdb-&gt; <strong class="userinput"><code>\crosstabview "A" "B" "AxB" ord</cod
  2 | 202 | 204 | 206 | 208
  1 | 101 | 102 | 103 | 104
 (4 rows)
-</pre></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="app-pgverifybackup.html" title="pg_verifybackup">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="reference-client.html" title="PostgreSQL Client Applications">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="app-reindexdb.html" title="reindexdb">Next</a></td></tr><tr><td width="40%" align="left" valign="top"><span class="application">pg_verifybackup</span> </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> <span class="application">reindexdb</span></td></tr></table></div></body></html>
+</pre></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="app-pgverifybackup.html" title="pg_verifybackup">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="reference-client.html" title="PostgreSQL Client Applications">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="app-reindexdb.html" title="reindexdb">Next</a></td></tr><tr><td width="40%" align="left" valign="top"><span class="application">pg_verifybackup</span> </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> <span class="application">reindexdb</span></td></tr></table></div></body></html>

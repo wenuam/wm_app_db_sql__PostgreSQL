@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>36.16. Interfacing Extensions to Indexes</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="xoper-optimization.html" title="36.15. Operator Optimization Information" /><link rel="next" href="extend-extensions.html" title="36.17. Packaging Related Objects into an Extension" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">36.16. Interfacing Extensions to Indexes</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="xoper-optimization.html" title="36.15. Operator Optimization Information">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="extend.html" title="Chapter 36. Extending SQL">Up</a></td><th width="60%" align="center">Chapter 36. Extending <acronym class="acronym">SQL</acronym></th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="extend-extensions.html" title="36.17. Packaging Related Objects into an Extension">Next</a></td></tr></table><hr /></div><div class="sect1" id="XINDEX"><div class="titlepage"><div><div><h2 class="title" style="clear: both">36.16. Interfacing Extensions to Indexes <a href="#XINDEX" class="id_link">#</a></h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="xindex.html#XINDEX-OPCLASS">36.16.1. Index Methods and Operator Classes</a></span></dt><dt><span class="sect2"><a href="xindex.html#XINDEX-STRATEGIES">36.16.2. Index Method Strategies</a></span></dt><dt><span class="sect2"><a href="xindex.html#XINDEX-SUPPORT">36.16.3. Index Method Support Routines</a></span></dt><dt><span class="sect2"><a href="xindex.html#XINDEX-EXAMPLE">36.16.4. An Example</a></span></dt><dt><span class="sect2"><a href="xindex.html#XINDEX-OPFAMILY">36.16.5. Operator Classes and Operator Families</a></span></dt><dt><span class="sect2"><a href="xindex.html#XINDEX-OPCLASS-DEPENDENCIES">36.16.6. System Dependencies on Operator Classes</a></span></dt><dt><span class="sect2"><a href="xindex.html#XINDEX-ORDERING-OPS">36.16.7. Ordering Operators</a></span></dt><dt><span class="sect2"><a href="xindex.html#XINDEX-OPCLASS-FEATURES">36.16.8. Special Features of Operator Classes</a></span></dt></dl></div><a id="id-1.8.3.19.2" class="indexterm"></a><p>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>36.16. Interfacing Extensions to Indexes</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="xoper-optimization.html" title="36.15. Operator Optimization Information" /><link rel="next" href="extend-extensions.html" title="36.17. Packaging Related Objects into an Extension" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">36.16. Interfacing Extensions to Indexes</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="xoper-optimization.html" title="36.15. Operator Optimization Information">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="extend.html" title="Chapter 36. Extending SQL">Up</a></td><th width="60%" align="center">Chapter 36. Extending <acronym class="acronym">SQL</acronym></th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="extend-extensions.html" title="36.17. Packaging Related Objects into an Extension">Next</a></td></tr></table><hr /></div><div class="sect1" id="XINDEX"><div class="titlepage"><div><div><h2 class="title" style="clear: both">36.16. Interfacing Extensions to Indexes <a href="#XINDEX" class="id_link">#</a></h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="xindex.html#XINDEX-OPCLASS">36.16.1. Index Methods and Operator Classes</a></span></dt><dt><span class="sect2"><a href="xindex.html#XINDEX-STRATEGIES">36.16.2. Index Method Strategies</a></span></dt><dt><span class="sect2"><a href="xindex.html#XINDEX-SUPPORT">36.16.3. Index Method Support Routines</a></span></dt><dt><span class="sect2"><a href="xindex.html#XINDEX-EXAMPLE">36.16.4. An Example</a></span></dt><dt><span class="sect2"><a href="xindex.html#XINDEX-OPFAMILY">36.16.5. Operator Classes and Operator Families</a></span></dt><dt><span class="sect2"><a href="xindex.html#XINDEX-OPCLASS-DEPENDENCIES">36.16.6. System Dependencies on Operator Classes</a></span></dt><dt><span class="sect2"><a href="xindex.html#XINDEX-ORDERING-OPS">36.16.7. Ordering Operators</a></span></dt><dt><span class="sect2"><a href="xindex.html#XINDEX-OPCLASS-FEATURES">36.16.8. Special Features of Operator Classes</a></span></dt></dl></div><a id="id-1.8.3.19.2" class="indexterm"></a><p>
    The procedures described thus far let you define new types, new
    functions, and new operators. However, we cannot yet define an
    index on a column of a new data type.  To do this, we must define an
@@ -14,10 +14,10 @@
    so we'll focus on that case first and then return to operator families.
   </p><div class="sect2" id="XINDEX-OPCLASS"><div class="titlepage"><div><div><h3 class="title">36.16.1. Index Methods and Operator Classes <a href="#XINDEX-OPCLASS" class="id_link">#</a></h3></div></div></div><p>
    Operator classes are associated with an index access method, such
-   as <a class="link" href="btree.html" title="64.1. B-Tree Indexes">B-Tree</a>
-   or <a class="link" href="gin.html" title="64.4. GIN Indexes">GIN</a>. Custom index access method may be
+   as <a class="link" href="btree.html" title="65.1. B-Tree Indexes">B-Tree</a>
+   or <a class="link" href="gin.html" title="65.4. GIN Indexes">GIN</a>. Custom index access method may be
    defined with <a class="xref" href="sql-create-access-method.html" title="CREATE ACCESS METHOD"><span class="refentrytitle">CREATE ACCESS METHOD</span></a>. See
-   <a class="xref" href="indexam.html" title="Chapter 62. Index Access Method Interface Definition">Chapter 62</a> for details.
+   <a class="xref" href="indexam.html" title="Chapter 63. Index Access Method Interface Definition">Chapter 63</a> for details.
   </p><p>
    The routines for an index method do not directly know anything
    about the data types that the index method will operate on.
@@ -137,7 +137,7 @@
    and allow four additional support functions to be
    supplied at the operator class author's option, as shown in <a class="xref" href="xindex.html#XINDEX-BTREE-SUPPORT-TABLE" title="Table 36.9. B-Tree Support Functions">Table 36.9</a>.
    The requirements for these support functions are explained further in
-   <a class="xref" href="btree.html#BTREE-SUPPORT-FUNCS" title="64.1.3. B-Tree Support Functions">Section 64.1.3</a>.
+   <a class="xref" href="btree.html#BTREE-SUPPORT-FUNCS" title="65.1.3. B-Tree Support Functions">Section 65.1.3</a>.
   </p><div class="table" id="XINDEX-BTREE-SUPPORT-TABLE"><p class="title"><strong>Table 36.9. B-Tree Support Functions</strong></p><div class="table-contents"><table class="table" summary="B-Tree Support Functions" border="1"><colgroup><col class="col1" /><col class="col2" /></colgroup><thead><tr><th>Function</th><th>Support Number</th></tr></thead><tbody><tr><td>
         Compare two keys and return an integer less than zero, zero, or
         greater than zero, indicating whether the first key is less than,
@@ -154,7 +154,10 @@
        </td><td>4</td></tr><tr><td>
         Define options that are specific to this operator class
         (optional)
-       </td><td>5</td></tr></tbody></table></div></div><br class="table-break" /><p>
+       </td><td>5</td></tr><tr><td>
+        Return the addresses of C-callable skip support function(s)
+        (optional)
+       </td><td>6</td></tr></tbody></table></div></div><br class="table-break" /><p>
    Hash indexes require one support function, and allow two additional ones to
    be supplied at the operator class author's option, as shown in <a class="xref" href="xindex.html#XINDEX-HASH-SUPPORT-TABLE" title="Table 36.10. Hash Support Functions">Table 36.10</a>.
   </p><div class="table" id="XINDEX-HASH-SUPPORT-TABLE"><p class="title"><strong>Table 36.10. Hash Support Functions</strong></p><div class="table-contents"><table class="table" summary="Hash Support Functions" border="1"><colgroup><col class="col1" /><col class="col2" /></colgroup><thead><tr><th>Function</th><th>Support Number</th></tr></thead><tbody><tr><td>Compute the 32-bit hash value for a key</td><td>1</td></tr><tr><td>
@@ -166,9 +169,9 @@
         Define options that are specific to this operator class
         (optional)
        </td><td>3</td></tr></tbody></table></div></div><br class="table-break" /><p>
-   GiST indexes have eleven support functions, six of which are optional,
+   GiST indexes have twelve support functions, seven of which are optional,
    as shown in <a class="xref" href="xindex.html#XINDEX-GIST-SUPPORT-TABLE" title="Table 36.11. GiST Support Functions">Table 36.11</a>.
-   (For more information see <a class="xref" href="gist.html" title="64.2. GiST Indexes">Section 64.2</a>.)
+   (For more information see <a class="xref" href="gist.html" title="65.2. GiST Indexes">Section 65.2</a>.)
   </p><div class="table" id="XINDEX-GIST-SUPPORT-TABLE"><p class="title"><strong>Table 36.11. GiST Support Functions</strong></p><div class="table-contents"><table class="table" summary="GiST Support Functions" border="1"><colgroup><col class="col1" /><col class="col2" /><col class="col3" /></colgroup><thead><tr><th>Function</th><th>Description</th><th>Support Number</th></tr></thead><tbody><tr><td><code class="function">consistent</code></td><td>determine whether key satisfies the
         query qualifier</td><td>1</td></tr><tr><td><code class="function">union</code></td><td>compute union of a set of keys</td><td>2</td></tr><tr><td><code class="function">compress</code></td><td>compute a compressed representation of a key or value
         to be indexed (optional)</td><td>3</td></tr><tr><td><code class="function">decompress</code></td><td>compute a decompressed representation of a
@@ -177,17 +180,18 @@
        to the new page and compute the union keys for resulting pages</td><td>6</td></tr><tr><td><code class="function">same</code></td><td>compare two keys and return true if they are equal</td><td>7</td></tr><tr><td><code class="function">distance</code></td><td>determine distance from key to query value (optional)</td><td>8</td></tr><tr><td><code class="function">fetch</code></td><td>compute original representation of a compressed key for
        index-only scans (optional)</td><td>9</td></tr><tr><td><code class="function">options</code></td><td>define options that are specific to this operator class
         (optional)</td><td>10</td></tr><tr><td><code class="function">sortsupport</code></td><td>provide a sort comparator to be used in fast index builds
-        (optional)</td><td>11</td></tr></tbody></table></div></div><br class="table-break" /><p>
+        (optional)</td><td>11</td></tr><tr><td><code class="function">translate_cmptype</code></td><td>translate compare types to strategy numbers
+        used by the operator class (optional)</td><td>12</td></tr></tbody></table></div></div><br class="table-break" /><p>
    SP-GiST indexes have six support functions, one of which is optional, as
    shown in <a class="xref" href="xindex.html#XINDEX-SPGIST-SUPPORT-TABLE" title="Table 36.12. SP-GiST Support Functions">Table 36.12</a>.
-   (For more information see <a class="xref" href="spgist.html" title="64.3. SP-GiST Indexes">Section 64.3</a>.)
+   (For more information see <a class="xref" href="spgist.html" title="65.3. SP-GiST Indexes">Section 65.3</a>.)
   </p><div class="table" id="XINDEX-SPGIST-SUPPORT-TABLE"><p class="title"><strong>Table 36.12. SP-GiST Support Functions</strong></p><div class="table-contents"><table class="table" summary="SP-GiST Support Functions" border="1"><colgroup><col class="col1" /><col class="col2" /><col class="col3" /></colgroup><thead><tr><th>Function</th><th>Description</th><th>Support Number</th></tr></thead><tbody><tr><td><code class="function">config</code></td><td>provide basic information about the operator class</td><td>1</td></tr><tr><td><code class="function">choose</code></td><td>determine how to insert a new value into an inner tuple</td><td>2</td></tr><tr><td><code class="function">picksplit</code></td><td>determine how to partition a set of values</td><td>3</td></tr><tr><td><code class="function">inner_consistent</code></td><td>determine which sub-partitions need to be searched for a
         query</td><td>4</td></tr><tr><td><code class="function">leaf_consistent</code></td><td>determine whether key satisfies the
         query qualifier</td><td>5</td></tr><tr><td><code class="function">options</code></td><td>define options that are specific to this operator class
         (optional)</td><td>6</td></tr></tbody></table></div></div><br class="table-break" /><p>
    GIN indexes have seven support functions, four of which are optional,
    as shown in <a class="xref" href="xindex.html#XINDEX-GIN-SUPPORT-TABLE" title="Table 36.13. GIN Support Functions">Table 36.13</a>.
-   (For more information see <a class="xref" href="gin.html" title="64.4. GIN Indexes">Section 64.4</a>.)
+   (For more information see <a class="xref" href="gin.html" title="65.4. GIN Indexes">Section 65.4</a>.)
   </p><div class="table" id="XINDEX-GIN-SUPPORT-TABLE"><p class="title"><strong>Table 36.13. GIN Support Functions</strong></p><div class="table-contents"><table class="table" summary="GIN Support Functions" border="1"><colgroup><col class="col1" /><col class="col2" /><col class="col3" /></colgroup><thead><tr><th>Function</th><th>Description</th><th>Support Number</th></tr></thead><tbody><tr><td><code class="function">compare</code></td><td>
         compare two keys and return an integer less than zero, zero,
         or greater than zero, indicating whether the first key is less than,
@@ -210,7 +214,7 @@
    BRIN indexes have five basic support functions, one of which is optional,
    as shown in <a class="xref" href="xindex.html#XINDEX-BRIN-SUPPORT-TABLE" title="Table 36.14. BRIN Support Functions">Table 36.14</a>.  Some versions of
    the basic functions require additional support functions to be provided.
-   (For more information see <a class="xref" href="brin.html#BRIN-EXTENSIBILITY" title="64.5.3. Extensibility">Section 64.5.3</a>.)
+   (For more information see <a class="xref" href="brin.html#BRIN-EXTENSIBILITY" title="65.5.3. Extensibility">Section 65.5.3</a>.)
   </p><div class="table" id="XINDEX-BRIN-SUPPORT-TABLE"><p class="title"><strong>Table 36.14. BRIN Support Functions</strong></p><div class="table-contents"><table class="table" summary="BRIN Support Functions" border="1"><colgroup><col class="col1" /><col class="col2" /><col class="col3" /></colgroup><thead><tr><th>Function</th><th>Description</th><th>Support Number</th></tr></thead><tbody><tr><td><code class="function">opcInfo</code></td><td>
         return internal information describing the indexed columns'
         summary data
@@ -437,7 +441,8 @@ DEFAULT FOR TYPE int8 USING btree FAMILY integer_ops AS
   FUNCTION 1 btint8cmp(int8, int8) ,
   FUNCTION 2 btint8sortsupport(internal) ,
   FUNCTION 3 in_range(int8, int8, int8, boolean, boolean) ,
-  FUNCTION 4 btequalimage(oid) ;
+  FUNCTION 4 btequalimage(oid) ,
+  FUNCTION 6 btint8skipsupport(internal) ;
 
 CREATE OPERATOR CLASS int4_ops
 DEFAULT FOR TYPE int4 USING btree FAMILY integer_ops AS
@@ -450,7 +455,8 @@ DEFAULT FOR TYPE int4 USING btree FAMILY integer_ops AS
   FUNCTION 1 btint4cmp(int4, int4) ,
   FUNCTION 2 btint4sortsupport(internal) ,
   FUNCTION 3 in_range(int4, int4, int4, boolean, boolean) ,
-  FUNCTION 4 btequalimage(oid) ;
+  FUNCTION 4 btequalimage(oid) ,
+  FUNCTION 6 btint4skipsupport(internal) ;
 
 CREATE OPERATOR CLASS int2_ops
 DEFAULT FOR TYPE int2 USING btree FAMILY integer_ops AS
@@ -463,7 +469,8 @@ DEFAULT FOR TYPE int2 USING btree FAMILY integer_ops AS
   FUNCTION 1 btint2cmp(int2, int2) ,
   FUNCTION 2 btint2sortsupport(internal) ,
   FUNCTION 3 in_range(int2, int2, int2, boolean, boolean) ,
-  FUNCTION 4 btequalimage(oid) ;
+  FUNCTION 4 btequalimage(oid) ,
+  FUNCTION 6 btint2skipsupport(internal) ;
 
 ALTER OPERATOR FAMILY integer_ops USING btree ADD
   -- cross-type comparisons int8 vs int2
@@ -532,7 +539,7 @@ ALTER OPERATOR FAMILY integer_ops USING btree ADD
    than as loose members of the family.
   </p><p>
    In a B-tree operator family, all the operators in the family must sort
-   compatibly, as is specified in detail in <a class="xref" href="btree.html#BTREE-BEHAVIOR" title="64.1.2. Behavior of B-Tree Operator Classes">Section 64.1.2</a>.
+   compatibly, as is specified in detail in <a class="xref" href="btree.html#BTREE-BEHAVIOR" title="65.1.2. Behavior of B-Tree Operator Classes">Section 65.1.2</a>.
    For each
    operator in the family there must be a support function having the same
    two input data types as the operator.  It is recommended that a family be
@@ -766,4 +773,4 @@ CREATE OPERATOR CLASS polygon_ops
    type of the stored summary values, and operator classes' support
    procedures are responsible for interpreting the summary values
    correctly.
-  </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="xoper-optimization.html" title="36.15. Operator Optimization Information">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="extend.html" title="Chapter 36. Extending SQL">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="extend-extensions.html" title="36.17. Packaging Related Objects into an Extension">Next</a></td></tr><tr><td width="40%" align="left" valign="top">36.15. Operator Optimization Information </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 36.17. Packaging Related Objects into an Extension</td></tr></table></div></body></html>
+  </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="xoper-optimization.html" title="36.15. Operator Optimization Information">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="extend.html" title="Chapter 36. Extending SQL">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="extend-extensions.html" title="36.17. Packaging Related Objects into an Extension">Next</a></td></tr><tr><td width="40%" align="left" valign="top">36.15. Operator Optimization Information </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> 36.17. Packaging Related Objects into an Extension</td></tr></table></div></body></html>

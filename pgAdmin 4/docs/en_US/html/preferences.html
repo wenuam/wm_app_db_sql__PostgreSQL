@@ -7,11 +7,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Preferences &#8212; pgAdmin 4 9.6 documentation</title>
+    <title>Preferences &#8212; pgAdmin 4 9.8 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/style.css?v=d36593c3" />
     
-    <script src="_static/documentation_options.js?v=a51d793f"></script>
+    <script src="_static/documentation_options.js?v=e97f5ee4"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="tree_control.html" title="Tree Control"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 9.8 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="getting_started.html" accesskey="U">Getting Started</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Preferences</a></li> 
       </ul>
@@ -224,6 +224,70 @@ It allows to set the limit on the depth level pgAdmin should traverse
 to find the relations. Use -1 to set no limit.</p></li>
 </ul>
 </section>
+<section id="the-editor-node">
+<h2>The Editor Node<a class="headerlink" href="#the-editor-node" title="Link to this heading">¶</a></h2>
+<p>Expand the <em>Editor</em> node to access panels that allow you to specify your preferences
+for the editor across pgAdmin 4</p>
+<img alt="Preferences editor keyboard shortcuts section" class="align-center" src="_images/preferences_editor_keyboard_shortcuts.png" />
+<p>Use the fields on the <em>Keyboard shortcuts</em> panel to configure shortcuts for the
+editor.</p>
+<img alt="Preferences editor options section" class="align-center" src="_images/preferences_editor_options.png" />
+<p>Use the fields on the <em>Options</em> panel to manage editor preferences.</p>
+<ul class="simple">
+<li><p>Use the <em>Auto-indent new line?</em> switch to specify whether the editor will
+automatically indent new lines. When set to <em>True</em>, the editor will indent
+new lines according to the indentation of the previous line.</p></li>
+<li><p>When the <em>Brace matching?</em> switch is set to <em>True</em>, the editor will highlight
+pairs of matched braces.</p></li>
+<li><p>When the <em>Code folding?</em> switch is set to <em>False</em>, the editor will disable
+code folding. Disabling will improve editor performance with large files.</p></li>
+<li><p>Use the <em>Cursor blink rate</em> field to adjust the speed at which the text cursor
+blinks within the editors.</p></li>
+<li><p>Use the <em>Font family</em> field to be used for all SQL editors. The specified
+font should already be installed on your system. If the font is not found,
+the editor will fall back to the default font, Source Code Pro.</p></li>
+<li><p>When the <em>Font ligatures?</em> switch is set to <em>True</em>, ligatures will be
+enabled in SQL text boxes and editors provided the configured font family
+supports them.</p></li>
+<li><p>Use the <em>Font size</em> field to specify the font size that will be used in text
+boxes and editors.</p></li>
+<li><p>When the <em>Highlight selection matches?</em> switch is set to <em>True</em>, the editor will
+highlight matched selected text.</p></li>
+<li><p>When the <em>Insert bracket pairs?</em> switch is set to <em>True</em>, the editor will
+automatically insert paired brackets.</p></li>
+<li><p>When the <em>Line wrapping</em> switch is set to <em>True</em>, the editor will implement
+line-wrapping behavior.</p></li>
+<li><p>When the <em>Plain text mode?</em> switch is set to <em>True</em>, the editor mode will be
+changed to text/plain. Keyword highlighting and code folding will be disabled.
+This will improve editor performance with large files.</p></li>
+</ul>
+<img alt="Preferences SQL Formatting section" class="align-center" src="_images/preferences_editor_sql_formatting.png" />
+<p>Use the fields on the <em>SQL formatting</em> panel to specify your preferences for
+reformatting of SQL.</p>
+<ul class="simple">
+<li><p>Use the <em>Data type case</em> option to specify whether to change data types
+into upper, lower, or preserve case.</p></li>
+<li><p>Use the <em>Expression width</em> option to specify maximum number of characters
+in parenthesized expressions to be kept on single line.</p></li>
+<li><p>Use the <em>Function case</em> option to specify whether to change function
+names into upper, lower, or preserve case.</p></li>
+<li><p>Use the <em>Identifier case</em> option to specify whether to change identifiers
+(object names) into upper, lower, or capitalized case.</p></li>
+<li><p>Use the <em>Keyword case</em> option to specify whether to change keywords into
+upper, lower, or preserve case.</p></li>
+<li><p>Use <em>Lines between queries</em> to specify how many empty lines to leave
+between SQL statements. If set to zero it puts no new line.</p></li>
+<li><p>Use <em>Logical operator new line</em> to specify newline placement before or
+after logical operators (AND, OR, XOR).</p></li>
+<li><p>Use <em>New line before semicolon?</em> to specify whether to place query
+separator (;) on a separate line.</p></li>
+<li><p>Use the <em>Spaces around operators?</em> option to specify whether or not to include
+spaces on either side of operators.</p></li>
+<li><p>Use the <em>Tab size</em> option to specify the number of spaces per tab or indent.</p></li>
+<li><p>Use the <em>Use spaces?</em> option to select whether to use spaces or tabs when
+indenting.</p></li>
+</ul>
+</section>
 <section id="the-graphs-node">
 <h2>The Graphs Node<a class="headerlink" href="#the-graphs-node" title="Link to this heading">¶</a></h2>
 <p>Expand the <em>Graphs</em> node to specify your Graphs display preferences.</p>
@@ -347,34 +411,6 @@ seconds between connection/transaction status updates.</p></li>
 <li><p>When the <em>Show query success notification?</em> switch is set to <em>True</em>, the Query Tool
 will show notifications on successful query execution.</p></li>
 </ul>
-<img alt="Preferences sqleditor editor settings" class="align-center" src="_images/preferences_sql_editor.png" />
-<p>Use the fields on the <em>Editor</em> panel to change settings of the query editor.</p>
-<ul class="simple">
-<li><p>Use the <em>Auto-indent new line?</em> switch to specify whether the editor will
-automatically indent new lines. When set to <em>True</em>, the editor will indent
-new lines according to the indentation of the previous line.</p></li>
-<li><p>When the <em>Brace matching?</em> switch is set to <em>True</em>, the editor will highlight
-pairs of matched braces.</p></li>
-<li><p>When the <em>Code folding?</em> switch is set to <em>False</em>, the editor will disable
-code folding. Disabling will improve editor performance with large files.</p></li>
-<li><p>Use the <em>Font family</em> field to be used for all SQL editors. The specified
-font should already be installed on your system. If the font is not found,
-the editor will fall back to the default font, Source Code Pro.</p></li>
-<li><p>When the <em>Font ligatures?</em> switch is set to <em>True</em>, ligatures will be
-enabled in SQL text boxes and editors provided the configured font family
-supports them.</p></li>
-<li><p>Use the <em>Font size</em> field to specify the font size that will be used in text
-boxes and editors.</p></li>
-<li><p>When the <em>Highlight selection matches?</em> switch is set to <em>True</em>, the editor will
-highlight matched selected text.</p></li>
-<li><p>When the <em>Insert bracket pairs?</em> switch is set to <em>True</em>, the editor will
-automatically insert paired brackets.</p></li>
-<li><p>When the <em>Line wrapping</em> switch is set to <em>True</em>, the editor will implement
-line-wrapping behavior.</p></li>
-<li><p>When the <em>Plain text mode?</em> switch is set to <em>True</em>, the editor mode will be
-changed to text/plain. Keyword highlighting and code folding will be disabled.
-This will improve editor performance with large files.</p></li>
-</ul>
 <img alt="Preferences sqleditor explain options" class="align-center" src="_images/preferences_sql_explain.png" />
 <p>Use the fields on the <em>Explain</em> panel to specify the level of detail included in
 a graphical EXPLAIN.</p>
@@ -466,32 +502,6 @@ rows with alternating background colors.</p></li>
 <img alt="Preferences sql keyboard shortcuts section" class="align-center" src="_images/preferences_sql_keyboard_shortcuts.png" />
 <p>Use the fields on the <em>Keyboard shortcuts</em> panel to configure shortcuts for the
 Query Tool window navigation.</p>
-<img alt="Preferences SQL Formatting section" class="align-center" src="_images/preferences_sql_formatting.png" />
-<p>Use the fields on the <em>SQL formatting</em> panel to specify your preferences for
-reformatting of SQL.</p>
-<ul class="simple">
-<li><p>Use the <em>Data type case</em> option to specify whether to change data types
-into upper, lower, or preserve case.</p></li>
-<li><p>Use the <em>Expression width</em> option to specify maximum number of characters
-in parenthesized expressions to be kept on single line.</p></li>
-<li><p>Use the <em>Function case</em> option to specify whether to change function
-names into upper, lower, or preserve case.</p></li>
-<li><p>Use the <em>Identifier case</em> option to specify whether to change identifiers
-(object names) into upper, lower, or capitalized case.</p></li>
-<li><p>Use the <em>Keyword case</em> option to specify whether to change keywords into
-upper, lower, or preserve case.</p></li>
-<li><p>Use <em>Lines between queries</em> to specify how many empty lines to leave
-between SQL statements. If set to zero it puts no new line.</p></li>
-<li><p>Use <em>Logical operator new line</em> to specify newline placement before or
-after logical operators (AND, OR, XOR).</p></li>
-<li><p>Use <em>New line before semicolon?</em> to specify whether to place query
-separator (;) on a separate line.</p></li>
-<li><p>Use the <em>Spaces around operators?</em> option to specify whether or not to include
-spaces on either side of operators.</p></li>
-<li><p>Use the <em>Tab size</em> option to specify the number of spaces per tab or indent.</p></li>
-<li><p>Use the <em>Use spaces?</em> option to select whether to use spaces or tabs when
-indenting.</p></li>
-</ul>
 </section>
 <section id="the-schema-diff-node">
 <h2>The Schema Diff Node<a class="headerlink" href="#the-schema-diff-node" title="Link to this heading">¶</a></h2>
@@ -602,6 +612,7 @@ individual preference in the Preference UI dialog.</p>
 <li><a class="reference internal" href="#the-dashboards-node">The Dashboards Node</a></li>
 <li><a class="reference internal" href="#the-debugger-node">The Debugger Node</a></li>
 <li><a class="reference internal" href="#the-erd-tool-node">The ERD Tool Node</a></li>
+<li><a class="reference internal" href="#the-editor-node">The Editor Node</a></li>
 <li><a class="reference internal" href="#the-graphs-node">The Graphs Node</a></li>
 <li><a class="reference internal" href="#the-miscellaneous-node">The Miscellaneous Node</a></li>
 <li><a class="reference internal" href="#the-paths-node">The Paths Node</a></li>
@@ -638,6 +649,7 @@ individual preference in the Preference UI dialog.</p>
 <li class="toctree-l2"><a class="reference internal" href="user_interface.html">User Interface</a></li>
 <li class="toctree-l2"><a class="reference internal" href="menu_bar.html">Menu Bar</a></li>
 <li class="toctree-l2"><a class="reference internal" href="toolbar.html">Toolbar</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toolbar.html#object-explorer-filter">Object Explorer Filter</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tabbed_browser.html">Tabbed Browser</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tree_control.html">Tree Control</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Preferences</a></li>
@@ -690,7 +702,7 @@ individual preference in the Preference UI dialog.</p>
         <li class="right" >
           <a href="tree_control.html" title="Tree Control"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 9.8 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="getting_started.html" >Getting Started</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Preferences</a></li> 
       </ul>

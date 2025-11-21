@@ -7,7 +7,7 @@
 
 #define ENABLE_THREAD_SAFETY 1
 
-#define HAVE_LONG_LONG_INT_64 1
+#define SIZEOF_LONG 4
 
-#define PG_USE_STDBOOL 1
+#define SIZEOF_LONG_LONG 8
 

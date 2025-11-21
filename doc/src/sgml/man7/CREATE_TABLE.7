@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "CREATE TABLE" "7" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "CREATE TABLE" "7" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -72,28 +72,29 @@ CREATE [ [ GLOBAL | LOCAL ] { TEMPORARY | TEMP } | UNLOGGED ] TABLE [ IF NOT EXI
 where \fIcolumn_constraint\fR is:
 
 [ CONSTRAINT \fIconstraint_name\fR ]
-{ NOT NULL |
+{ NOT NULL [ NO INHERIT ]  |
   NULL |
   CHECK ( \fIexpression\fR ) [ NO INHERIT ] |
   DEFAULT \fIdefault_expr\fR |
-  GENERATED ALWAYS AS ( \fIgeneration_expr\fR ) STORED |
+  GENERATED ALWAYS AS ( \fIgeneration_expr\fR ) [ STORED | VIRTUAL ] |
   GENERATED { ALWAYS | BY DEFAULT } AS IDENTITY [ ( \fIsequence_options\fR ) ] |
   UNIQUE [ NULLS [ NOT ] DISTINCT ] \fIindex_parameters\fR |
   PRIMARY KEY \fIindex_parameters\fR |
   REFERENCES \fIreftable\fR [ ( \fIrefcolumn\fR ) ] [ MATCH FULL | MATCH PARTIAL | MATCH SIMPLE ]
     [ ON DELETE \fIreferential_action\fR ] [ ON UPDATE \fIreferential_action\fR ] }
-[ DEFERRABLE | NOT DEFERRABLE ] [ INITIALLY DEFERRED | INITIALLY IMMEDIATE ]
+[ DEFERRABLE | NOT DEFERRABLE ] [ INITIALLY DEFERRED | INITIALLY IMMEDIATE ] [ ENFORCED | NOT ENFORCED ]
 
 and \fItable_constraint\fR is:
 
 [ CONSTRAINT \fIconstraint_name\fR ]
 { CHECK ( \fIexpression\fR ) [ NO INHERIT ] |
-  UNIQUE [ NULLS [ NOT ] DISTINCT ] ( \fIcolumn_name\fR [, \&.\&.\&. ] ) \fIindex_parameters\fR |
-  PRIMARY KEY ( \fIcolumn_name\fR [, \&.\&.\&. ] ) \fIindex_parameters\fR |
+  NOT NULL \fIcolumn_name\fR [ NO INHERIT ] |
+  UNIQUE [ NULLS [ NOT ] DISTINCT ] ( \fIcolumn_name\fR [, \&.\&.\&. ] [, \fIcolumn_name\fR WITHOUT OVERLAPS ] ) \fIindex_parameters\fR |
+  PRIMARY KEY ( \fIcolumn_name\fR [, \&.\&.\&. ] [, \fIcolumn_name\fR WITHOUT OVERLAPS ] ) \fIindex_parameters\fR |
   EXCLUDE [ USING \fIindex_method\fR ] ( \fIexclude_element\fR WITH \fIoperator\fR [, \&.\&.\&. ] ) \fIindex_parameters\fR [ WHERE ( \fIpredicate\fR ) ] |
-  FOREIGN KEY ( \fIcolumn_name\fR [, \&.\&.\&. ] ) REFERENCES \fIreftable\fR [ ( \fIrefcolumn\fR [, \&.\&.\&. ] ) ]
+  FOREIGN KEY ( \fIcolumn_name\fR [, \&.\&.\&. ] [, PERIOD \fIcolumn_name\fR ] ) REFERENCES \fIreftable\fR [ ( \fIrefcolumn\fR [, \&.\&.\&. ] [, PERIOD \fIrefcolumn\fR ] ) ]
     [ MATCH FULL | MATCH PARTIAL | MATCH SIMPLE ] [ ON DELETE \fIreferential_action\fR ] [ ON UPDATE \fIreferential_action\fR ] }
-[ DEFERRABLE | NOT DEFERRABLE ] [ INITIALLY DEFERRED | INITIALLY IMMEDIATE ]
+[ DEFERRABLE | NOT DEFERRABLE ] [ INITIALLY DEFERRED | INITIALLY IMMEDIATE ] [ ENFORCED | NOT ENFORCED ]
 
 and \fIlike_option\fR is:
 
@@ -174,6 +175,8 @@ If specified, the table is created as an unlogged table\&. Data written to unlog
 Chapter\ \&28), which makes them considerably faster than ordinary tables\&. However, they are not crash\-safe: an unlogged table is automatically truncated after a crash or unclean shutdown\&. The contents of an unlogged table are also not replicated to standby servers\&. Any indexes created on an unlogged table are automatically unlogged as well\&.
 .sp
 If this is specified, any sequences created together with the unlogged table (for identity or serial columns) are also created as unlogged\&.
+.sp
+This form is not supported for partitioned tables\&.
 .RE
 .PP
 IF NOT EXISTS
@@ -189,14 +192,12 @@ The name (optionally schema\-qualified) of the table to be created\&.
 OF \fItype_name\fR
 .RS 4
 Creates a
-typed table, which takes its structure from the specified composite type (name optionally schema\-qualified)\&. A typed table is tied to its type; for example the table will be dropped if the type is dropped (with
-DROP TYPE \&.\&.\&. CASCADE)\&.
+typed table, which takes its structure from the specified stand\-alone composite type (that is, one created using
+CREATE TYPE (\fBCREATE_TYPE\fR(7))) though it still produces a new composite type as well\&. The table will have a dependency on the referenced type, meaning that cascaded alter and drop actions on that type will propagate to the table\&.
 .sp
-When a typed table is created, then the data types of the columns are determined by the underlying composite type and are not specified by the
+A typed table always has the same column names and data types as the type it is derived from, so you cannot specify additional columns\&. But the
 CREATE TABLE
-command\&. But the
-CREATE TABLE
-command can add defaults and constraints to the table and can specify storage parameters\&.
+command can add defaults and constraints to the table, as well as specify storage parameters\&.
 .RE
 .PP
 \fIcolumn_name\fR
@@ -244,7 +245,7 @@ text
 and
 bytea
 values run faster, at the penalty of increased storage space\&. See
-Section\ \&65.2
+Section\ \&66.2
 for more information\&.
 .RE
 .PP
@@ -504,7 +505,7 @@ Default expressions for the copied column definitions will be copied\&. Otherwis
 .PP
 INCLUDING GENERATED
 .RS 4
-Any generation expressions of copied column definitions will be copied\&. By default, new columns will be regular base columns\&.
+Any generation expressions as well as the stored/virtual choice of copied column definitions will be copied\&. By default, new columns will be regular base columns\&.
 .RE
 .PP
 INCLUDING IDENTITY
@@ -534,7 +535,7 @@ STORAGE
 settings, resulting in the copied columns in the new table having type\-specific default settings\&. For more on
 STORAGE
 settings, see
-Section\ \&65.2\&.
+Section\ \&66.2\&.
 .RE
 .PP
 INCLUDING ALL
@@ -561,9 +562,13 @@ col must be positive
 can be used to communicate helpful constraint information to client applications\&. (Double\-quotes are needed to specify constraint names that contain spaces\&.) If a constraint name is not specified, the system generates a name\&.
 .RE
 .PP
-NOT NULL
+NOT NULL [ NO INHERIT ]
 .RS 4
 The column is not allowed to contain null values\&.
+.sp
+A constraint marked with
+NO INHERIT
+will not propagate to child tables\&.
 .RE
 .PP
 NULL
@@ -609,16 +614,22 @@ clause assigns a default data value for the column whose column definition it ap
 The default expression will be used in any insert operation that does not specify a value for the column\&. If there is no default for a column, then the default is null\&.
 .RE
 .PP
-GENERATED ALWAYS AS ( \fIgeneration_expr\fR ) STORED
+GENERATED ALWAYS AS ( \fIgeneration_expr\fR ) [ STORED | VIRTUAL ]
 .RS 4
 This clause creates the column as a
 generated column\&. The column cannot be written to, and when read the result of the specified expression will be returned\&.
 .sp
-The keyword
+When
+VIRTUAL
+is specified, the column will be computed when it is read, and it will not occupy any storage\&. When
 STORED
-is required to signify that the column will be computed on write and will be stored on disk\&.
+is specified, the column will be computed on write and will be stored on disk\&.
+VIRTUAL
+is the default\&.
 .sp
 The generation expression can refer to other columns in the table, but not other generated columns\&. Any functions and operators used must be immutable\&. References to other tables are not allowed\&.
+.sp
+A virtual generated column cannot have a user\-defined type, and the generation expression of a virtual generated column must not reference user\-defined functions or types, that is, it can only use built\-in functions or types\&. This applies also indirectly, such as for functions or types that underlie operators or casts\&. (This restriction does not exist for stored generated columns\&.)
 .RE
 .PP
 GENERATED { ALWAYS | BY DEFAULT } AS IDENTITY [ ( \fIsequence_options\fR ) ]
@@ -681,11 +692,31 @@ UNLOGGED, the sequence will have the same persistence level as the table\&.
 .PP
 UNIQUE [ NULLS [ NOT ] DISTINCT ] (column constraint)
 .br
-UNIQUE [ NULLS [ NOT ] DISTINCT ] ( \fIcolumn_name\fR [, \&.\&.\&. ] ) [ INCLUDE ( \fIcolumn_name\fR [, \&.\&.\&.]) ] (table constraint)
+UNIQUE [ NULLS [ NOT ] DISTINCT ] ( \fIcolumn_name\fR [, \&.\&.\&. ] [, \fIcolumn_name\fR WITHOUT OVERLAPS ] ) [ INCLUDE ( \fIcolumn_name\fR [, \&.\&.\&.]) ] (table constraint)
 .RS 4
 The
 UNIQUE
 constraint specifies that a group of one or more columns of a table can contain only unique values\&. The behavior of a unique table constraint is the same as that of a unique column constraint, with the additional capability to span multiple columns\&. The constraint therefore enforces that any two rows must differ in at least one of these columns\&.
+.sp
+If the
+WITHOUT OVERLAPS
+option is specified for the last column, then that column is checked for overlaps instead of equality\&. In that case, the other columns of the constraint will allow duplicates so long as the duplicates don\*(Aqt overlap in the
+WITHOUT OVERLAPS
+column\&. (This is sometimes called a temporal key, if the column is a range of dates or timestamps, but
+PostgreSQL
+allows ranges over any base type\&.) In effect, such a constraint is enforced with an
+EXCLUDE
+constraint rather than a
+UNIQUE
+constraint\&. So for example
+UNIQUE (id, valid_at WITHOUT OVERLAPS)
+behaves like
+EXCLUDE USING GIST (id WITH =, valid_at WITH &&)\&. The
+WITHOUT OVERLAPS
+column must have a range or multirange type\&. Empty ranges/multiranges are not permitted\&. The non\-WITHOUT OVERLAPS
+columns of the constraint can be any type that can be compared for equality in a GiST index\&. By default, only range types are supported, but you can use other types by adding the
+btree_gist
+extension (which is the expected way to use this feature)\&.
 .sp
 For the purpose of a unique constraint, null values are not considered equal, unless
 NULLS NOT DISTINCT
@@ -695,7 +726,9 @@ Each unique constraint should name a set of columns that is different from the s
 .sp
 When establishing a unique constraint for a multi\-level partition hierarchy, all the columns in the partition key of the target partitioned table, as well as those of all its descendant partitioned tables, must be included in the constraint definition\&.
 .sp
-Adding a unique constraint will automatically create a unique btree index on the column or group of columns used in the constraint\&. The created index has the same name as the unique constraint\&.
+Adding a unique constraint will automatically create a unique btree index on the column or group of columns used in the constraint\&. But if the constraint includes a
+WITHOUT OVERLAPS
+clause, it will use a GiST index\&. The created index has the same name as the unique constraint\&.
 .sp
 The optional
 INCLUDE
@@ -706,7 +739,7 @@ DROP COLUMN) can cause cascaded constraint and index deletion\&.
 .PP
 PRIMARY KEY (column constraint)
 .br
-PRIMARY KEY ( \fIcolumn_name\fR [, \&.\&.\&. ] ) [ INCLUDE ( \fIcolumn_name\fR [, \&.\&.\&.]) ] (table constraint)
+PRIMARY KEY ( \fIcolumn_name\fR [, \&.\&.\&. ] [, \fIcolumn_name\fR WITHOUT OVERLAPS ] ) [ INCLUDE ( \fIcolumn_name\fR [, \&.\&.\&.]) ] (table constraint)
 .RS 4
 The
 PRIMARY KEY
@@ -728,7 +761,9 @@ constraints\&.
 .sp
 Adding a
 PRIMARY KEY
-constraint will automatically create a unique btree index on the column or group of columns used in the constraint\&. That index has the same name as the primary key constraint\&.
+constraint will automatically create a unique btree index on the column or group of columns used in the constraint, or GiST if
+WITHOUT OVERLAPS
+was specified\&.
 .sp
 The optional
 INCLUDE
@@ -759,7 +794,7 @@ CREATE INDEX (\fBCREATE_INDEX\fR(7))\&.
 The access method must support
 amgettuple
 (see
-Chapter\ \&62); at present this means
+Chapter\ \&63); at present this means
 GIN
 cannot be used\&. Although it\*(Aqs allowed, there is little point in using B\-tree or hash indexes with an exclusion constraint, because this does nothing that an ordinary unique constraint doesn\*(Aqt do better\&. So in practice the access method will always be
 GiST
@@ -775,7 +810,7 @@ When establishing an exclusion constraint for a multi\-level partition hierarchy
 .PP
 REFERENCES \fIreftable\fR [ ( \fIrefcolumn\fR ) ] [ MATCH \fImatchtype\fR ] [ ON DELETE \fIreferential_action\fR ] [ ON UPDATE \fIreferential_action\fR ] (column constraint)
 .br
-FOREIGN KEY ( \fIcolumn_name\fR [, \&.\&.\&. ] ) REFERENCES \fIreftable\fR [ ( \fIrefcolumn\fR [, \&.\&.\&. ] ) ] [ MATCH \fImatchtype\fR ] [ ON DELETE \fIreferential_action\fR ] [ ON UPDATE \fIreferential_action\fR ] (table constraint)
+FOREIGN KEY ( \fIcolumn_name\fR [, \&.\&.\&. ] [, PERIOD \fIcolumn_name\fR ] ) REFERENCES \fIreftable\fR [ ( \fIrefcolumn\fR [, \&.\&.\&. ] [, PERIOD \fIrefcolumn\fR ] ) ] [ MATCH \fImatchtype\fR ] [ ON DELETE \fIreferential_action\fR ] [ ON UPDATE \fIreferential_action\fR ] (table constraint)
 .RS 4
 These clauses specify a foreign key constraint, which requires that a group of one or more columns of the new table must only contain values that match values in the referenced column(s) of some row of the referenced table\&. If the
 \fIrefcolumn\fR
@@ -783,7 +818,28 @@ list is omitted, the primary key of the
 \fIreftable\fR
 is used\&. Otherwise, the
 \fIrefcolumn\fR
-list must refer to the columns of a non\-deferrable unique or primary key constraint or be the columns of a non\-partial unique index\&. The user must have
+list must refer to the columns of a non\-deferrable unique or primary key constraint or be the columns of a non\-partial unique index\&.
+.sp
+If the last column is marked with
+PERIOD, it is treated in a special way\&. While the non\-PERIOD
+columns are compared for equality (and there must be at least one of them), the
+PERIOD
+column is not\&. Instead, the constraint is considered satisfied if the referenced table has matching records (based on the non\-PERIOD
+parts of the key) whose combined
+PERIOD
+values completely cover the referencing record\*(Aqs\&. In other words, the reference must have a referent for its entire duration\&. This column must be a range or multirange type\&. In addition, the referenced table must have a primary key or unique constraint declared with
+WITHOUT OVERLAPS\&. Finally, if the foreign key has a PERIOD
+\fIcolumn_name\fR
+specification the corresponding
+\fIrefcolumn\fR, if present, must also be marked
+PERIOD\&. If the
+\fIrefcolumn\fR
+clause is omitted, and thus the reftable\*(Aqs primary key constraint chosen, the primary key must have its final column marked
+WITHOUT OVERLAPS\&.
+.sp
+For each pair of referencing and referenced column, if they are of a collatable data type, then the collations must either be both deterministic or else both the same\&. This ensures that both columns have a consistent notion of equality\&.
+.sp
+The user must have
 REFERENCES
 permission on the referenced table (either the whole table, or the specific referenced columns)\&. The addition of a foreign key constraint requires a
 SHARE ROW EXCLUSIVE
@@ -807,25 +863,27 @@ In addition, when the data in the referenced columns is changed, certain actions
 ON DELETE
 clause specifies the action to perform when a referenced row in the referenced table is being deleted\&. Likewise, the
 ON UPDATE
-clause specifies the action to perform when a referenced column in the referenced table is being updated to a new value\&. If the row is updated, but the referenced column is not actually changed, no action is done\&. Referential actions other than the
-NO ACTION
-check cannot be deferred, even if the constraint is declared deferrable\&. There are the following possible actions for each clause:
+clause specifies the action to perform when a referenced column in the referenced table is being updated to a new value\&. If the row is updated, but the referenced column is not actually changed, no action is done\&. Referential actions are executed as part of the data changing command, even if the constraint is deferred\&. There are the following possible actions for each clause:
 .PP
 NO ACTION
 .RS 4
-Produce an error indicating that the deletion or update would create a foreign key constraint violation\&. If the constraint is deferred, this error will be produced at constraint check time if there still exist any referencing rows\&. This is the default action\&.
+Produce an error if the deletion or update would create a foreign key constraint violation\&. If the constraint is deferred, this error will be produced at constraint check time if there still exist any referencing rows\&. This is the default action\&.
 .RE
 .PP
 RESTRICT
 .RS 4
-Produce an error indicating that the deletion or update would create a foreign key constraint violation\&. This is the same as
-NO ACTION
-except that the check is not deferrable\&.
+Produce an error if a row to be deleted or updated matches a row in the referencing table\&. This prevents the action even if the state after the action would not violate the foreign key constraint\&. In particular, it prevents updates of referenced rows to values that are distinct but compare as equal\&. (But it does not prevent
+\(lqno\-op\(rq
+updates that update a column to the same value\&.)
+.sp
+In a temporal foreign key, this option is not supported\&.
 .RE
 .PP
 CASCADE
 .RS 4
 Delete any rows referencing the deleted row, or update the values of the referencing column(s) to the new values of the referenced columns, respectively\&.
+.sp
+In a temporal foreign key, this option is not supported\&.
 .RE
 .PP
 SET NULL [ ( \fIcolumn_name\fR [, \&.\&.\&. ] ) ]
@@ -833,6 +891,8 @@ SET NULL [ ( \fIcolumn_name\fR [, \&.\&.\&. ] ) ]
 Set all of the referencing columns, or a specified subset of the referencing columns, to null\&. A subset of columns can only be specified for
 ON DELETE
 actions\&.
+.sp
+In a temporal foreign key, this option is not supported\&.
 .RE
 .PP
 SET DEFAULT [ ( \fIcolumn_name\fR [, \&.\&.\&. ] ) ]
@@ -840,6 +900,8 @@ SET DEFAULT [ ( \fIcolumn_name\fR [, \&.\&.\&. ] ) ]
 Set all of the referencing columns, or a specified subset of the referencing columns, to their default values\&. A subset of columns can only be specified for
 ON DELETE
 actions\&. (There must be a row in the referenced table matching the default values, if they are not null, or the operation will fail\&.)
+.sp
+In a temporal foreign key, this option is not supported\&.
 .RE
 .sp
 If the referenced column(s) are changed frequently, it might be wise to add an index to the referencing column(s) so that referential actions associated with the foreign key constraint can be performed more efficiently\&.
@@ -880,11 +942,27 @@ INITIALLY DEFERRED, it is checked only at the end of the transaction\&. The cons
 command\&.
 .RE
 .PP
+ENFORCED
+.br
+NOT ENFORCED
+.RS 4
+When the constraint is
+ENFORCED, then the database system will ensure that the constraint is satisfied, by checking the constraint at appropriate times (after each statement or at the end of the transaction, as appropriate)\&. That is the default\&. If the constraint is
+NOT ENFORCED, the database system will not check the constraint\&. It is then up to the application code to ensure that the constraints are satisfied\&. The database system might still assume that the data actually satisfies the constraint for optimization decisions where this does not affect the correctness of the result\&.
+.sp
+NOT ENFORCED
+constraints can be useful as documentation if the actual checking of the constraint at run time is too expensive\&.
+.sp
+This is currently only supported for foreign key and
+CHECK
+constraints\&.
+.RE
+.PP
 USING \fImethod\fR
 .RS 4
 This optional clause specifies the table access method to use to store the contents for the new table; the method needs be an access method of type
 TABLE\&. See
-Chapter\ \&61
+Chapter\ \&62
 for more information\&. If this option is not specified, the default table access method is chosen for the new table\&. See
 default_table_access_method
 for more information\&.
@@ -976,7 +1054,7 @@ CREATE INDEX (\fBCREATE_INDEX\fR(7))\&. The storage parameters currently availab
 toast\&., which controls the behavior of the table\*(Aqs secondary
 TOAST
 table, if any (see
-Section\ \&65.2
+Section\ \&66.2
 for more information about TOAST)\&. If a table parameter value is set and the equivalent
 toast\&.
 parameter is not, the TOAST table will use the table\*(Aqs parameter value\&. Specifying these parameters for partitioned tables is not supported, but you may specify them for individual leaf partitions\&.
@@ -1043,13 +1121,9 @@ parameter of
 .PP
 vacuum_truncate, toast\&.vacuum_truncate (boolean)
 .RS 4
-Enables or disables vacuum to try to truncate off any empty pages at the end of this table\&. The default value is
-true\&. If
-true,
-\fBVACUUM\fR
-and autovacuum do the truncation and the disk space for the truncated pages is returned to the operating system\&. Note that the truncation requires
-ACCESS EXCLUSIVE
-lock on the table\&. The
+Per\-table value for
+vacuum_truncate
+parameter\&. The
 TRUNCATE
 parameter of
 \fBVACUUM\fR, if specified, overrides the value of this option\&.
@@ -1059,6 +1133,13 @@ autovacuum_vacuum_threshold, toast\&.autovacuum_vacuum_threshold (integer)
 .RS 4
 Per\-table value for
 autovacuum_vacuum_threshold
+parameter\&.
+.RE
+.PP
+autovacuum_vacuum_max_threshold, toast\&.autovacuum_vacuum_max_threshold (integer)
+.RS 4
+Per\-table value for
+autovacuum_vacuum_max_threshold
 parameter\&.
 .RE
 .PP
@@ -1169,6 +1250,13 @@ log_autovacuum_min_duration, toast\&.log_autovacuum_min_duration (integer)
 .RS 4
 Per\-table value for
 log_autovacuum_min_duration
+parameter\&.
+.RE
+.PP
+vacuum_max_eager_freeze_failure_rate, toast\&.vacuum_max_eager_freeze_failure_rate (floating point)
+.RS 4
+Per\-table value for
+vacuum_max_eager_freeze_failure_rate
 parameter\&.
 .RE
 .PP
@@ -1742,10 +1830,6 @@ is laxer: it only requires constraint names to be unique across the constraints 
 PRIMARY KEY, and
 EXCLUDE
 constraints), because the associated index is named the same as the constraint, and index names must be unique across all relations within the same schema\&.
-.PP
-Currently,
-PostgreSQL
-does not record names for not\-null constraints at all, so they are not subject to the uniqueness restriction\&. This might change in a future release\&.
 .SS "Inheritance"
 .PP
 Multiple inheritance via the
@@ -1768,9 +1852,11 @@ allows a table to have more than one identity column\&. The standard specifies t
 command supports only one override clause that applies to the entire statement, so having multiple identity columns with different behaviors is not well supported\&.
 .SS "Generated Columns"
 .PP
-The option
+The options
 STORED
-is not standard but is also used by other SQL implementations\&. The SQL standard does not specify the storage of generated columns\&.
+and
+VIRTUAL
+are not standard but are also used by other SQL implementations\&. The SQL standard does not specify the storage of generated columns\&.
 .SS "LIKE Clause"
 .PP
 While a

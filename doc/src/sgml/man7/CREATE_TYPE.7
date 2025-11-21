@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "CREATE TYPE" "7" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "CREATE TYPE" "7" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -272,7 +272,7 @@ to
 VARIABLE\&. (Internally, this is represented by setting
 typlen
 to \-1\&.) The internal representation of all variable\-length types must start with a 4\-byte integer giving the total length of this value of the type\&. (Note that the length field is often encoded, as described in
-Section\ \&65.2; it\*(Aqs unwise to access it directly\&.)
+Section\ \&66.2; it\*(Aqs unwise to access it directly\&.)
 .PP
 The optional flag
 PASSEDBYVALUE
@@ -310,7 +310,7 @@ values other than
 plain
 imply that the functions of the data type can handle values that have been
 toasted, as described in
-Section\ \&65.2
+Section\ \&66.2
 and
 Section\ \&36.13.1\&. The specific other value given merely determines the default TOAST storage strategy for columns of a toastable data type; users can pick other strategies for individual columns using
 ALTER TABLE SET STORAGE\&.
@@ -543,7 +543,7 @@ The category code (a single ASCII character) for this type\&. The default is
 \*(AqU\*(Aq
 for
 \(lquser\-defined type\(rq\&. Other standard category codes can be found in
-Table\ \&51.65\&. You may also choose other ASCII characters in order to create custom categories\&.
+Table\ \&52.65\&. You may also choose other ASCII characters in order to create custom categories\&.
 .RE
 .PP
 \fIpreferred\fR

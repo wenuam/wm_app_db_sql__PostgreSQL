@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "PG_DUMP" "1" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "PG_DUMP" "1" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -28,21 +28,25 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-pg_dump \- extract a PostgreSQL database into a script file or other archive file
+pg_dump \- export a PostgreSQL database as an SQL script or to other formats
 .SH "SYNOPSIS"
 .HP \w'\fBpg_dump\fR\ 'u
 \fBpg_dump\fR [\fIconnection\-option\fR...] [\fIoption\fR...] [\fIdbname\fR]
 .SH "DESCRIPTION"
 .PP
 pg_dump
-is a utility for backing up a
+is a utility for exporting a
 PostgreSQL
-database\&. It makes consistent backups even if the database is being used concurrently\&.
+database\&. It makes consistent exports even if the database is being used concurrently\&.
 pg_dump
-does not block other users accessing the database (readers or writers)\&.
+does not block other users accessing the database (readers or writers)\&. Note, however, that except in simple cases,
+pg_dump
+is generally not the right choice for taking regular backups of production databases\&. See
+Chapter\ \&25
+for further discussion\&.
 .PP
 pg_dump
-only dumps a single database\&. To back up an entire cluster, or to back up global objects that are common to all databases in a cluster (such as roles and tablespaces), use
+only dumps a single database\&. To export an entire cluster, or to export global objects that are common to all databases in a cluster (such as roles and tablespaces), use
 \fBpg_dumpall\fR(1)\&.
 .PP
 Dumps can be output in script or archive file formats\&. Script dumps are plain\-text files containing the SQL commands required to reconstruct the database to the state it was in at the time it was saved\&. To restore from such a script, feed it to
@@ -59,7 +63,7 @@ pg_restore,
 pg_dump
 provides a flexible archival and transfer mechanism\&.
 pg_dump
-can be used to backup an entire database, then
+can be used to export an entire database, then
 pg_restore
 can be used to examine the archive and/or select which parts of the database are to be restored\&. The most flexible output file formats are the
 \(lqcustom\(rq
@@ -105,7 +109,7 @@ is used\&. If that is not set, the user name specified for the connection is use
 .br
 \fB\-\-data\-only\fR
 .RS 4
-Dump only the data, not the schema (data definitions)\&. Table data, large objects, and sequence values are dumped\&.
+Dump only the data, not the schema (data definitions) or statistics\&. Table data, large objects, and sequence values are dumped\&.
 .sp
 This option is similar to, but for historical reasons not identical to, specifying
 \fB\-\-section=data\fR\&.
@@ -119,14 +123,18 @@ This option is similar to, but for historical reasons not identical to, specifyi
 .RS 4
 Include large objects in the dump\&. This is the default behavior except when
 \fB\-\-schema\fR,
-\fB\-\-table\fR, or
-\fB\-\-schema\-only\fR
+\fB\-\-table\fR,
+\fB\-\-schema\-only\fR,
+\fB\-\-statistics\-only\fR, or
+\fB\-\-no\-data\fR
 is specified\&. The
 \fB\-b\fR
 switch is therefore only useful to add large objects to dumps where a specific schema or table has been requested\&. Note that large objects are considered data and therefore will be included when
 \fB\-\-data\-only\fR
 is used, but not when
 \fB\-\-schema\-only\fR
+or
+\fB\-\-statistics\-only\fR
 is\&.
 .RE
 .PP
@@ -434,10 +442,12 @@ This option is obsolete but still accepted for backwards compatibility\&.
 .br
 \fB\-\-schema\-only\fR
 .RS 4
-Dump only the object definitions (schema), not data\&.
+Dump only the object definitions (schema), not data or statistics\&.
 .sp
-This option is the inverse of
-\fB\-\-data\-only\fR\&. It is similar to, but for historical reasons not identical to, specifying
+This option cannot be used with
+\fB\-\-data\-only\fR
+or
+\fB\-\-statistics\-only\fR\&. It is similar to, but for historical reasons not identical to, specifying
 \fB\-\-section=pre\-data \-\-section=post\-data\fR\&.
 .sp
 (Do not confuse this with the
@@ -625,7 +635,7 @@ This option disables the use of dollar quoting for function bodies, and forces t
 .PP
 \fB\-\-disable\-triggers\fR
 .RS 4
-This option is relevant only when creating a data\-only dump\&. It instructs
+This option is relevant only when creating a dump that includes data but does not include schema\&. It instructs
 pg_dump
 to include commands to temporarily disable triggers on the target tables while the data is restored\&. Use this if you have referential integrity checks or other triggers on the tables that you do not want to invoke during data restore\&.
 .sp
@@ -698,7 +708,9 @@ Do not dump data for any tables matching
 can be given more than once to exclude tables matching any of several patterns\&. This option is useful when you need the definition of a particular table even though you do not need the data in it\&.
 .sp
 To exclude data for all tables in the database, see
-\fB\-\-schema\-only\fR\&.
+\fB\-\-schema\-only\fR
+or
+\fB\-\-statistics\-only\fR\&.
 .RE
 .PP
 \fB\-\-exclude\-table\-data\-and\-children=\fR\fB\fIpattern\fR\fR
@@ -974,7 +986,19 @@ Do not wait forever to acquire shared table locks at the beginning of the dump\&
 .PP
 \fB\-\-no\-comments\fR
 .RS 4
-Do not dump comments\&.
+Do not dump
+\fBCOMMENT\fR
+commands\&.
+.RE
+.PP
+\fB\-\-no\-data\fR
+.RS 4
+Do not dump data\&.
+.RE
+.PP
+\fB\-\-no\-policies\fR
+.RS 4
+Do not dump row security policies\&.
 .RE
 .PP
 \fB\-\-no\-publications\fR
@@ -982,9 +1006,19 @@ Do not dump comments\&.
 Do not dump publications\&.
 .RE
 .PP
+\fB\-\-no\-schema\fR
+.RS 4
+Do not dump schema (data definitions)\&.
+.RE
+.PP
 \fB\-\-no\-security\-labels\fR
 .RS 4
 Do not dump security labels\&.
+.RE
+.PP
+\fB\-\-no\-statistics\fR
+.RS 4
+Do not dump statistics\&. This is the default\&.
 .RE
 .PP
 \fB\-\-no\-subscriptions\fR
@@ -1094,7 +1128,16 @@ Only dump the named section\&. The section name can be
 \fBdata\fR, or
 \fBpost\-data\fR\&. This option can be specified more than once to select multiple sections\&. The default is to dump all sections\&.
 .sp
-The data section contains actual table data, large\-object contents, and sequence values\&. Post\-data items include definitions of indexes, triggers, rules, and constraints other than validated check constraints\&. Pre\-data items include all other data definition items\&.
+The data section contains actual table data, large\-object contents, sequence values, and statistics for tables, materialized views, and foreign tables\&. Post\-data items include definitions of indexes, triggers, rules, statistics for indexes, and constraints other than validated check and not\-null constraints\&. Pre\-data items include all other data definition items\&.
+.RE
+.PP
+\fB\-\-sequence\-data\fR
+.RS 4
+Include sequence data in the dump\&. This is the default behavior except when
+\fB\-\-no\-data\fR,
+\fB\-\-schema\-only\fR, or
+\fB\-\-statistics\-only\fR
+is specified\&.
 .RE
 .PP
 \fB\-\-serializable\-deferrable\fR
@@ -1114,13 +1157,23 @@ This option will make no difference if there are no read\-write transactions act
 \fB\-\-snapshot=\fR\fB\fIsnapshotname\fR\fR
 .RS 4
 Use the specified synchronized snapshot when making a dump of the database (see
-Table\ \&9.98
+Table\ \&9.100
 for more details)\&.
 .sp
 This option is useful when needing to synchronize the dump with a logical replication slot (see
 Chapter\ \&47) or with a concurrent session\&.
 .sp
 In the case of a parallel dump, the snapshot name defined by this option is used rather than taking a new snapshot\&.
+.RE
+.PP
+\fB\-\-statistics\fR
+.RS 4
+Dump statistics\&.
+.RE
+.PP
+\fB\-\-statistics\-only\fR
+.RS 4
+Dump only the statistics, not the schema (data definitions) or data\&. Statistics for tables, materialized views, foreign tables, and indexes are dumped\&.
 .RE
 .PP
 \fB\-\-strict\-names\fR
@@ -1337,15 +1390,19 @@ CREATE DATABASE foo WITH TEMPLATE template0;
 .RE
 .\}
 .PP
-When a data\-only dump is chosen and the option
+When a dump without schema is chosen and the option
 \fB\-\-disable\-triggers\fR
 is used,
 pg_dump
 emits commands to disable triggers on user tables before inserting the data, and then commands to re\-enable them after the data has been inserted\&. If the restore is stopped in the middle, the system catalogs might be left in the wrong state\&.
 .PP
-The dump file produced by
-pg_dump
-does not contain the statistics used by the optimizer to make query planning decisions\&. Therefore, it is wise to run
+If
+\fB\-\-statistics\fR
+is specified,
+\fBpg_dump\fR
+will include most optimizer statistics in the resulting dump file\&. However, some statistics may not be included, such as those created explicitly with
+CREATE STATISTICS (\fBCREATE_STATISTICS\fR(7))
+or custom statistics added by an extension\&. Therefore, it may be useful to run
 \fBANALYZE\fR
 after restoring from a dump file to ensure optimal performance; see
 Section\ \&24.1.3

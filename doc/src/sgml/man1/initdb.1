@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "INITDB" "1" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "INITDB" "1" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -224,7 +224,11 @@ Specifies additional collation rules to customize the behavior of the default co
 .br
 \fB\-\-data\-checksums\fR
 .RS 4
-Use checksums on data pages to help detect corruption by the I/O system that would otherwise be silent\&. Enabling checksums may incur a noticeable performance penalty\&. If set, checksums are calculated for all objects, in all databases\&. All checksum failures will be reported in the
+Use checksums on data pages to help detect corruption by the I/O system that would otherwise be silent\&. This is enabled by default; use
+\fB\-\-no\-data\-checksums\fR
+to disable checksums\&.
+.sp
+Enabling checksums might incur a small performance penalty\&. If set, checksums are calculated for all objects, in all databases\&. All checksum failures will be reported in the
 pg_stat_database
 view\&. See
 Section\ \&28.2
@@ -246,9 +250,10 @@ builtin,
 or
 \fB\-\-builtin\-locale\fR
 must be specified and set to
-C
+C,
+C\&.UTF\-8
 or
-C\&.UTF\-8\&.
+PG_UNICODE_FAST\&.
 .RE
 .PP
 \fB\-\-lc\-collate=\fR\fB\fIlocale\fR\fR
@@ -287,6 +292,11 @@ command when new databases are subsequently created\&. The default is
 libc
 (see
 Section\ \&23.1.4)\&.
+.RE
+.PP
+\fB\-\-no\-data\-checksums\fR
+.RS 4
+Do not enable data checksums\&.
 .RE
 .PP
 \fB\-\-pwfile=\fR\fB\fIfilename\fR\fR
@@ -395,6 +405,31 @@ By default,
 will wait for all files to be written safely to disk\&. This option causes
 \fBinitdb\fR
 to return without waiting, which is faster, but means that a subsequent operating system crash can leave the data directory corrupt\&. Generally, this option is useful for testing, but should not be used when creating a production installation\&.
+.RE
+.PP
+\fB\-\-no\-sync\-data\-files\fR
+.RS 4
+By default,
+\fBinitdb\fR
+safely writes all database files to disk\&. This option instructs
+\fBinitdb\fR
+to skip synchronizing all files in the individual database directories, the database directories themselves, and the tablespace directories, i\&.e\&., everything in the
+base
+subdirectory and any other tablespace directories\&. Other files, such as those in
+pg_wal
+and
+pg_xact, will still be synchronized unless the
+\fB\-\-no\-sync\fR
+option is also specified\&.
+.sp
+Note that if
+\fB\-\-no\-sync\-data\-files\fR
+is used in conjunction with
+\fB\-\-sync\-method=syncfs\fR, some or all of the aforementioned files and directories will be synchronized because
+syncfs
+processes entire file systems\&.
+.sp
+This option is primarily intended for internal use by tools that separately ensure the skipped files are synchronized to disk\&.
 .RE
 .PP
 \fB\-\-no\-instructions\fR

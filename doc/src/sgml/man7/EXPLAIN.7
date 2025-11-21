@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "EXPLAIN" "7" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "EXPLAIN" "7" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -154,8 +154,9 @@ means that a read was avoided because the block was found already in cache when 
 \fIdirtied\fR
 indicates the number of previously unmodified blocks that were changed by this query; while the number of blocks
 \fIwritten\fR
-indicates the number of previously\-dirtied blocks evicted from cache by this backend during query processing\&. The number of blocks shown for an upper\-level node includes those used by all its child nodes\&. In text format, only non\-zero values are printed\&. This parameter defaults to
-FALSE\&.
+indicates the number of previously\-dirtied blocks evicted from cache by this backend during query processing\&. The number of blocks shown for an upper\-level node includes those used by all its child nodes\&. In text format, only non\-zero values are printed\&. Buffers information is automatically included when
+ANALYZE
+is used\&.
 .RE
 .PP
 SERIALIZE
@@ -186,7 +187,7 @@ is assumed\&.
 .PP
 WAL
 .RS 4
-Include information on WAL record generation\&. Specifically, include the number of records, number of full page images (fpi) and the amount of WAL generated in bytes\&. In text format, only non\-zero values are printed\&. This parameter may only be used when
+Include information on WAL record generation\&. Specifically, include the number of records, number of full page images (fpi), the amount of WAL generated in bytes and the number of times the WAL buffers became full\&. In text format, only non\-zero values are printed\&. This parameter may only be used when
 ANALYZE
 is also enabled\&. It defaults to
 FALSE\&.
@@ -430,14 +431,17 @@ EXPLAIN ANALYZE EXECUTE query(100, 200);
 
                                                        QUERY PLAN
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\:\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
- HashAggregate  (cost=10\&.77\&.\&.10\&.87 rows=10 width=12) (actual time=0\&.043\&.\&.0\&.044 rows=10 loops=1)
+ HashAggregate  (cost=10\&.77\&.\&.10\&.87 rows=10 width=12) (actual time=0\&.043\&.\&.0\&.044 rows=10\&.00 loops=1)
    Group Key: foo
    Batches: 1  Memory Usage: 24kB
-   \->  Index Scan using test_pkey on test  (cost=0\&.29\&.\&.10\&.27 rows=99 width=8) (actual time=0\&.009\&.\&.0\&.025 rows=99 loops=1)
+   Buffers: shared hit=4
+   \->  Index Scan using test_pkey on test  (cost=0\&.29\&.\&.10\&.27 rows=99 width=8) (actual time=0\&.009\&.\&.0\&.025 rows=99\&.00 loops=1)
          Index Cond: ((id > 100) AND (id < 200))
+         Index Searches: 1
+         Buffers: shared hit=4
  Planning Time: 0\&.244 ms
  Execution Time: 0\&.073 ms
-(7 rows)
+(10 rows)
 .fi
 .if n \{\
 .RE

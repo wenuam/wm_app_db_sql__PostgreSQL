@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "DBLINK_CONNECT" "3" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "DBLINK_CONNECT" "3" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -78,9 +78,21 @@ to
 \fIconnstr\fR\&. This consideration is not specific to
 dblink; it applies to every interface for executing arbitrary SQL commands\&.
 .PP
+The foreign\-data wrapper
+dblink_fdw
+has an additional Boolean option
+use_scram_passthrough
+that controls whether
+dblink
+will use the SCRAM pass\-through authentication to connect to the remote database\&. With SCRAM pass\-through authentication,
+dblink
+uses SCRAM\-hashed secrets instead of plain\-text user passwords to connect to the remote server\&. This avoids storing plain\-text user passwords in PostgreSQL system catalogs\&. See the documentation of the equivalent
+use_scram_passthrough
+option of postgres_fdw for further details and restrictions\&.
+.PP
 Only superusers may use
 \fBdblink_connect\fR
-to create non\-password\-authenticated and non\-GSSAPI\-authenticated connections\&. If non\-superusers need this capability, use
+to create connections that use neither password authentication, SCRAM pass\-through, nor GSSAPI\-authentication\&. If non\-superusers need this capability, use
 \fBdblink_connect_u\fR
 instead\&.
 .PP
@@ -106,8 +118,9 @@ SELECT dblink_connect(\*(Aqmyconn\*(Aq, \*(Aqdbname=postgres options=\-csearch_p
 (1 row)
 
 \-\- FOREIGN DATA WRAPPER functionality
-\-\- Note: local connection must require password authentication for this to work properly
-\-\-       Otherwise, you will receive the following error from dblink_connect():
+\-\- Note: local connections that don\*(Aqt use SCRAM pass\-through require password
+\-\-       authentication for this to work properly\&. Otherwise, you will receive
+\-\-       the following error from dblink_connect():
 \-\-       ERROR:  password is required
 \-\-       DETAIL:  Non\-superuser cannot connect if the server does not request a password\&.
 \-\-       HINT:  Target server\*(Aqs authentication method must be changed\&.

@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "SPI_CONNECT" "3" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "SPI_CONNECT" "3" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -63,7 +63,14 @@ SPI_OK_CONNECT
 on success
 .RE
 .PP
-SPI_ERROR_CONNECT
-.RS 4
-on error
-.RE
+The fact that these functions return
+int
+not
+void
+is historical\&. All failure cases are reported via
+\fBereport\fR
+or
+\fBelog\fR\&. (In versions before
+PostgreSQL
+v10, some but not all failures would be reported with a result value of
+SPI_ERROR_CONNECT\&.)

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>CREATE SUBSCRIPTION</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="sql-createstatistics.html" title="CREATE STATISTICS" /><link rel="next" href="sql-createtable.html" title="CREATE TABLE" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">CREATE SUBSCRIPTION</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="sql-createstatistics.html" title="CREATE STATISTICS">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><th width="60%" align="center">SQL Commands</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="sql-createtable.html" title="CREATE TABLE">Next</a></td></tr></table><hr /></div><div class="refentry" id="SQL-CREATESUBSCRIPTION"><div class="titlepage"></div><a id="id-1.9.3.84.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle">CREATE SUBSCRIPTION</span></h2><p>CREATE SUBSCRIPTION — define a new subscription</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><pre class="synopsis">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>CREATE SUBSCRIPTION</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="sql-createstatistics.html" title="CREATE STATISTICS" /><link rel="next" href="sql-createtable.html" title="CREATE TABLE" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">CREATE SUBSCRIPTION</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="sql-createstatistics.html" title="CREATE STATISTICS">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><th width="60%" align="center">SQL Commands</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="sql-createtable.html" title="CREATE TABLE">Next</a></td></tr></table><hr /></div><div class="refentry" id="SQL-CREATESUBSCRIPTION"><div class="titlepage"></div><a id="id-1.9.3.84.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle">CREATE SUBSCRIPTION</span></h2><p>CREATE SUBSCRIPTION — define a new subscription</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><pre class="synopsis">
 CREATE SUBSCRIPTION <em class="replaceable"><code>subscription_name</code></em>
     CONNECTION '<em class="replaceable"><code>conninfo</code></em>'
     PUBLICATION <em class="replaceable"><code>publication_name</code></em> [, ...]
@@ -83,7 +83,7 @@ CREATE SUBSCRIPTION <em class="replaceable"><code>subscription_name</code></em>
           for examples.
          </p><p>
           When setting <code class="literal">slot_name</code> to a valid name and
-          <code class="literal">create_slot</code> to false, the
+          <code class="literal">create_slot</code> to <code class="literal">false</code>, the
           <code class="literal">failover</code> property value of the named slot may
           differ from the counterpart <code class="literal">failover</code> parameter
           specified in the subscription. Always ensure the slot property
@@ -139,21 +139,24 @@ CREATE SUBSCRIPTION <em class="replaceable"><code>subscription_name</code></em>
           <code class="literal">origin</code> parameter.
          </p></dd><dt id="SQL-CREATESUBSCRIPTION-PARAMS-WITH-STREAMING"><span class="term"><code class="literal">streaming</code> (<code class="type">enum</code>)</span> <a href="#SQL-CREATESUBSCRIPTION-PARAMS-WITH-STREAMING" class="id_link">#</a></dt><dd><p>
           Specifies whether to enable streaming of in-progress transactions
-          for this subscription.  The default value is <code class="literal">off</code>,
-          meaning all transactions are fully decoded on the publisher and only
-          then sent to the subscriber as a whole.
-         </p><p>
+          for this subscription.  The default value is <code class="literal">parallel</code>,
+          meaning incoming changes are directly applied via one of the parallel
+          apply workers, if available. If no parallel apply worker is free to
+          handle streaming transactions then the changes are written to
+          temporary files and applied after the transaction is committed. Note
+          that if an error happens in a parallel apply worker, the finish LSN
+          of the remote transaction might not be reported in the server log.
+         </p><div class="caution"><h3 class="title">Caution</h3><p>
+           There is a risk of deadlock when the schemas of the publisher and
+           subscriber differ, although such cases are rare. The apply worker
+           is equipped to retry these transactions automatically.
+          </p></div><p>
           If set to <code class="literal">on</code>, the incoming changes are written to
           temporary files and then applied only after the transaction is
           committed on the publisher and received by the subscriber.
          </p><p>
-          If set to <code class="literal">parallel</code>, incoming changes are directly
-          applied via one of the parallel apply workers, if available. If no
-          parallel apply worker is free to handle streaming transactions then
-          the changes are written to temporary files and applied after the
-          transaction is committed. Note that if an error happens in a
-          parallel apply worker, the finish LSN of the remote transaction
-          might not be reported in the server log.
+          If set to <code class="literal">off</code>, all transactions are fully decoded
+          on the publisher and only then sent to the subscriber as a whole.
          </p></dd><dt id="SQL-CREATESUBSCRIPTION-PARAMS-WITH-SYNCHRONOUS-COMMIT"><span class="term"><code class="literal">synchronous_commit</code> (<code class="type">enum</code>)</span> <a href="#SQL-CREATESUBSCRIPTION-PARAMS-WITH-SYNCHRONOUS-COMMIT" class="id_link">#</a></dt><dd><p>
           The value of this parameter overrides the
           <a class="xref" href="runtime-config-wal.html#GUC-SYNCHRONOUS-COMMIT">synchronous_commit</a> setting within this
@@ -192,7 +195,7 @@ CREATE SUBSCRIPTION <em class="replaceable"><code>subscription_name</code></em>
           subscription, the internal two-phase state remains
           temporarily <span class="quote">“<span class="quote">pending</span>”</span> until the initialization phase
           completes. See column <code class="structfield">subtwophasestate</code>
-          of <a class="link" href="catalog-pg-subscription.html" title="51.54. pg_subscription"><code class="structname">pg_subscription</code></a>
+          of <a class="link" href="catalog-pg-subscription.html" title="52.54. pg_subscription"><code class="structname">pg_subscription</code></a>
           to know the actual two-phase state.
          </p></dd><dt id="SQL-CREATESUBSCRIPTION-PARAMS-WITH-DISABLE-ON-ERROR"><span class="term"><code class="literal">disable_on_error</code> (<code class="type">boolean</code>)</span> <a href="#SQL-CREATESUBSCRIPTION-PARAMS-WITH-DISABLE-ON-ERROR" class="id_link">#</a></dt><dd><p>
           Specifies whether the subscription should be automatically disabled
@@ -211,7 +214,7 @@ CREATE SUBSCRIPTION <em class="replaceable"><code>subscription_name</code></em>
           owner. If false, replication workers will perform actions on each
           table as the owner of that table. The latter configuration is
           generally much more secure; for details, see
-          <a class="xref" href="logical-replication-security.html" title="29.10. Security">Section 29.10</a>.
+          <a class="xref" href="logical-replication-security.html" title="29.11. Security">Section 29.11</a>.
           The default is <code class="literal">false</code>.
          </p></dd><dt id="SQL-CREATESUBSCRIPTION-PARAMS-WITH-ORIGIN"><span class="term"><code class="literal">origin</code> (<code class="type">string</code>)</span> <a href="#SQL-CREATESUBSCRIPTION-PARAMS-WITH-ORIGIN" class="id_link">#</a></dt><dd><p>
           Specifies whether the subscription will request the publisher to only
@@ -236,7 +239,7 @@ CREATE SUBSCRIPTION <em class="replaceable"><code>subscription_name</code></em>
    part can be omitted, which is equivalent to
    specifying <code class="literal">TRUE</code>.
   </p></div><div class="refsect1" id="SQL-CREATESUBSCRIPTION-NOTES"><h2>Notes</h2><p>
-   See <a class="xref" href="logical-replication-security.html" title="29.10. Security">Section 29.10</a> for details on
+   See <a class="xref" href="logical-replication-security.html" title="29.11. Security">Section 29.11</a> for details on
    how to configure access control between the subscription and the
    publication instance.
   </p><p>
@@ -258,7 +261,8 @@ CREATE SUBSCRIPTION <em class="replaceable"><code>subscription_name</code></em>
   </p><p>
    If any table in the publication has a <code class="literal">WHERE</code> clause, rows
    for which the <em class="replaceable"><code>expression</code></em>
-   evaluates to false or null will not be published. If the subscription has
+   evaluates to <code class="literal">false</code> or <code class="literal">NULL</code> will not be
+   published. If the subscription has
    several publications in which the same table has been published with
    different <code class="literal">WHERE</code> clauses, a row will be published if any
    of the expressions (referring to that publish operation) are satisfied. In
@@ -284,7 +288,7 @@ CREATE SUBSCRIPTION <em class="replaceable"><code>subscription_name</code></em>
   </p><p>
    We allow non-existent publications to be specified so that users can add
    those later. This means
-   <a class="link" href="catalog-pg-subscription.html" title="51.54. pg_subscription"><code class="structname">pg_subscription</code></a>
+   <a class="link" href="catalog-pg-subscription.html" title="52.54. pg_subscription"><code class="structname">pg_subscription</code></a>
    can have non-existent publications.
   </p><p>
    When using a subscription parameter combination of
@@ -333,4 +337,4 @@ CREATE SUBSCRIPTION mysub
 </pre></div><div class="refsect1" id="id-1.9.3.84.9"><h2>Compatibility</h2><p>
    <code class="command">CREATE SUBSCRIPTION</code> is a <span class="productname">PostgreSQL</span>
    extension.
-  </p></div><div class="refsect1" id="id-1.9.3.84.10"><h2>See Also</h2><span class="simplelist"><a class="xref" href="sql-altersubscription.html" title="ALTER SUBSCRIPTION"><span class="refentrytitle">ALTER SUBSCRIPTION</span></a>, <a class="xref" href="sql-dropsubscription.html" title="DROP SUBSCRIPTION"><span class="refentrytitle">DROP SUBSCRIPTION</span></a>, <a class="xref" href="sql-createpublication.html" title="CREATE PUBLICATION"><span class="refentrytitle">CREATE PUBLICATION</span></a>, <a class="xref" href="sql-alterpublication.html" title="ALTER PUBLICATION"><span class="refentrytitle">ALTER PUBLICATION</span></a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="sql-createstatistics.html" title="CREATE STATISTICS">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="sql-createtable.html" title="CREATE TABLE">Next</a></td></tr><tr><td width="40%" align="left" valign="top">CREATE STATISTICS </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> CREATE TABLE</td></tr></table></div></body></html>
+  </p></div><div class="refsect1" id="id-1.9.3.84.10"><h2>See Also</h2><span class="simplelist"><a class="xref" href="sql-altersubscription.html" title="ALTER SUBSCRIPTION"><span class="refentrytitle">ALTER SUBSCRIPTION</span></a>, <a class="xref" href="sql-dropsubscription.html" title="DROP SUBSCRIPTION"><span class="refentrytitle">DROP SUBSCRIPTION</span></a>, <a class="xref" href="sql-createpublication.html" title="CREATE PUBLICATION"><span class="refentrytitle">CREATE PUBLICATION</span></a>, <a class="xref" href="sql-alterpublication.html" title="ALTER PUBLICATION"><span class="refentrytitle">ALTER PUBLICATION</span></a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="sql-createstatistics.html" title="CREATE STATISTICS">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="sql-createtable.html" title="CREATE TABLE">Next</a></td></tr><tr><td width="40%" align="left" valign="top">CREATE STATISTICS </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> CREATE TABLE</td></tr></table></div></body></html>

@@ -1666,7 +1666,7 @@
    </row>
    <row>
     <entry><token>ENFORCED</token></entry>
-    <entry></entry>
+    <entry>non-reserved</entry>
     <entry>non-reserved</entry>
     <entry>non-reserved</entry>
     <entry></entry>
@@ -3317,6 +3317,13 @@
     <entry></entry>
    </row>
    <row>
+    <entry><token>OBJECTS</token></entry>
+    <entry>non-reserved</entry>
+    <entry></entry>
+    <entry></entry>
+    <entry></entry>
+   </row>
+   <row>
     <entry><token>OCCURRENCE</token></entry>
     <entry></entry>
     <entry>non-reserved</entry>
@@ -3724,7 +3731,7 @@
    </row>
    <row>
     <entry><token>PERIOD</token></entry>
-    <entry></entry>
+    <entry>non-reserved</entry>
     <entry>reserved</entry>
     <entry>reserved</entry>
     <entry></entry>
@@ -3997,13 +4004,6 @@
    </row>
    <row>
     <entry><token>REASSIGN</token></entry>
-    <entry>non-reserved</entry>
-    <entry></entry>
-    <entry></entry>
-    <entry></entry>
-   </row>
-   <row>
-    <entry><token>RECHECK</token></entry>
     <entry>non-reserved</entry>
     <entry></entry>
     <entry></entry>
@@ -5642,6 +5642,13 @@
    </row>
    <row>
     <entry><token>VIEWS</token></entry>
+    <entry>non-reserved</entry>
+    <entry></entry>
+    <entry></entry>
+    <entry></entry>
+   </row>
+   <row>
+    <entry><token>VIRTUAL</token></entry>
     <entry>non-reserved</entry>
     <entry></entry>
     <entry></entry>

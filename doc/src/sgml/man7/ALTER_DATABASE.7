@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "ALTER DATABASE" "7" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "ALTER DATABASE" "7" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -70,7 +70,9 @@ to the new owning role, and you must have the
 CREATEDB
 privilege\&. (Note that superusers have all these privileges automatically\&.)
 .PP
-The fourth form changes the default tablespace of the database\&. Only the database owner or a superuser can do this; you must also have create privilege for the new tablespace\&. This command physically moves any tables or indexes in the database\*(Aqs old default tablespace to the new tablespace\&. The new default tablespace must be empty for this database, and no one can be connected to the database\&. Tables and indexes in non\-default tablespaces are unaffected\&.
+The fourth form changes the default tablespace of the database\&. Only the database owner or a superuser can do this; you must also have create privilege for the new tablespace\&. This command physically moves any tables or indexes in the database\*(Aqs old default tablespace to the new tablespace\&. The new default tablespace must be empty for this database, and no one can be connected to the database\&. Tables and indexes in non\-default tablespaces are unaffected\&. The method used to copy files to the new tablespace is affected by the
+file_copy_method
+setting\&.
 .PP
 The remaining forms change the session default for a run\-time configuration variable for a
 PostgreSQL

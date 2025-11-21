@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "PGBENCH" "1" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "PGBENCH" "1" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -236,12 +236,10 @@ client and then sent to the server\&. This uses the client/server bandwidth exte
 \fBpgbench\fR
 uses the
 \fBFREEZE\fR
-option with version 14 or later of
+option to load data into ordinary (non\-partition) tables with version 14 or later of
 PostgreSQL
 to speed up subsequent
-\fBVACUUM\fR, except on the
-pgbench_accounts
-table if partitions are enabled\&. Using
+\fBVACUUM\fR\&. Using
 g
 causes logging to print one message every 100,000 rows while generating data for all tables\&.
 .sp
@@ -516,7 +514,7 @@ pgbench
 runs faster than in other modes\&.
 .sp
 The default is simple query protocol\&. (See
-Chapter\ \&53
+Chapter\ \&54
 for more information\&.)
 .RE
 .PP
@@ -991,7 +989,7 @@ There is a simple variable\-substitution facility for script files\&. Variable n
 option, explained above, or by the meta commands explained below\&. In addition to any variables preset by
 \fB\-D\fR
 command\-line options, there are a few variables that are preset automatically, listed in
-Table\ \&298\&. A value specified for these variables using
+Table\ \&301\&. A value specified for these variables using
 \fB\-D\fR
 takes precedence over the automatic presets\&. Once set, a variable\*(Aqs value can be inserted into an SQL command by writing
 :\fIvariablename\fR\&. When running more than one client session, each session has its own set of variables\&.
@@ -1002,7 +1000,7 @@ supports up to 255 variable uses in one statement\&.
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&298.\ \&pgbench Automatic Variables
+.B Table\ \&301.\ \&pgbench Automatic Variables
 .TS
 allbox tab(:);
 lB lB.
@@ -1256,7 +1254,7 @@ for more details\&. Pipeline mode requires the use of extended query protocol\&.
 .SS "Built\-in Operators"
 .PP
 The arithmetic, bitwise, comparison and logical operators listed in
-Table\ \&299
+Table\ \&302
 are built into
 pgbench
 and may be used in expressions appearing in
@@ -1266,7 +1264,7 @@ and may be used in expressions appearing in
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&299.\ \&pgbench Operators
+.B Table\ \&302.\ \&pgbench Operators
 .TS
 allbox tab(:);
 lB.
@@ -1641,7 +1639,7 @@ T}
 .SS "Built\-In Functions"
 .PP
 The functions listed in
-Table\ \&300
+Table\ \&303
 are built into
 pgbench
 and may be used in expressions appearing in
@@ -1651,7 +1649,7 @@ and may be used in expressions appearing in
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&300.\ \&pgbench Functions
+.B Table\ \&303.\ \&pgbench Functions
 .TS
 allbox tab(:);
 lB.

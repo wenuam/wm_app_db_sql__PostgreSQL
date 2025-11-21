@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "PG_COMBINEBACKUP" "1" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "PG_COMBINEBACKUP" "1" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -62,6 +62,19 @@ pg_combinebackup\&. The synthetic full backup would be specified on the command 
 .RS 4
 Print lots of debug logging output on
 stderr\&.
+.RE
+.PP
+\fB\-k\fR
+.br
+\fB\-\-link\fR
+.RS 4
+Use hard links instead of copying files to the synthetic backup\&. Reconstruction of the synthetic backup might be faster (no file copying) and use less disk space, but care must be taken when using the output directory, because any modifications to that directory (for example, starting the server) can also affect the input directories\&. Likewise, changes to the input directories (for example, starting the server on the full backup) could affect the output directory\&. Thus, this option is best used when the input directories are only copies that will be removed after
+pg_combinebackup
+has completed\&.
+.sp
+Requires that the input backups and the output directory are in the same file system\&.
+.sp
+If a backup manifest is not available or does not contain checksum of the right type, hard links will still be created, but the file will be also read block\-by\-block for the checksum calculation\&.
 .RE
 .PP
 \fB\-n\fR
@@ -125,9 +138,9 @@ run will error\&. At present, it is supported on Linux (kernel 4\&.5 or later) w
 \fB\-\-copy\fR
 .RS 4
 Perform regular file copy\&. This is the default\&. (See also
-\fB\-\-copy\-file\-range\fR
-and
-\fB\-\-clone\fR\&.)
+\fB\-\-copy\-file\-range\fR,
+\fB\-\-clone\fR, and
+\fB\-k\fR/\fB\-\-link\fR\&.)
 .RE
 .PP
 \fB\-\-copy\-file\-range\fR

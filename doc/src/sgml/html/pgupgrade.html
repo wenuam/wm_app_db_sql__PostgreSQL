@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>pg_upgrade</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="pgtesttiming.html" title="pg_test_timing" /><link rel="next" href="pgwaldump.html" title="pg_waldump" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center"><span class="application">pg_upgrade</span></th></tr><tr><td width="10%" align="left"><a accesskey="p" href="pgtesttiming.html" title="pg_test_timing">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="reference-server.html" title="PostgreSQL Server Applications">Up</a></td><th width="60%" align="center">PostgreSQL Server Applications</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="pgwaldump.html" title="pg_waldump">Next</a></td></tr></table><hr /></div><div class="refentry" id="PGUPGRADE"><div class="titlepage"></div><a id="id-1.9.5.13.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle"><span class="application">pg_upgrade</span></span></h2><p>pg_upgrade — upgrade a <span class="productname">PostgreSQL</span> server instance</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><div class="cmdsynopsis"><p id="id-1.9.5.13.4.1"><code class="command">pg_upgrade</code>  <code class="option">-b</code>   <em class="replaceable"><code>oldbindir</code></em>  [<code class="option">-B</code> <em class="replaceable"><code>newbindir</code></em>]  <code class="option">-d</code>   <em class="replaceable"><code>oldconfigdir</code></em>   <code class="option">-D</code>   <em class="replaceable"><code>newconfigdir</code></em>  [<em class="replaceable"><code>option</code></em>...]</p></div></div><div class="refsect1" id="id-1.9.5.13.5"><h2>Description</h2><p>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>pg_upgrade</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="pgtesttiming.html" title="pg_test_timing" /><link rel="next" href="pgwaldump.html" title="pg_waldump" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center"><span class="application">pg_upgrade</span></th></tr><tr><td width="10%" align="left"><a accesskey="p" href="pgtesttiming.html" title="pg_test_timing">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="reference-server.html" title="PostgreSQL Server Applications">Up</a></td><th width="60%" align="center">PostgreSQL Server Applications</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="pgwaldump.html" title="pg_waldump">Next</a></td></tr></table><hr /></div><div class="refentry" id="PGUPGRADE"><div class="titlepage"></div><a id="id-1.9.5.13.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle"><span class="application">pg_upgrade</span></span></h2><p>pg_upgrade — upgrade a <span class="productname">PostgreSQL</span> server instance</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><div class="cmdsynopsis"><p id="id-1.9.5.13.4.1"><code class="command">pg_upgrade</code>  <code class="option">-b</code>   <em class="replaceable"><code>oldbindir</code></em>  [<code class="option">-B</code> <em class="replaceable"><code>newbindir</code></em>]  <code class="option">-d</code>   <em class="replaceable"><code>oldconfigdir</code></em>   <code class="option">-D</code>   <em class="replaceable"><code>newconfigdir</code></em>  [<em class="replaceable"><code>option</code></em>...]</p></div></div><div class="refsect1" id="id-1.9.5.13.5"><h2>Description</h2><p>
   <span class="application">pg_upgrade</span> (formerly called <span class="application">pg_migrator</span>) allows data
   stored in <span class="productname">PostgreSQL</span> data files to be upgraded to a later <span class="productname">PostgreSQL</span>
   major version without the data dump/restore typically required for
@@ -24,7 +24,7 @@
   any external modules are also binary compatible, though this cannot
   be checked by <span class="application">pg_upgrade</span>.
  </p><p>
-   pg_upgrade supports upgrades from 9.2.X and later to the current
+   <span class="application">pg_upgrade</span> supports upgrades from 9.2.X and later to the current
    major release of <span class="productname">PostgreSQL</span>, including snapshot and beta releases.
   </p><div class="warning"><h3 class="title">Warning</h3><p>
     Upgrading a cluster causes the destination to execute arbitrary code of the
@@ -38,7 +38,7 @@
       default is the directory where <span class="application">pg_upgrade</span> resides;
       environment variable <code class="envar">PGBINNEW</code></p></dd><dt><span class="term"><code class="option">-c</code><br /></span><span class="term"><code class="option">--check</code></span></dt><dd><p>check clusters only, don't change any data</p></dd><dt><span class="term"><code class="option">-d</code> <em class="replaceable"><code>configdir</code></em><br /></span><span class="term"><code class="option">--old-datadir=</code><em class="replaceable"><code>configdir</code></em></span></dt><dd><p>the old database cluster configuration directory; environment
       variable <code class="envar">PGDATAOLD</code></p></dd><dt><span class="term"><code class="option">-D</code> <em class="replaceable"><code>configdir</code></em><br /></span><span class="term"><code class="option">--new-datadir=</code><em class="replaceable"><code>configdir</code></em></span></dt><dd><p>the new database cluster configuration directory; environment
-      variable <code class="envar">PGDATANEW</code></p></dd><dt><span class="term"><code class="option">-j <em class="replaceable"><code>njobs</code></em></code><br /></span><span class="term"><code class="option">--jobs=<em class="replaceable"><code>njobs</code></em></code></span></dt><dd><p>number of simultaneous processes or threads to use
+      variable <code class="envar">PGDATANEW</code></p></dd><dt><span class="term"><code class="option">-j <em class="replaceable"><code>njobs</code></em></code><br /></span><span class="term"><code class="option">--jobs=<em class="replaceable"><code>njobs</code></em></code></span></dt><dd><p>number of simultaneous connections and processes/threads to use
       </p></dd><dt><span class="term"><code class="option">-k</code><br /></span><span class="term"><code class="option">--link</code></span></dt><dd><p>use hard links instead of copying files to the new
       cluster</p></dd><dt><span class="term"><code class="option">-N</code><br /></span><span class="term"><code class="option">--no-sync</code></span></dt><dd><p>
         By default, <code class="command">pg_upgrade</code> will wait for all files
@@ -72,13 +72,69 @@
         file systems created with reflink support), and on macOS with APFS.
        </p></dd><dt><span class="term"><code class="option">--copy</code></span></dt><dd><p>
         Copy files to the new cluster.  This is the default.  (See also
-        <code class="option">--link</code> and <code class="option">--clone</code>.)
+        <code class="option">--link</code>, <code class="option">--clone</code>,
+        <code class="option">--copy-file-range</code>, and <code class="option">--swap</code>.)
        </p></dd><dt><span class="term"><code class="option">--copy-file-range</code></span></dt><dd><p>
         Use the <code class="function">copy_file_range</code> system call for efficient
         copying.  On some file systems this gives results similar to
         <code class="option">--clone</code>, sharing physical disk blocks, while on others
         it may still copy blocks, but do so via an optimized path.  At present,
         it is supported on Linux and FreeBSD.
+       </p></dd><dt><span class="term"><code class="option">--no-statistics</code></span></dt><dd><p>
+        Do not restore statistics from the old cluster into the new cluster.
+       </p></dd><dt><span class="term"><code class="option">--set-char-signedness=</code><em class="replaceable"><code>option</code></em></span></dt><dd><p>
+        Manually set the default char signedness of new clusters. Possible values
+        are <code class="literal">signed</code> and <code class="literal">unsigned</code>.
+       </p><p>
+        In the C language, the default signedness of the <code class="type">char</code> type
+        (when not explicitly specified) varies across platforms. For example,
+        <code class="type">char</code> defaults to <code class="type">signed char</code> on x86 CPUs but
+        to <code class="type">unsigned char</code> on ARM CPUs.
+       </p><p>
+        Starting from <span class="productname">PostgreSQL</span> 18, database clusters
+        maintain their own default char signedness setting, which can be used to
+        ensure consistent behavior across platforms with different default char
+        signedness. By default, <span class="application">pg_upgrade</span> preserves
+        the char signedness setting when upgrading from an existing cluster.
+        However, when upgrading from <span class="productname">PostgreSQL</span> 17 or
+        earlier, <span class="application">pg_upgrade</span> adopts the char signedness
+        of the platform on which it was built.
+       </p><p>
+        This option allows you to explicitly set the default char signedness for
+        the new cluster, overriding any inherited values. There are two specific
+        scenarios where this option is relevant:
+        </p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+           If you are planning to migrate to a different platform after the upgrade,
+           you should not use this option. The default behavior is right in this case.
+           Instead, perform the upgrade on the original platform without this flag,
+           and then migrate the cluster afterward. This is the recommended and safest
+           approach.
+          </p></li><li class="listitem"><p>
+           If you have already migrated the cluster to a platform with different
+           char signedness (for example, from an x86-based system to an ARM-based
+           system), you should use this option to specify the signedness matching
+           the original platform's default char signedness. Additionally, it's
+           essential not to modify any data files between migrating data files and
+           running <code class="command">pg_upgrade</code>. <code class="command">pg_upgrade</code>
+           should be the first operation that starts the cluster on the new platform.
+          </p></li></ul></div><p>
+       </p></dd><dt><span class="term"><code class="option">--swap</code></span></dt><dd><p>
+        Move the data directories from the old cluster to the new cluster.
+        Then, replace the catalog files with those generated for the new
+        cluster.  This mode can outperform <code class="option">--link</code>,
+        <code class="option">--clone</code>, <code class="option">--copy</code>, and
+        <code class="option">--copy-file-range</code>, especially on clusters with many
+        relations.
+       </p><p>
+        However, this mode creates many garbage files in the old cluster, which
+        can prolong the file synchronization step if
+        <code class="option">--sync-method=syncfs</code> is used.  Therefore, it is
+        recommended to use <code class="option">--sync-method=fsync</code> with
+        <code class="option">--swap</code>.
+       </p><p>
+        Additionally, once the file transfer step begins, the old cluster will
+        be destructively modified and therefore will no longer be safe to
+        start.  See <a class="xref" href="pgupgrade.html#PGUPGRADE-STEP-REVERT" title="Reverting to old cluster">Step 17</a> for details.
        </p></dd><dt><span class="term"><code class="option">--sync-method=</code><em class="replaceable"><code>method</code></em></span></dt><dd><p>
         When set to <code class="literal">fsync</code>, which is the default,
         <code class="command">pg_upgrade</code> will recursively open and synchronize all
@@ -97,9 +153,13 @@
    </p></div><div class="refsect1" id="id-1.9.5.13.7"><h2>Usage</h2><p>
    These are the steps to perform an upgrade
    with <span class="application">pg_upgrade</span>:
-  </p><div class="procedure"><ol class="procedure" type="1"><li class="step"><p class="title"><strong>Optionally move the old cluster</strong></p><p>
+  </p><div class="note"><h3 class="title">Note</h3><p>
+     The steps to upgrade <a class="glossterm" href="glossary.html#GLOSSARY-LOGICAL-REPLICATION-CLUSTER"><em class="glossterm"><a class="glossterm" href="glossary.html#GLOSSARY-LOGICAL-REPLICATION-CLUSTER" title="Logical replication cluster">logical replication clusters</a></em></a>
+     are not covered here;
+     refer to <a class="xref" href="logical-replication-upgrade.html" title="29.13. Upgrade">Section 29.13</a> for details.
+    </p></div><div class="procedure"><ol class="procedure" type="1"><li class="step"><p class="title"><strong>Optionally move the old cluster</strong></p><p>
      If you are using a version-specific installation directory, e.g.,
-     <code class="filename">/opt/PostgreSQL/17</code>, you do not need to move the old cluster. The
+     <code class="filename">/opt/PostgreSQL/18</code>, you do not need to move the old cluster. The
      graphical installers all use version-specific installation directories.
     </p><p>
      If your installation directory is not version-specific, e.g.,
@@ -151,96 +211,25 @@ make prefix=/usr/local/pgsql.new install
      times, so you might want to set authentication to <code class="literal">peer</code>
      in <code class="filename">pg_hba.conf</code> or use a <code class="filename">~/.pgpass</code> file
      (see <a class="xref" href="libpq-pgpass.html" title="32.16. The Password File">Section 32.16</a>).
-    </p></li><li class="step"><p class="title"><strong>Prepare for publisher upgrades</strong></p><p>
-     <span class="application">pg_upgrade</span> attempts to migrate logical
-     slots. This helps avoid the need for manually defining the same
-     logical slots on the new publisher. Migration of logical slots is
-     only supported when the old cluster is version 17.0 or later.
-     Logical slots on clusters before version 17.0 will silently be
-     ignored.
-    </p><p>
-     Before you start upgrading the publisher cluster, ensure that the
-     subscription is temporarily disabled, by executing
-     <a class="link" href="sql-altersubscription.html" title="ALTER SUBSCRIPTION"><code class="command">ALTER SUBSCRIPTION ... DISABLE</code></a>.
-     Re-enable the subscription after the upgrade.
-    </p><p>
-     There are some prerequisites for <span class="application">pg_upgrade</span> to
-     be able to upgrade the logical slots. If these are not met an error
-     will be reported.
-    </p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
-       The new cluster must have
-       <a class="link" href="runtime-config-wal.html#GUC-WAL-LEVEL"><code class="varname">wal_level</code></a> as
-       <code class="literal">logical</code>.
-      </p></li><li class="listitem"><p>
-       The new cluster must have
-       <a class="link" href="runtime-config-replication.html#GUC-MAX-REPLICATION-SLOTS"><code class="varname">max_replication_slots</code></a>
-       configured to a value greater than or equal to the number of slots
-       present in the old cluster.
-      </p></li><li class="listitem"><p>
-       The output plugins referenced by the slots on the old cluster must be
-       installed in the new PostgreSQL executable directory.
-      </p></li><li class="listitem"><p>
-       The old cluster has replicated all the transactions and logical decoding
-       messages to subscribers.
-      </p></li><li class="listitem"><p>
-       All slots on the old cluster must be usable, i.e., there are no slots
-       whose
-       <a class="link" href="view-pg-replication-slots.html" title="52.19. pg_replication_slots">pg_replication_slots</a>.<code class="structfield">conflicting</code>
-       is not <code class="literal">true</code>.
-      </p></li><li class="listitem"><p>
-       The new cluster must not have permanent logical slots, i.e.,
-       there must be no slots where
-       <a class="link" href="view-pg-replication-slots.html" title="52.19. pg_replication_slots">pg_replication_slots</a>.<code class="structfield">temporary</code>
-       is <code class="literal">false</code>.
-      </p></li></ul></div></li><li class="step"><p class="title"><strong>Prepare for subscriber upgrades</strong></p><p>
-     Setup the <a class="link" href="logical-replication-config.html#LOGICAL-REPLICATION-CONFIG-SUBSCRIBER" title="29.11.2. Subscribers">
-     subscriber configurations</a> in the new subscriber.
-     <span class="application">pg_upgrade</span> attempts to migrate subscription
-     dependencies which includes the subscription's table information present in
-     <a class="link" href="catalog-pg-subscription-rel.html" title="51.55. pg_subscription_rel">pg_subscription_rel</a>
-     system catalog and also the subscription's replication origin. This allows
-     logical replication on the new subscriber to continue from where the
-     old subscriber was up to. Migration of subscription dependencies is only
-     supported when the old cluster is version 17.0 or later. Subscription
-     dependencies on clusters before version 17.0 will silently be ignored.
-    </p><p>
-     There are some prerequisites for <span class="application">pg_upgrade</span> to
-     be able to upgrade the subscriptions. If these are not met an error
-     will be reported.
-    </p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
-       All the subscription tables in the old subscriber should be in state
-       <code class="literal">i</code> (initialize) or <code class="literal">r</code> (ready). This
-       can be verified by checking <a class="link" href="catalog-pg-subscription-rel.html" title="51.55. pg_subscription_rel">pg_subscription_rel</a>.<code class="structfield">srsubstate</code>.
-      </p></li><li class="listitem"><p>
-       The replication origin entry corresponding to each of the subscriptions
-       should exist in the old cluster. This can be found by checking
-       <a class="link" href="catalog-pg-subscription.html" title="51.54. pg_subscription">pg_subscription</a> and
-       <a class="link" href="catalog-pg-replication-origin.html" title="51.44. pg_replication_origin">pg_replication_origin</a>
-       system tables.
-      </p></li><li class="listitem"><p>
-       The new cluster must have
-       <a class="link" href="runtime-config-replication.html#GUC-MAX-REPLICATION-SLOTS"><code class="varname">max_replication_slots</code></a>
-       configured to a value greater than or equal to the number of
-       subscriptions present in the old cluster.
-      </p></li></ul></div></li><li class="step"><p class="title"><strong>Stop both servers</strong></p><p>
+    </p></li><li class="step"><p class="title"><strong>Stop both servers</strong></p><p>
      Make sure both database servers are stopped using, on Unix, e.g.:
 
 </p><pre class="programlisting">
 pg_ctl -D /opt/PostgreSQL/12 stop
-pg_ctl -D /opt/PostgreSQL/17 stop
+pg_ctl -D /opt/PostgreSQL/18 stop
 </pre><p>
 
      or on Windows, using the proper service names:
 
 </p><pre class="programlisting">
 NET STOP postgresql-12
-NET STOP postgresql-17
+NET STOP postgresql-18
 </pre><p>
     </p><p>
      Streaming replication and log-shipping standby servers must be
      running during this shutdown so they receive all changes.
     </p></li><li class="step"><p class="title"><strong>Prepare for standby server upgrades</strong></p><p>
-     If you are upgrading standby servers using methods outlined in section <a class="xref" href="pgupgrade.html#PGUPGRADE-STEP-REPLICAS" title="Upgrade streaming replication and log-shipping standby servers">Step 13</a>, verify that the old standby
+     If you are upgrading standby servers using methods outlined in section <a class="xref" href="pgupgrade.html#PGUPGRADE-STEP-REPLICAS" title="Upgrade streaming replication and log-shipping standby servers">Step 11</a>, verify that the old standby
      servers are caught up by running <span class="application">pg_controldata</span>
      against the old primary and standby clusters.  Verify that the
      <span class="quote">“<span class="quote">Latest checkpoint location</span>”</span> values match in all clusters.
@@ -251,7 +240,7 @@ NET STOP postgresql-17
      Always run the <span class="application">pg_upgrade</span> binary of the new server, not the old one.
      <span class="application">pg_upgrade</span> requires the specification of the old and new cluster's
      data and executable (<code class="filename">bin</code>) directories. You can also specify
-     user and port values, and whether you want the data files linked or cloned
+     user and port values, and whether you want the data files linked, cloned, or swapped
      instead of the default copy behavior.
     </p><p>
      If you use link mode, the upgrade will be much faster (no file
@@ -266,13 +255,16 @@ NET STOP postgresql-17
      is started.  Clone mode also requires that the old and new data
      directories be in the same file system.  This mode is only available
      on certain operating systems and file systems.
+     Swap mode may be the fastest if there are many relations, but you will not
+     be able to access your old cluster once the file transfer step begins.
+     Swap mode also requires that the old and new cluster data directories be
+     in the same file system.
     </p><p>
-     The <code class="option">--jobs</code> option allows multiple CPU cores to be used
-     for copying/linking of files and to dump and restore database schemas
-     in parallel;  a good place to start is the maximum of the number of
-     CPU cores and tablespaces.  This option can dramatically reduce the
-     time to upgrade a multi-database server running on a multiprocessor
-     machine.
+     Setting <code class="option">--jobs</code> to 2 or higher allows pg_upgrade to
+     process multiple databases and tablespaces in parallel.  A good starting
+     point is the number of CPU cores on the machine.  This option can
+     substantially reduce the upgrade time for multi-database and
+     multi-tablespace servers.
     </p><p>
      For Windows users, you must be logged into an administrative account,
      and then run <span class="application">pg_upgrade</span> with quoted
@@ -281,9 +273,9 @@ NET STOP postgresql-17
 </p><pre class="programlisting">
 pg_upgrade.exe
         --old-datadir "C:/Program Files/PostgreSQL/12/data"
-        --new-datadir "C:/Program Files/PostgreSQL/17/data"
+        --new-datadir "C:/Program Files/PostgreSQL/18/data"
         --old-bindir "C:/Program Files/PostgreSQL/12/bin"
-        --new-bindir "C:/Program Files/PostgreSQL/17/bin"
+        --new-bindir "C:/Program Files/PostgreSQL/18/bin"
 </pre><p>
 
      Once started, <code class="command">pg_upgrade</code> will verify the two clusters are compatible
@@ -291,8 +283,9 @@ pg_upgrade.exe
      to perform only the checks, even if the old server is still
      running. <code class="command">pg_upgrade --check</code> will also outline any
      manual adjustments you will need to make after the upgrade.  If you
-     are going to be using link or clone mode, you should use the option
-     <code class="option">--link</code> or <code class="option">--clone</code> with
+     are going to be using link, clone, copy-file-range, or swap mode, you
+     should use the option <code class="option">--link</code>, <code class="option">--clone</code>,
+     <code class="option">--copy-file-range</code>, or <code class="option">--swap</code> with
      <code class="option">--check</code> to enable mode-specific checks.
      <code class="command">pg_upgrade</code> requires write permission in the current directory.
     </p><p>
@@ -305,7 +298,7 @@ pg_upgrade.exe
      and new port numbers must be different.
     </p><p>
      If an error occurs while restoring the database schema, <code class="command">pg_upgrade</code> will
-     exit and you will have to revert to the old cluster as outlined in <a class="xref" href="pgupgrade.html#PGUPGRADE-STEP-REVERT" title="Reverting to old cluster">Step 19</a>
+     exit and you will have to revert to the old cluster as outlined in <a class="xref" href="pgupgrade.html#PGUPGRADE-STEP-REVERT" title="Reverting to old cluster">Step 17</a>
      below. To try <code class="command">pg_upgrade</code> again, you will need to modify the old
      cluster so the pg_upgrade schema restore succeeds. If the problem is a
      <code class="filename">contrib</code> module, you might need to uninstall the <code class="filename">contrib</code> module from
@@ -362,7 +355,7 @@ rsync --archive --delete --hard-links --size-only --no-inc-recursive old_cluster
 
 </p><pre class="programlisting">
 rsync --archive --delete --hard-links --size-only --no-inc-recursive /opt/PostgreSQL/12 \
-      /opt/PostgreSQL/17 standby.example.com:/opt/PostgreSQL
+      /opt/PostgreSQL/18 standby.example.com:/opt/PostgreSQL
 </pre><p>
 
        You can verify what the command will do using
@@ -388,7 +381,7 @@ rsync --archive --delete --hard-links --size-only --no-inc-recursive /opt/Postgr
 
 </p><pre class="programlisting">
 rsync --archive --delete --hard-links --size-only --no-inc-recursive /vol1/pg_tblsp/PG_12_201909212 \
-      /vol1/pg_tblsp/PG_17_202307071 standby.example.com:/vol1/pg_tblsp
+      /vol1/pg_tblsp/PG_18_202307071 standby.example.com:/vol1/pg_tblsp
 </pre><p>
 
        If you have relocated <code class="filename">pg_wal</code> outside the data
@@ -431,15 +424,24 @@ psql --username=postgres --file=script.sql postgres
      incorrect results or poor performance. Tables not referenced in rebuild
      scripts can be accessed immediately.
     </p></div></li><li class="step"><p class="title"><strong>Statistics</strong></p><p>
-     Because optimizer statistics are not transferred by <code class="command">pg_upgrade</code>, you will
-     be instructed to run a command to regenerate that information at the end
-     of the upgrade.  You might need to set connection parameters to
-     match your new cluster.
+     Unless the <code class="option">--no-statistics</code> option is specified,
+     <code class="command">pg_upgrade</code> will transfer most optimizer statistics
+     from the old cluster to the new cluster.  However, some statistics may
+     not be transferred, such as those created explicitly with <a class="xref" href="sql-createstatistics.html" title="CREATE STATISTICS"><span class="refentrytitle">CREATE STATISTICS</span></a> or custom statistics added by an
+     extension.
     </p><p>
-     Using <code class="command">vacuumdb --all --analyze-only</code> can efficiently
-     generate such statistics, and the use of <code class="option">--jobs</code>
-     can speed it up.  Option <code class="option">--analyze-in-stages</code>
-     can be used to generate minimal statistics quickly.
+     Because not all statistics are transferred by
+     <code class="command">pg_upgrade</code>, you will be instructed to run commands to
+     regenerate that information at the end of the upgrade.  You might need to
+     set connection parameters to match your new cluster.
+    </p><p>
+     First, use
+     <code class="command">vacuumdb --all --analyze-in-stages --missing-stats-only</code>
+     to quickly generate minimal optimizer statistics for relations without
+     any.  Then, use <code class="command">vacuumdb --all --analyze-only</code> to ensure
+     all relations have updated cumulative statistics for triggering vacuum and
+     analyze.  For both commands, the use of <code class="option">--jobs</code> can speed
+     it up.
      If <code class="varname">vacuum_cost_delay</code> is set to a non-zero
      value, this can be overridden to speed up statistics generation
      using <code class="envar">PGOPTIONS</code>, e.g., <code class="literal">PGOPTIONS='-c
@@ -459,7 +461,7 @@ psql --username=postgres --file=script.sql postgres
         If the <code class="option">--check</code> option was used, the old cluster
         was unmodified;  it can be restarted.
        </p></li><li class="listitem"><p>
-        If the <code class="option">--link</code> option was <span class="emphasis"><em>not</em></span>
+        If neither <code class="option">--link</code> nor <code class="option">--swap</code> was
         used, the old cluster was unmodified;  it can be restarted.
        </p></li><li class="listitem"><p>
         If the <code class="option">--link</code> option was used, the data
@@ -480,7 +482,21 @@ psql --username=postgres --file=script.sql postgres
            If you did start the new cluster, it has written to shared files
            and it is unsafe to use the old cluster.  The old cluster will
            need to be restored from backup in this case.
-          </p></li></ul></div></li></ul></div></li></ol></div></div><div class="refsect1" id="id-1.9.5.13.8"><h2>Environment</h2><p>
+          </p></li></ul></div></li><li class="listitem"><p>
+        If the <code class="option">--swap</code> option was used, the old cluster might
+        be destructively modified:
+
+        </p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: circle; "><li class="listitem"><p>
+           If <code class="command">pg_upgrade</code> aborts before reporting that the
+           old cluster is no longer safe to start, the old cluster was
+           unmodified; it can be restarted.
+          </p></li><li class="listitem"><p>
+           If <code class="command">pg_upgrade</code> has reported that the old cluster
+           is no longer safe to start, the old cluster was destructively
+           modified.  The old cluster will need to be restored from backup in
+           this case.
+          </p></li></ul></div><p>
+       </p></li></ul></div></li></ol></div></div><div class="refsect1" id="id-1.9.5.13.8"><h2>Environment</h2><p>
    Some environment variables can be used to provide defaults for command-line options:
 
    </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="envar">PGBINOLD</code></span></dt><dd><p>
@@ -562,4 +578,4 @@ psql --username=postgres --file=script.sql postgres
    to make a backup of the old cluster and tablespaces, though the snapshot
    and copies must be created simultaneously or while the database server
    is down.
-  </p></div><div class="refsect1" id="id-1.9.5.13.10"><h2>See Also</h2><span class="simplelist"><a class="xref" href="app-initdb.html" title="initdb"><span class="refentrytitle"><span class="application">initdb</span></span></a>, <a class="xref" href="app-pg-ctl.html" title="pg_ctl"><span class="refentrytitle"><span class="application">pg_ctl</span></span></a>, <a class="xref" href="app-pgdump.html" title="pg_dump"><span class="refentrytitle"><span class="application">pg_dump</span></span></a>, <a class="xref" href="app-postgres.html" title="postgres"><span class="refentrytitle"><span class="application">postgres</span></span></a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="pgtesttiming.html" title="pg_test_timing">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="reference-server.html" title="PostgreSQL Server Applications">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="pgwaldump.html" title="pg_waldump">Next</a></td></tr><tr><td width="40%" align="left" valign="top"><span class="application">pg_test_timing</span> </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> <span class="application">pg_waldump</span></td></tr></table></div></body></html>
+  </p></div><div class="refsect1" id="id-1.9.5.13.10"><h2>See Also</h2><span class="simplelist"><a class="xref" href="app-initdb.html" title="initdb"><span class="refentrytitle"><span class="application">initdb</span></span></a>, <a class="xref" href="app-pg-ctl.html" title="pg_ctl"><span class="refentrytitle"><span class="application">pg_ctl</span></span></a>, <a class="xref" href="app-pgdump.html" title="pg_dump"><span class="refentrytitle"><span class="application">pg_dump</span></span></a>, <a class="xref" href="app-postgres.html" title="postgres"><span class="refentrytitle"><span class="application">postgres</span></span></a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="pgtesttiming.html" title="pg_test_timing">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="reference-server.html" title="PostgreSQL Server Applications">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="pgwaldump.html" title="pg_waldump">Next</a></td></tr><tr><td width="40%" align="left" valign="top"><span class="application">pg_test_timing</span> </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> <span class="application">pg_waldump</span></td></tr></table></div></body></html>

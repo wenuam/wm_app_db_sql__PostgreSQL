@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "CREATE EXTENSION" "7" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "CREATE EXTENSION" "7" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -71,7 +71,8 @@ Do not throw an error if an extension with the same name already exists\&. A not
 The name of the extension to be installed\&.
 PostgreSQL
 will create the extension using details from the file
-SHAREDIR/extension/\fIextension_name\fR\&.control\&.
+\fIextension_name\fR\&.control, found via the server\*(Aqs extension control path (set by
+extension_control_path\&.)
 .RE
 .PP
 \fIschema_name\fR

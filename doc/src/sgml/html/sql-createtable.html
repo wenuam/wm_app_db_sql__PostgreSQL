@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>CREATE TABLE</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="sql-createsubscription.html" title="CREATE SUBSCRIPTION" /><link rel="next" href="sql-createtableas.html" title="CREATE TABLE AS" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">CREATE TABLE</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="sql-createsubscription.html" title="CREATE SUBSCRIPTION">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><th width="60%" align="center">SQL Commands</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="sql-createtableas.html" title="CREATE TABLE AS">Next</a></td></tr></table><hr /></div><div class="refentry" id="SQL-CREATETABLE"><div class="titlepage"></div><a id="id-1.9.3.85.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle">CREATE TABLE</span></h2><p>CREATE TABLE — define a new table</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><pre class="synopsis">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>CREATE TABLE</title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><link rev="made" href="pgsql-docs@lists.postgresql.org" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /><link rel="prev" href="sql-createsubscription.html" title="CREATE SUBSCRIPTION" /><link rel="next" href="sql-createtableas.html" title="CREATE TABLE AS" /></head><body id="docContent" class="container-fluid col-10"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="5" align="center">CREATE TABLE</th></tr><tr><td width="10%" align="left"><a accesskey="p" href="sql-createsubscription.html" title="CREATE SUBSCRIPTION">Prev</a> </td><td width="10%" align="left"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><th width="60%" align="center">SQL Commands</th><td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="10%" align="right"> <a accesskey="n" href="sql-createtableas.html" title="CREATE TABLE AS">Next</a></td></tr></table><hr /></div><div class="refentry" id="SQL-CREATETABLE"><div class="titlepage"></div><a id="id-1.9.3.85.1" class="indexterm"></a><div class="refnamediv"><h2><span class="refentrytitle">CREATE TABLE</span></h2><p>CREATE TABLE — define a new table</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><pre class="synopsis">
 CREATE [ [ GLOBAL | LOCAL ] { TEMPORARY | TEMP } | UNLOGGED ] TABLE [ IF NOT EXISTS ] <em class="replaceable"><code>table_name</code></em> ( [
   { <em class="replaceable"><code>column_name</code></em> <em class="replaceable"><code>data_type</code></em> [ STORAGE { PLAIN | EXTERNAL | EXTENDED | MAIN | DEFAULT } ] [ COMPRESSION <em class="replaceable"><code>compression_method</code></em> ] [ COLLATE <em class="replaceable"><code>collation</code></em> ] [ <em class="replaceable"><code>column_constraint</code></em> [ ... ] ]
     | <em class="replaceable"><code>table_constraint</code></em>
@@ -40,28 +40,29 @@ CREATE [ [ GLOBAL | LOCAL ] { TEMPORARY | TEMP } | UNLOGGED ] TABLE [ IF NOT EXI
 <span class="phrase">where <em class="replaceable"><code>column_constraint</code></em> is:</span>
 
 [ CONSTRAINT <em class="replaceable"><code>constraint_name</code></em> ]
-{ NOT NULL |
+{ NOT NULL [ NO INHERIT ]  |
   NULL |
   CHECK ( <em class="replaceable"><code>expression</code></em> ) [ NO INHERIT ] |
   DEFAULT <em class="replaceable"><code>default_expr</code></em> |
-  GENERATED ALWAYS AS ( <em class="replaceable"><code>generation_expr</code></em> ) STORED |
+  GENERATED ALWAYS AS ( <em class="replaceable"><code>generation_expr</code></em> ) [ STORED | VIRTUAL ] |
   GENERATED { ALWAYS | BY DEFAULT } AS IDENTITY [ ( <em class="replaceable"><code>sequence_options</code></em> ) ] |
   UNIQUE [ NULLS [ NOT ] DISTINCT ] <em class="replaceable"><code>index_parameters</code></em> |
   PRIMARY KEY <em class="replaceable"><code>index_parameters</code></em> |
   REFERENCES <em class="replaceable"><code>reftable</code></em> [ ( <em class="replaceable"><code>refcolumn</code></em> ) ] [ MATCH FULL | MATCH PARTIAL | MATCH SIMPLE ]
     [ ON DELETE <em class="replaceable"><code>referential_action</code></em> ] [ ON UPDATE <em class="replaceable"><code>referential_action</code></em> ] }
-[ DEFERRABLE | NOT DEFERRABLE ] [ INITIALLY DEFERRED | INITIALLY IMMEDIATE ]
+[ DEFERRABLE | NOT DEFERRABLE ] [ INITIALLY DEFERRED | INITIALLY IMMEDIATE ] [ ENFORCED | NOT ENFORCED ]
 
 <span class="phrase">and <em class="replaceable"><code>table_constraint</code></em> is:</span>
 
 [ CONSTRAINT <em class="replaceable"><code>constraint_name</code></em> ]
 { CHECK ( <em class="replaceable"><code>expression</code></em> ) [ NO INHERIT ] |
-  UNIQUE [ NULLS [ NOT ] DISTINCT ] ( <em class="replaceable"><code>column_name</code></em> [, ... ] ) <em class="replaceable"><code>index_parameters</code></em> |
-  PRIMARY KEY ( <em class="replaceable"><code>column_name</code></em> [, ... ] ) <em class="replaceable"><code>index_parameters</code></em> |
+  NOT NULL <em class="replaceable"><code>column_name</code></em> [ NO INHERIT ] |
+  UNIQUE [ NULLS [ NOT ] DISTINCT ] ( <em class="replaceable"><code>column_name</code></em> [, ... ] [, <em class="replaceable"><code>column_name</code></em> WITHOUT OVERLAPS ] ) <em class="replaceable"><code>index_parameters</code></em> |
+  PRIMARY KEY ( <em class="replaceable"><code>column_name</code></em> [, ... ] [, <em class="replaceable"><code>column_name</code></em> WITHOUT OVERLAPS ] ) <em class="replaceable"><code>index_parameters</code></em> |
   EXCLUDE [ USING <em class="replaceable"><code>index_method</code></em> ] ( <em class="replaceable"><code>exclude_element</code></em> WITH <em class="replaceable"><code>operator</code></em> [, ... ] ) <em class="replaceable"><code>index_parameters</code></em> [ WHERE ( <em class="replaceable"><code>predicate</code></em> ) ] |
-  FOREIGN KEY ( <em class="replaceable"><code>column_name</code></em> [, ... ] ) REFERENCES <em class="replaceable"><code>reftable</code></em> [ ( <em class="replaceable"><code>refcolumn</code></em> [, ... ] ) ]
+  FOREIGN KEY ( <em class="replaceable"><code>column_name</code></em> [, ... ] [, PERIOD <em class="replaceable"><code>column_name</code></em> ] ) REFERENCES <em class="replaceable"><code>reftable</code></em> [ ( <em class="replaceable"><code>refcolumn</code></em> [, ... ] [, PERIOD <em class="replaceable"><code>refcolumn</code></em> ] ) ]
     [ MATCH FULL | MATCH PARTIAL | MATCH SIMPLE ] [ ON DELETE <em class="replaceable"><code>referential_action</code></em> ] [ ON UPDATE <em class="replaceable"><code>referential_action</code></em> ] }
-[ DEFERRABLE | NOT DEFERRABLE ] [ INITIALLY DEFERRED | INITIALLY IMMEDIATE ]
+[ DEFERRABLE | NOT DEFERRABLE ] [ INITIALLY DEFERRED | INITIALLY IMMEDIATE ] [ ENFORCED | NOT ENFORCED ]
 
 <span class="phrase">and <em class="replaceable"><code>like_option</code></em> is:</span>
 
@@ -155,6 +156,8 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
      </p><p>
       If this is specified, any sequences created together with the unlogged
       table (for identity or serial columns) are also created as unlogged.
+     </p><p>
+      This form is not supported for partitioned tables.
      </p></dd><dt id="SQL-CREATETABLE-PARMS-IF-NOT-EXISTS"><span class="term"><code class="literal">IF NOT EXISTS</code></span> <a href="#SQL-CREATETABLE-PARMS-IF-NOT-EXISTS" class="id_link">#</a></dt><dd><p>
       Do not throw an error if a relation with the same name already exists.
       A notice is issued in this case.  Note that there is no guarantee that
@@ -164,16 +167,16 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
       The name (optionally schema-qualified) of the table to be created.
      </p></dd><dt id="SQL-CREATETABLE-PARMS-TYPE-NAME"><span class="term"><code class="literal">OF <em class="replaceable"><code>type_name</code></em></code></span> <a href="#SQL-CREATETABLE-PARMS-TYPE-NAME" class="id_link">#</a></dt><dd><p>
       Creates a <em class="firstterm">typed table</em>, which takes its
-      structure from the specified composite type (name optionally
-      schema-qualified).  A typed table is tied to its type; for
-      example the table will be dropped if the type is dropped
-      (with <code class="literal">DROP TYPE ... CASCADE</code>).
+      structure from the specified stand-alone composite type (that is,
+      one created using <a class="xref" href="sql-createtype.html" title="CREATE TYPE"><span class="refentrytitle">CREATE TYPE</span></a>) though it still
+      produces a new composite type as well.  The table will have a
+      dependency on the referenced type, meaning that cascaded alter and
+      drop actions on that type will propagate to the table.
      </p><p>
-      When a typed table is created, then the data types of the
-      columns are determined by the underlying composite type and are
-      not specified by the <code class="literal">CREATE TABLE</code> command.
+      A typed table always has the same column names and data types as the
+      type it is derived from, so you cannot specify additional columns.
       But the <code class="literal">CREATE TABLE</code> command can add defaults
-      and constraints to the table and can specify storage parameters.
+      and constraints to the table, as well as specify storage parameters.
      </p></dd><dt id="SQL-CREATETABLE-PARMS-COLUMN-NAME"><span class="term"><em class="replaceable"><code>column_name</code></em></span> <a href="#SQL-CREATETABLE-PARMS-COLUMN-NAME" class="id_link">#</a></dt><dd><p>
       The name of a column to be created in the new table.
      </p></dd><dt id="SQL-CREATETABLE-PARMS-DATA-TYPE"><span class="term"><em class="replaceable"><code>data_type</code></em></span> <a href="#SQL-CREATETABLE-PARMS-DATA-TYPE" class="id_link">#</a></dt><dd><p>
@@ -202,7 +205,7 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
       Use of <code class="literal">EXTERNAL</code> will make substring operations on
       very large <code class="type">text</code> and <code class="type">bytea</code> values run faster,
       at the penalty of increased storage space.
-      See <a class="xref" href="storage-toast.html" title="65.2. TOAST">Section 65.2</a> for more information.
+      See <a class="xref" href="storage-toast.html" title="66.2. TOAST">Section 66.2</a> for more information.
      </p></dd><dt id="SQL-CREATETABLE-PARMS-COMPRESSION"><span class="term"><code class="literal">COMPRESSION <em class="replaceable"><code>compression_method</code></em></code></span> <a href="#SQL-CREATETABLE-PARMS-COMPRESSION" class="id_link">#</a></dt><dd><p>
       The <code class="literal">COMPRESSION</code> clause sets the compression method
       for the column.  Compression is supported only for variable-width data
@@ -478,8 +481,9 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
           <code class="function">nextval</code>, may create a functional linkage
           between the original and new tables.
          </p></dd><dt id="SQL-CREATETABLE-PARMS-LIKE-OPT-GENERATED"><span class="term"><code class="literal">INCLUDING GENERATED</code></span> <a href="#SQL-CREATETABLE-PARMS-LIKE-OPT-GENERATED" class="id_link">#</a></dt><dd><p>
-          Any generation expressions of copied column definitions will be
-          copied.  By default, new columns will be regular base columns.
+          Any generation expressions as well as the stored/virtual choice of
+          copied column definitions will be copied.  By default, new columns
+          will be regular base columns.
          </p></dd><dt id="SQL-CREATETABLE-PARMS-LIKE-OPT-IDENTITY"><span class="term"><code class="literal">INCLUDING IDENTITY</code></span> <a href="#SQL-CREATETABLE-PARMS-LIKE-OPT-IDENTITY" class="id_link">#</a></dt><dd><p>
           Any identity specifications of copied column definitions will be
           copied.  A new sequence is created for each identity column of the
@@ -499,7 +503,7 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
           definitions will be copied.  The default behavior is to exclude
           <code class="literal">STORAGE</code> settings, resulting in the copied columns
           in the new table having type-specific default settings.  For more on
-          <code class="literal">STORAGE</code> settings, see <a class="xref" href="storage-toast.html" title="65.2. TOAST">Section 65.2</a>.
+          <code class="literal">STORAGE</code> settings, see <a class="xref" href="storage-toast.html" title="66.2. TOAST">Section 66.2</a>.
          </p></dd><dt id="SQL-CREATETABLE-PARMS-LIKE-OPT-ALL"><span class="term"><code class="literal">INCLUDING ALL</code></span> <a href="#SQL-CREATETABLE-PARMS-LIKE-OPT-ALL" class="id_link">#</a></dt><dd><p>
           <code class="literal">INCLUDING ALL</code> is an abbreviated form selecting
           all the available individual options.  (It could be useful to write
@@ -519,8 +523,11 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
       to communicate helpful constraint information to client applications.
       (Double-quotes are needed to specify constraint names that contain spaces.)
       If a constraint name is not specified, the system generates a name.
-     </p></dd><dt id="SQL-CREATETABLE-PARMS-NOT-NULL"><span class="term"><code class="literal">NOT NULL</code></span> <a href="#SQL-CREATETABLE-PARMS-NOT-NULL" class="id_link">#</a></dt><dd><p>
+     </p></dd><dt id="SQL-CREATETABLE-PARMS-NOT-NULL"><span class="term"><code class="literal">NOT NULL [ NO INHERIT ] </code></span> <a href="#SQL-CREATETABLE-PARMS-NOT-NULL" class="id_link">#</a></dt><dd><p>
       The column is not allowed to contain null values.
+     </p><p>
+      A constraint marked with <code class="literal">NO INHERIT</code> will not propagate to
+      child tables.
      </p></dd><dt id="SQL-CREATETABLE-PARMS-NULL"><span class="term"><code class="literal">NULL</code></span> <a href="#SQL-CREATETABLE-PARMS-NULL" class="id_link">#</a></dt><dd><p>
       The column is allowed to contain null values. This is the default.
      </p><p>
@@ -564,17 +571,27 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
       The default expression will be used in any insert operation that
       does not specify a value for the column.  If there is no default
       for a column, then the default is null.
-     </p></dd><dt id="SQL-CREATETABLE-PARMS-GENERATED-STORED"><span class="term"><code class="literal">GENERATED ALWAYS AS ( <em class="replaceable"><code>generation_expr</code></em> ) STORED</code><a id="id-1.9.3.85.6.2.20.1.2" class="indexterm"></a></span> <a href="#SQL-CREATETABLE-PARMS-GENERATED-STORED" class="id_link">#</a></dt><dd><p>
+     </p></dd><dt id="SQL-CREATETABLE-PARMS-GENERATED-STORED"><span class="term"><code class="literal">GENERATED ALWAYS AS ( <em class="replaceable"><code>generation_expr</code></em> ) [ STORED | VIRTUAL ]</code><a id="id-1.9.3.85.6.2.20.1.2" class="indexterm"></a></span> <a href="#SQL-CREATETABLE-PARMS-GENERATED-STORED" class="id_link">#</a></dt><dd><p>
       This clause creates the column as a <em class="firstterm">generated
       column</em>.  The column cannot be written to, and when read the
       result of the specified expression will be returned.
      </p><p>
-      The keyword <code class="literal">STORED</code> is required to signify that the
-      column will be computed on write and will be stored on disk.
+      When <code class="literal">VIRTUAL</code> is specified, the column will be
+      computed when it is read, and it will not occupy any storage.  When
+      <code class="literal">STORED</code> is specified, the column will be computed on
+      write and will be stored on disk.  <code class="literal">VIRTUAL</code> is the
+      default.
      </p><p>
       The generation expression can refer to other columns in the table, but
       not other generated columns.  Any functions and operators used must be
       immutable.  References to other tables are not allowed.
+     </p><p>
+      A virtual generated column cannot have a user-defined type, and the
+      generation expression of a virtual generated column must not reference
+      user-defined functions or types, that is, it can only use built-in
+      functions or types.  This applies also indirectly, such as for functions
+      or types that underlie operators or casts.  (This restriction does not
+      exist for stored generated columns.)
      </p></dd><dt id="SQL-CREATETABLE-PARMS-GENERATED-IDENTITY"><span class="term"><code class="literal">GENERATED { ALWAYS | BY DEFAULT } AS IDENTITY [ ( <em class="replaceable"><code>sequence_options</code></em> ) ]</code></span> <a href="#SQL-CREATETABLE-PARMS-GENERATED-IDENTITY" class="id_link">#</a></dt><dd><p>
       This clause creates the column as an <em class="firstterm">identity
       column</em>.  It will have an implicit sequence attached to it
@@ -611,7 +628,7 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
       chooses an unused name for the sequence.
       Without <code class="literal">LOGGED</code> or <code class="literal">UNLOGGED</code>,
       the sequence will have the same persistence level as the table.
-     </p></dd><dt id="SQL-CREATETABLE-PARMS-UNIQUE"><span class="term"><code class="literal">UNIQUE [ NULLS [ NOT ] DISTINCT ]</code> (column constraint)<br /></span><span class="term"><code class="literal">UNIQUE [ NULLS [ NOT ] DISTINCT ] ( <em class="replaceable"><code>column_name</code></em> [, ... ] )</code>
+     </p></dd><dt id="SQL-CREATETABLE-PARMS-UNIQUE"><span class="term"><code class="literal">UNIQUE [ NULLS [ NOT ] DISTINCT ]</code> (column constraint)<br /></span><span class="term"><code class="literal">UNIQUE [ NULLS [ NOT ] DISTINCT ] ( <em class="replaceable"><code>column_name</code></em> [, ... ] [, <em class="replaceable"><code>column_name</code></em> WITHOUT OVERLAPS ] )</code>
     [<span class="optional"> <code class="literal">INCLUDE ( <em class="replaceable"><code>column_name</code></em> [, ...])</code> </span>] (table constraint)</span> <a href="#SQL-CREATETABLE-PARMS-UNIQUE" class="id_link">#</a></dt><dd><p>
       The <code class="literal">UNIQUE</code> constraint specifies that a
       group of one or more columns of a table can contain
@@ -620,6 +637,25 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
       additional capability to span multiple columns.  The constraint
       therefore enforces that any two rows must differ in at least one
       of these columns.
+     </p><p>
+      If the <code class="literal">WITHOUT OVERLAPS</code> option is specified for the
+      last column, then that column is checked for overlaps instead of
+      equality.  In that case, the other columns of the constraint will allow
+      duplicates so long as the duplicates don't overlap in the
+      <code class="literal">WITHOUT OVERLAPS</code> column.  (This is sometimes called a
+      temporal key, if the column is a range of dates or timestamps, but
+      <span class="productname">PostgreSQL</span> allows ranges over any base type.)
+      In effect, such a constraint is enforced with an <code class="literal">EXCLUDE</code>
+      constraint rather than a <code class="literal">UNIQUE</code> constraint.  So for
+      example <code class="literal">UNIQUE (id, valid_at WITHOUT OVERLAPS)</code> behaves
+      like <code class="literal">EXCLUDE USING GIST (id WITH =, valid_at WITH
+      &amp;&amp;)</code>.  The <code class="literal">WITHOUT OVERLAPS</code> column
+      must have a range or multirange type.  Empty ranges/multiranges are
+      not permitted.  The non-<code class="literal">WITHOUT OVERLAPS</code> columns of
+      the constraint can be any type that can be compared for equality in a
+      GiST index.  By default, only range types are supported, but you can use
+      other types by adding the <a class="xref" href="btree-gist.html" title="F.8. btree_gist — GiST operator classes with B-tree behavior">btree_gist</a> extension (which
+      is the expected way to use this feature).
      </p><p>
       For the purpose of a unique constraint, null values are not
       considered equal, unless <code class="literal">NULLS NOT DISTINCT</code> is
@@ -636,8 +672,10 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
       tables, must be included in the constraint definition.
      </p><p>
       Adding a unique constraint will automatically create a unique btree
-      index on the column or group of columns used in the constraint.  The
-      created index has the same name as the unique constraint.
+      index on the column or group of columns used in the constraint.  But if
+      the constraint includes a <code class="literal">WITHOUT OVERLAPS</code> clause, it
+      will use a GiST index.  The created index has the same name as the
+      unique constraint.
      </p><p>
       The optional <code class="literal">INCLUDE</code> clause adds to that index
       one or more columns that are simply <span class="quote">“<span class="quote">payload</span>”</span>: uniqueness
@@ -647,7 +685,7 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
       it still depends on them.  Consequently, some operations on such columns
       (e.g., <code class="literal">DROP COLUMN</code>) can cause cascaded constraint and
       index deletion.
-     </p></dd><dt id="SQL-CREATETABLE-PARMS-PRIMARY-KEY"><span class="term"><code class="literal">PRIMARY KEY</code> (column constraint)<br /></span><span class="term"><code class="literal">PRIMARY KEY ( <em class="replaceable"><code>column_name</code></em> [, ... ] )</code>
+     </p></dd><dt id="SQL-CREATETABLE-PARMS-PRIMARY-KEY"><span class="term"><code class="literal">PRIMARY KEY</code> (column constraint)<br /></span><span class="term"><code class="literal">PRIMARY KEY ( <em class="replaceable"><code>column_name</code></em> [, ... ] [, <em class="replaceable"><code>column_name</code></em> WITHOUT OVERLAPS ] )</code>
     [<span class="optional"> <code class="literal">INCLUDE ( <em class="replaceable"><code>column_name</code></em> [, ...])</code> </span>] (table constraint)</span> <a href="#SQL-CREATETABLE-PARMS-PRIMARY-KEY" class="id_link">#</a></dt><dd><p>
       The <code class="literal">PRIMARY KEY</code> constraint specifies that a column or
       columns of a table can contain only unique (non-duplicate), nonnull
@@ -672,8 +710,8 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
      </p><p>
       Adding a <code class="literal">PRIMARY KEY</code> constraint will automatically
       create a unique btree index on the column or group of columns used in
-      the constraint.  That index has the same name as the primary key
-      constraint.
+      the constraint, or GiST if <code class="literal">WITHOUT OVERLAPS</code> was
+      specified.
      </p><p>
       The optional <code class="literal">INCLUDE</code> clause adds to that index
       one or more columns that are simply <span class="quote">“<span class="quote">payload</span>”</span>: uniqueness
@@ -709,7 +747,7 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
       an operator class, operator class parameters, and/or ordering options;
       these are described fully under <a class="xref" href="sql-createindex.html" title="CREATE INDEX"><span class="refentrytitle">CREATE INDEX</span></a>.
      </p><p>
-      The access method must support <code class="literal">amgettuple</code> (see <a class="xref" href="indexam.html" title="Chapter 62. Index Access Method Interface Definition">Chapter 62</a>); at present this means <acronym class="acronym">GIN</acronym>
+      The access method must support <code class="literal">amgettuple</code> (see <a class="xref" href="indexam.html" title="Chapter 63. Index Access Method Interface Definition">Chapter 63</a>); at present this means <acronym class="acronym">GIN</acronym>
       cannot be used.  Although it's allowed, there is little point in using
       B-tree or hash indexes with an exclusion constraint, because this
       does nothing that an ordinary unique constraint doesn't do better.
@@ -729,8 +767,8 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
       same partition.  The constraint may also refer to other columns which
       are not a part of any partition key, which can be compared using any
       appropriate operator.
-     </p></dd><dt id="SQL-CREATETABLE-PARMS-REFERENCES"><span class="term"><code class="literal">REFERENCES <em class="replaceable"><code>reftable</code></em> [ ( <em class="replaceable"><code>refcolumn</code></em> ) ] [ MATCH <em class="replaceable"><code>matchtype</code></em> ] [ ON DELETE <em class="replaceable"><code>referential_action</code></em> ] [ ON UPDATE <em class="replaceable"><code>referential_action</code></em> ]</code> (column constraint)<br /></span><span class="term"><code class="literal">FOREIGN KEY ( <em class="replaceable"><code>column_name</code></em> [, ... ] )
-    REFERENCES <em class="replaceable"><code>reftable</code></em> [ ( <em class="replaceable"><code>refcolumn</code></em> [, ... ] ) ]
+     </p></dd><dt id="SQL-CREATETABLE-PARMS-REFERENCES"><span class="term"><code class="literal">REFERENCES <em class="replaceable"><code>reftable</code></em> [ ( <em class="replaceable"><code>refcolumn</code></em> ) ] [ MATCH <em class="replaceable"><code>matchtype</code></em> ] [ ON DELETE <em class="replaceable"><code>referential_action</code></em> ] [ ON UPDATE <em class="replaceable"><code>referential_action</code></em> ]</code> (column constraint)<br /></span><span class="term"><code class="literal">FOREIGN KEY ( <em class="replaceable"><code>column_name</code></em> [, ... ] [, PERIOD <em class="replaceable"><code>column_name</code></em> ] )
+    REFERENCES <em class="replaceable"><code>reftable</code></em> [ ( <em class="replaceable"><code>refcolumn</code></em> [, ... ] [, PERIOD <em class="replaceable"><code>refcolumn</code></em> ] ) ]
     [ MATCH <em class="replaceable"><code>matchtype</code></em> ]
     [ ON DELETE <em class="replaceable"><code>referential_action</code></em> ]
     [ ON UPDATE <em class="replaceable"><code>referential_action</code></em> ]</code>
@@ -742,7 +780,33 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
       primary key of the <em class="replaceable"><code>reftable</code></em>
       is used.  Otherwise, the <em class="replaceable"><code>refcolumn</code></em>
       list must refer to the columns of a non-deferrable unique or primary key
-      constraint or be the columns of a non-partial unique index.  The user
+      constraint or be the columns of a non-partial unique index.
+     </p><p>
+      If the last column is marked with <code class="literal">PERIOD</code>, it is
+      treated in a special way.  While the non-<code class="literal">PERIOD</code>
+      columns are compared for equality (and there must be at least one of
+      them), the <code class="literal">PERIOD</code> column is not.  Instead, the
+      constraint is considered satisfied if the referenced table has matching
+      records (based on the non-<code class="literal">PERIOD</code> parts of the key)
+      whose combined <code class="literal">PERIOD</code> values completely cover the
+      referencing record's.  In other words, the reference must have a
+      referent for its entire duration.  This column must be a range or
+      multirange type.  In addition, the referenced table must have a primary
+      key or unique constraint declared with <code class="literal">WITHOUT
+      OVERLAPS</code>. Finally, if the foreign key has a PERIOD
+      <em class="replaceable"><code>column_name</code></em> specification
+      the corresponding <em class="replaceable"><code>refcolumn</code></em>,
+      if present, must also be marked <code class="literal">PERIOD</code>.  If the
+      <em class="replaceable"><code>refcolumn</code></em> clause is omitted,
+      and thus the reftable's primary key constraint chosen, the primary key
+      must have its final column marked <code class="literal">WITHOUT OVERLAPS</code>.
+     </p><p>
+      For each pair of referencing and referenced column, if they are of a
+      collatable data type, then the collations must either be both
+      deterministic or else both the same.  This ensures that both columns
+      have a consistent notion of equality.
+     </p><p>
+      The user
       must have <code class="literal">REFERENCES</code> permission on the referenced
       table (either the whole table, or the specific referenced columns).  The
       addition of a foreign key constraint requires a
@@ -773,36 +837,46 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
       clause specifies the action to perform when a referenced column
       in the referenced table is being updated to a new value. If the
       row is updated, but the referenced column is not actually
-      changed, no action is done. Referential actions other than the
-      <code class="literal">NO ACTION</code> check cannot be deferred, even if
-      the constraint is declared deferrable. There are the following possible
-      actions for each clause:
+      changed, no action is done. Referential actions are executed as part of
+      the data changing command, even if the constraint is deferred.  There
+      are the following possible actions for each clause:
 
       </p><div class="variablelist"><dl class="variablelist"><dt id="SQL-CREATETABLE-PARMS-REFERENCES-REFACT-NO-ACTION"><span class="term"><code class="literal">NO ACTION</code></span> <a href="#SQL-CREATETABLE-PARMS-REFERENCES-REFACT-NO-ACTION" class="id_link">#</a></dt><dd><p>
-          Produce an error indicating that the deletion or update
+          Produce an error if the deletion or update
           would create a foreign key constraint violation.
           If the constraint is deferred, this
           error will be produced at constraint check time if there still
           exist any referencing rows.  This is the default action.
          </p></dd><dt id="SQL-CREATETABLE-PARMS-REFERENCES-REFACT-RESTRICT"><span class="term"><code class="literal">RESTRICT</code></span> <a href="#SQL-CREATETABLE-PARMS-REFERENCES-REFACT-RESTRICT" class="id_link">#</a></dt><dd><p>
-          Produce an error indicating that the deletion or update
-          would create a foreign key constraint violation.
-          This is the same as <code class="literal">NO ACTION</code> except that
-          the check is not deferrable.
+          Produce an error if a row to be deleted or updated matches a row in
+          the referencing table.  This prevents the action even if the state
+          after the action would not violate the foreign key constraint.  In
+          particular, it prevents updates of referenced rows to values that
+          are distinct but compare as equal.  (But it does not prevent
+          <span class="quote">“<span class="quote">no-op</span>”</span> updates that update a column to the same
+          value.)
+         </p><p>
+          In a temporal foreign key, this option is not supported.
          </p></dd><dt id="SQL-CREATETABLE-PARMS-REFERENCES-REFACT-CASCADE"><span class="term"><code class="literal">CASCADE</code></span> <a href="#SQL-CREATETABLE-PARMS-REFERENCES-REFACT-CASCADE" class="id_link">#</a></dt><dd><p>
           Delete any rows referencing the deleted row, or update the
           values of the referencing column(s) to the new values of the
           referenced columns, respectively.
+         </p><p>
+          In a temporal foreign key, this option is not supported.
          </p></dd><dt id="SQL-CREATETABLE-PARMS-REFERENCES-REFACT-SET-NULL"><span class="term"><code class="literal">SET NULL [ ( <em class="replaceable"><code>column_name</code></em> [, ... ] ) ]</code></span> <a href="#SQL-CREATETABLE-PARMS-REFERENCES-REFACT-SET-NULL" class="id_link">#</a></dt><dd><p>
           Set all of the referencing columns, or a specified subset of the
           referencing columns, to null. A subset of columns can only be
           specified for <code class="literal">ON DELETE</code> actions.
+         </p><p>
+          In a temporal foreign key, this option is not supported.
          </p></dd><dt id="SQL-CREATETABLE-PARMS-REFERENCES-REFACT-SET-DEFAULT"><span class="term"><code class="literal">SET DEFAULT [ ( <em class="replaceable"><code>column_name</code></em> [, ... ] ) ]</code></span> <a href="#SQL-CREATETABLE-PARMS-REFERENCES-REFACT-SET-DEFAULT" class="id_link">#</a></dt><dd><p>
           Set all of the referencing columns, or a specified subset of the
           referencing columns, to their default values. A subset of columns
           can only be specified for <code class="literal">ON DELETE</code> actions.
           (There must be a row in the referenced table matching the default
           values, if they are not null, or the operation will fail.)
+         </p><p>
+          In a temporal foreign key, this option is not supported.
          </p></dd></dl></div><p>
      </p><p>
       If the referenced column(s) are changed frequently, it might be wise to
@@ -831,10 +905,28 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
       <code class="literal">INITIALLY DEFERRED</code>, it is checked only at the
       end of the transaction.  The constraint check time can be
       altered with the <a class="link" href="sql-set-constraints.html" title="SET CONSTRAINTS"><code class="command">SET CONSTRAINTS</code></a> command.
+     </p></dd><dt id="SQL-CREATETABLE-PARMS-ENFORCED"><span class="term"><code class="literal">ENFORCED</code><br /></span><span class="term"><code class="literal">NOT ENFORCED</code></span> <a href="#SQL-CREATETABLE-PARMS-ENFORCED" class="id_link">#</a></dt><dd><p>
+      When the constraint is <code class="literal">ENFORCED</code>, then the database
+      system will ensure that the constraint is satisfied, by checking the
+      constraint at appropriate times (after each statement or at the end of
+      the transaction, as appropriate).  That is the default.  If the
+      constraint is <code class="literal">NOT ENFORCED</code>, the database system will
+      not check the constraint.  It is then up to the application code to
+      ensure that the constraints are satisfied.  The database system might
+      still assume that the data actually satisfies the constraint for
+      optimization decisions where this does not affect the correctness of the
+      result.
+     </p><p>
+      <code class="literal">NOT ENFORCED</code> constraints can be useful as
+      documentation if the actual checking of the constraint at run time is
+      too expensive.
+     </p><p>
+      This is currently only supported for foreign key and <code class="literal">CHECK</code>
+      constraints.
      </p></dd><dt id="SQL-CREATETABLE-METHOD"><span class="term"><code class="literal">USING <em class="replaceable"><code>method</code></em></code></span> <a href="#SQL-CREATETABLE-METHOD" class="id_link">#</a></dt><dd><p>
       This optional clause specifies the table access method to use to store
       the contents for the new table; the method needs be an access method of
-      type <code class="literal">TABLE</code>. See <a class="xref" href="tableam.html" title="Chapter 61. Table Access Method Interface Definition">Chapter 61</a> for more
+      type <code class="literal">TABLE</code>. See <a class="xref" href="tableam.html" title="Chapter 62. Table Access Method Interface Definition">Chapter 62</a> for more
       information.  If this option is not specified, the default table access
       method is chosen for the new table. See <a class="xref" href="runtime-config-client.html#GUC-DEFAULT-TABLE-ACCESS-METHOD">default_table_access_method</a> for more information.
      </p><p>
@@ -897,7 +989,7 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
     shown, there is an additional parameter with the same name prefixed with
     <code class="literal">toast.</code>, which controls the behavior of the
     table's secondary <acronym class="acronym">TOAST</acronym> table, if any
-    (see <a class="xref" href="storage-toast.html" title="65.2. TOAST">Section 65.2</a> for more information about TOAST).
+    (see <a class="xref" href="storage-toast.html" title="66.2. TOAST">Section 66.2</a> for more information about TOAST).
     If a table parameter value is set and the
     equivalent <code class="literal">toast.</code> parameter is not, the TOAST table
     will use the table's parameter value.
@@ -913,7 +1005,7 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
       reserved for updating rows on that page.  This gives <code class="command">UPDATE</code>
       a chance to place the updated copy of a row on the same page as the
       original, which is more efficient than placing it on a different
-      page, and makes <a class="link" href="storage-hot.html" title="65.7. Heap-Only Tuples (HOT)">heap-only tuple
+      page, and makes <a class="link" href="storage-hot.html" title="66.7. Heap-Only Tuples (HOT)">heap-only tuple
       updates</a> more likely.
       For a table whose entries are never updated, complete packing is the
       best choice, but in heavily updated tables smaller fillfactors are
@@ -954,7 +1046,7 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
      transaction ID wraparound. See <a class="xref" href="routine-vacuuming.html#VACUUM-FOR-WRAPAROUND" title="24.1.5. Preventing Transaction ID Wraparound Failures">Section 24.1.5</a> for
      more about wraparound prevention.
      Note that the autovacuum daemon does not run at all (except to prevent
-     transaction ID wraparound) if the <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM">autovacuum</a>
+     transaction ID wraparound) if the <a class="xref" href="runtime-config-vacuum.html#GUC-AUTOVACUUM">autovacuum</a>
      parameter is false; setting individual tables' storage parameters does
      not override that.  Therefore there is seldom much point in explicitly
      setting this storage parameter to <code class="literal">true</code>, only
@@ -978,105 +1070,110 @@ WITH ( MODULUS <em class="replaceable"><code>numeric_literal</code></em>, REMAIN
      </p></dd><dt id="RELOPTION-VACUUM-TRUNCATE"><span class="term"><code class="literal">vacuum_truncate</code>, <code class="literal">toast.vacuum_truncate</code> (<code class="type">boolean</code>)
     <a id="id-1.9.3.85.6.3.4.6.1.4" class="indexterm"></a>
     </span> <a href="#RELOPTION-VACUUM-TRUNCATE" class="id_link">#</a></dt><dd><p>
-      Enables or disables vacuum to try to truncate off any empty pages
-      at the end of this table. The default value is <code class="literal">true</code>.
-      If <code class="literal">true</code>, <code class="command">VACUUM</code> and
-      autovacuum do the truncation and the disk space for
-      the truncated pages is returned to the operating system.
-      Note that the truncation requires <code class="literal">ACCESS EXCLUSIVE</code>
-      lock on the table. The <code class="literal">TRUNCATE</code> parameter
-      of <a class="link" href="sql-vacuum.html" title="VACUUM"><code class="command">VACUUM</code></a>, if specified, overrides the value
-      of this option.
+      Per-table value for <a class="xref" href="runtime-config-vacuum.html#GUC-VACUUM-TRUNCATE">vacuum_truncate</a> parameter.  The
+      <code class="literal">TRUNCATE</code> parameter of
+      <a class="link" href="sql-vacuum.html" title="VACUUM"><code class="command">VACUUM</code></a>, if
+      specified, overrides the value of this option.
      </p></dd><dt id="RELOPTION-AUTOVACUUM-VACUUM-THRESHOLD"><span class="term"><code class="literal">autovacuum_vacuum_threshold</code>, <code class="literal">toast.autovacuum_vacuum_threshold</code> (<code class="type">integer</code>)
     <a id="id-1.9.3.85.6.3.4.7.1.4" class="indexterm"></a>
     </span> <a href="#RELOPTION-AUTOVACUUM-VACUUM-THRESHOLD" class="id_link">#</a></dt><dd><p>
-      Per-table value for <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-VACUUM-THRESHOLD">autovacuum_vacuum_threshold</a>
+      Per-table value for <a class="xref" href="runtime-config-vacuum.html#GUC-AUTOVACUUM-VACUUM-THRESHOLD">autovacuum_vacuum_threshold</a>
       parameter.
-     </p></dd><dt id="RELOPTION-AUTOVACUUM-VACUUM-SCALE-FACTOR"><span class="term"><code class="literal">autovacuum_vacuum_scale_factor</code>, <code class="literal">toast.autovacuum_vacuum_scale_factor</code> (<code class="type">floating point</code>)
+     </p></dd><dt id="RELOPTION-AUTOVACUUM-VACUUM-MAX-THRESHOLD"><span class="term"><code class="literal">autovacuum_vacuum_max_threshold</code>, <code class="literal">toast.autovacuum_vacuum_max_threshold</code> (<code class="type">integer</code>)
     <a id="id-1.9.3.85.6.3.4.8.1.4" class="indexterm"></a>
+    </span> <a href="#RELOPTION-AUTOVACUUM-VACUUM-MAX-THRESHOLD" class="id_link">#</a></dt><dd><p>
+     Per-table value for <a class="xref" href="runtime-config-vacuum.html#GUC-AUTOVACUUM-VACUUM-MAX-THRESHOLD">autovacuum_vacuum_max_threshold</a>
+     parameter.
+    </p></dd><dt id="RELOPTION-AUTOVACUUM-VACUUM-SCALE-FACTOR"><span class="term"><code class="literal">autovacuum_vacuum_scale_factor</code>, <code class="literal">toast.autovacuum_vacuum_scale_factor</code> (<code class="type">floating point</code>)
+    <a id="id-1.9.3.85.6.3.4.9.1.4" class="indexterm"></a>
     </span> <a href="#RELOPTION-AUTOVACUUM-VACUUM-SCALE-FACTOR" class="id_link">#</a></dt><dd><p>
-      Per-table value for <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-VACUUM-SCALE-FACTOR">autovacuum_vacuum_scale_factor</a>
+      Per-table value for <a class="xref" href="runtime-config-vacuum.html#GUC-AUTOVACUUM-VACUUM-SCALE-FACTOR">autovacuum_vacuum_scale_factor</a>
       parameter.
      </p></dd><dt id="RELOPTION-AUTOVACUUM-VACUUM-INSERT-THRESHOLD"><span class="term"><code class="literal">autovacuum_vacuum_insert_threshold</code>, <code class="literal">toast.autovacuum_vacuum_insert_threshold</code> (<code class="type">integer</code>)
-    <a id="id-1.9.3.85.6.3.4.9.1.4" class="indexterm"></a>
+    <a id="id-1.9.3.85.6.3.4.10.1.4" class="indexterm"></a>
     </span> <a href="#RELOPTION-AUTOVACUUM-VACUUM-INSERT-THRESHOLD" class="id_link">#</a></dt><dd><p>
-      Per-table value for <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-VACUUM-INSERT-THRESHOLD">autovacuum_vacuum_insert_threshold</a>
+      Per-table value for <a class="xref" href="runtime-config-vacuum.html#GUC-AUTOVACUUM-VACUUM-INSERT-THRESHOLD">autovacuum_vacuum_insert_threshold</a>
       parameter.  The special value of -1 may be used to disable insert vacuums on the table.
      </p></dd><dt id="RELOPTION-AUTOVACUUM-VACUUM-INSERT-SCALE-FACTOR"><span class="term"><code class="literal">autovacuum_vacuum_insert_scale_factor</code>, <code class="literal">toast.autovacuum_vacuum_insert_scale_factor</code> (<code class="type">floating point</code>)
-    <a id="id-1.9.3.85.6.3.4.10.1.4" class="indexterm"></a>
+    <a id="id-1.9.3.85.6.3.4.11.1.4" class="indexterm"></a>
     </span> <a href="#RELOPTION-AUTOVACUUM-VACUUM-INSERT-SCALE-FACTOR" class="id_link">#</a></dt><dd><p>
-      Per-table value for <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-VACUUM-INSERT-SCALE-FACTOR">autovacuum_vacuum_insert_scale_factor</a>
+      Per-table value for <a class="xref" href="runtime-config-vacuum.html#GUC-AUTOVACUUM-VACUUM-INSERT-SCALE-FACTOR">autovacuum_vacuum_insert_scale_factor</a>
       parameter.
      </p></dd><dt id="RELOPTION-AUTOVACUUM-ANALYZE-THRESHOLD"><span class="term"><code class="literal">autovacuum_analyze_threshold</code> (<code class="type">integer</code>)
-    <a id="id-1.9.3.85.6.3.4.11.1.3" class="indexterm"></a>
+    <a id="id-1.9.3.85.6.3.4.12.1.3" class="indexterm"></a>
     </span> <a href="#RELOPTION-AUTOVACUUM-ANALYZE-THRESHOLD" class="id_link">#</a></dt><dd><p>
-      Per-table value for <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-ANALYZE-THRESHOLD">autovacuum_analyze_threshold</a>
+      Per-table value for <a class="xref" href="runtime-config-vacuum.html#GUC-AUTOVACUUM-ANALYZE-THRESHOLD">autovacuum_analyze_threshold</a>
       parameter.
      </p></dd><dt id="RELOPTION-AUTOVACUUM-ANALYZE-SCALE-FACTOR"><span class="term"><code class="literal">autovacuum_analyze_scale_factor</code> (<code class="type">floating point</code>)
-    <a id="id-1.9.3.85.6.3.4.12.1.3" class="indexterm"></a>
+    <a id="id-1.9.3.85.6.3.4.13.1.3" class="indexterm"></a>
     </span> <a href="#RELOPTION-AUTOVACUUM-ANALYZE-SCALE-FACTOR" class="id_link">#</a></dt><dd><p>
-      Per-table value for <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-ANALYZE-SCALE-FACTOR">autovacuum_analyze_scale_factor</a>
+      Per-table value for <a class="xref" href="runtime-config-vacuum.html#GUC-AUTOVACUUM-ANALYZE-SCALE-FACTOR">autovacuum_analyze_scale_factor</a>
       parameter.
      </p></dd><dt id="RELOPTION-AUTOVACUUM-VACUUM-COST-DELAY"><span class="term"><code class="literal">autovacuum_vacuum_cost_delay</code>, <code class="literal">toast.autovacuum_vacuum_cost_delay</code> (<code class="type">floating point</code>)
-    <a id="id-1.9.3.85.6.3.4.13.1.4" class="indexterm"></a>
+    <a id="id-1.9.3.85.6.3.4.14.1.4" class="indexterm"></a>
     </span> <a href="#RELOPTION-AUTOVACUUM-VACUUM-COST-DELAY" class="id_link">#</a></dt><dd><p>
-      Per-table value for <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-VACUUM-COST-DELAY">autovacuum_vacuum_cost_delay</a>
+      Per-table value for <a class="xref" href="runtime-config-vacuum.html#GUC-AUTOVACUUM-VACUUM-COST-DELAY">autovacuum_vacuum_cost_delay</a>
       parameter.
      </p></dd><dt id="RELOPTION-AUTOVACUUM-VACUUM-COST-LIMIT"><span class="term"><code class="literal">autovacuum_vacuum_cost_limit</code>, <code class="literal">toast.autovacuum_vacuum_cost_limit</code> (<code class="type">integer</code>)
-    <a id="id-1.9.3.85.6.3.4.14.1.4" class="indexterm"></a>
+    <a id="id-1.9.3.85.6.3.4.15.1.4" class="indexterm"></a>
     </span> <a href="#RELOPTION-AUTOVACUUM-VACUUM-COST-LIMIT" class="id_link">#</a></dt><dd><p>
-      Per-table value for <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-VACUUM-COST-LIMIT">autovacuum_vacuum_cost_limit</a>
+      Per-table value for <a class="xref" href="runtime-config-vacuum.html#GUC-AUTOVACUUM-VACUUM-COST-LIMIT">autovacuum_vacuum_cost_limit</a>
       parameter.
      </p></dd><dt id="RELOPTION-AUTOVACUUM-FREEZE-MIN-AGE"><span class="term"><code class="literal">autovacuum_freeze_min_age</code>, <code class="literal">toast.autovacuum_freeze_min_age</code> (<code class="type">integer</code>)
-    <a id="id-1.9.3.85.6.3.4.15.1.4" class="indexterm"></a>
+    <a id="id-1.9.3.85.6.3.4.16.1.4" class="indexterm"></a>
     </span> <a href="#RELOPTION-AUTOVACUUM-FREEZE-MIN-AGE" class="id_link">#</a></dt><dd><p>
-      Per-table value for <a class="xref" href="runtime-config-client.html#GUC-VACUUM-FREEZE-MIN-AGE">vacuum_freeze_min_age</a>
+      Per-table value for <a class="xref" href="runtime-config-vacuum.html#GUC-VACUUM-FREEZE-MIN-AGE">vacuum_freeze_min_age</a>
       parameter.  Note that autovacuum will ignore
       per-table <code class="literal">autovacuum_freeze_min_age</code> parameters that are
       larger than half the
-      system-wide <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-FREEZE-MAX-AGE">autovacuum_freeze_max_age</a> setting.
+      system-wide <a class="xref" href="runtime-config-vacuum.html#GUC-AUTOVACUUM-FREEZE-MAX-AGE">autovacuum_freeze_max_age</a> setting.
      </p></dd><dt id="RELOPTION-AUTOVACUUM-FREEZE-MAX-AGE"><span class="term"><code class="literal">autovacuum_freeze_max_age</code>, <code class="literal">toast.autovacuum_freeze_max_age</code> (<code class="type">integer</code>)
-    <a id="id-1.9.3.85.6.3.4.16.1.4" class="indexterm"></a>
+    <a id="id-1.9.3.85.6.3.4.17.1.4" class="indexterm"></a>
     </span> <a href="#RELOPTION-AUTOVACUUM-FREEZE-MAX-AGE" class="id_link">#</a></dt><dd><p>
-      Per-table value for <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-FREEZE-MAX-AGE">autovacuum_freeze_max_age</a>
+      Per-table value for <a class="xref" href="runtime-config-vacuum.html#GUC-AUTOVACUUM-FREEZE-MAX-AGE">autovacuum_freeze_max_age</a>
       parameter.  Note that autovacuum will ignore
       per-table <code class="literal">autovacuum_freeze_max_age</code> parameters that are
       larger than the system-wide setting (it can only be set smaller).
      </p></dd><dt id="RELOPTION-AUTOVACUUM-FREEZE-TABLE-AGE"><span class="term"><code class="literal">autovacuum_freeze_table_age</code>, <code class="literal">toast.autovacuum_freeze_table_age</code> (<code class="type">integer</code>)
-    <a id="id-1.9.3.85.6.3.4.17.1.4" class="indexterm"></a>
+    <a id="id-1.9.3.85.6.3.4.18.1.4" class="indexterm"></a>
     </span> <a href="#RELOPTION-AUTOVACUUM-FREEZE-TABLE-AGE" class="id_link">#</a></dt><dd><p>
-      Per-table value for <a class="xref" href="runtime-config-client.html#GUC-VACUUM-FREEZE-TABLE-AGE">vacuum_freeze_table_age</a>
+      Per-table value for <a class="xref" href="runtime-config-vacuum.html#GUC-VACUUM-FREEZE-TABLE-AGE">vacuum_freeze_table_age</a>
       parameter.
      </p></dd><dt id="RELOPTION-AUTOVACUUM-MULTIXACT-FREEZE-MIN-AGE"><span class="term"><code class="literal">autovacuum_multixact_freeze_min_age</code>, <code class="literal">toast.autovacuum_multixact_freeze_min_age</code> (<code class="type">integer</code>)
-    <a id="id-1.9.3.85.6.3.4.18.1.4" class="indexterm"></a>
+    <a id="id-1.9.3.85.6.3.4.19.1.4" class="indexterm"></a>
     </span> <a href="#RELOPTION-AUTOVACUUM-MULTIXACT-FREEZE-MIN-AGE" class="id_link">#</a></dt><dd><p>
-      Per-table value for <a class="xref" href="runtime-config-client.html#GUC-VACUUM-MULTIXACT-FREEZE-MIN-AGE">vacuum_multixact_freeze_min_age</a>
+      Per-table value for <a class="xref" href="runtime-config-vacuum.html#GUC-VACUUM-MULTIXACT-FREEZE-MIN-AGE">vacuum_multixact_freeze_min_age</a>
       parameter.  Note that autovacuum will ignore
       per-table <code class="literal">autovacuum_multixact_freeze_min_age</code> parameters
       that are larger than half the
-      system-wide <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-MULTIXACT-FREEZE-MAX-AGE">autovacuum_multixact_freeze_max_age</a>
+      system-wide <a class="xref" href="runtime-config-vacuum.html#GUC-AUTOVACUUM-MULTIXACT-FREEZE-MAX-AGE">autovacuum_multixact_freeze_max_age</a>
       setting.
      </p></dd><dt id="RELOPTION-AUTOVACUUM-MULTIXACT-FREEZE-MAX-AGE"><span class="term"><code class="literal">autovacuum_multixact_freeze_max_age</code>, <code class="literal">toast.autovacuum_multixact_freeze_max_age</code> (<code class="type">integer</code>)
-    <a id="id-1.9.3.85.6.3.4.19.1.4" class="indexterm"></a>
+    <a id="id-1.9.3.85.6.3.4.20.1.4" class="indexterm"></a>
     </span> <a href="#RELOPTION-AUTOVACUUM-MULTIXACT-FREEZE-MAX-AGE" class="id_link">#</a></dt><dd><p>
       Per-table value
-      for <a class="xref" href="runtime-config-autovacuum.html#GUC-AUTOVACUUM-MULTIXACT-FREEZE-MAX-AGE">autovacuum_multixact_freeze_max_age</a> parameter.
+      for <a class="xref" href="runtime-config-vacuum.html#GUC-AUTOVACUUM-MULTIXACT-FREEZE-MAX-AGE">autovacuum_multixact_freeze_max_age</a> parameter.
       Note that autovacuum will ignore
       per-table <code class="literal">autovacuum_multixact_freeze_max_age</code> parameters
       that are larger than the system-wide setting (it can only be set
       smaller).
      </p></dd><dt id="RELOPTION-AUTOVACUUM-MULTIXACT-FREEZE-TABLE-AGE"><span class="term"><code class="literal">autovacuum_multixact_freeze_table_age</code>, <code class="literal">toast.autovacuum_multixact_freeze_table_age</code> (<code class="type">integer</code>)
-    <a id="id-1.9.3.85.6.3.4.20.1.4" class="indexterm"></a>
+    <a id="id-1.9.3.85.6.3.4.21.1.4" class="indexterm"></a>
     </span> <a href="#RELOPTION-AUTOVACUUM-MULTIXACT-FREEZE-TABLE-AGE" class="id_link">#</a></dt><dd><p>
       Per-table value
-      for <a class="xref" href="runtime-config-client.html#GUC-VACUUM-MULTIXACT-FREEZE-TABLE-AGE">vacuum_multixact_freeze_table_age</a> parameter.
+      for <a class="xref" href="runtime-config-vacuum.html#GUC-VACUUM-MULTIXACT-FREEZE-TABLE-AGE">vacuum_multixact_freeze_table_age</a> parameter.
      </p></dd><dt id="RELOPTION-LOG-AUTOVACUUM-MIN-DURATION"><span class="term"><code class="literal">log_autovacuum_min_duration</code>, <code class="literal">toast.log_autovacuum_min_duration</code> (<code class="type">integer</code>)
-    <a id="id-1.9.3.85.6.3.4.21.1.4" class="indexterm"></a>
+    <a id="id-1.9.3.85.6.3.4.22.1.4" class="indexterm"></a>
     </span> <a href="#RELOPTION-LOG-AUTOVACUUM-MIN-DURATION" class="id_link">#</a></dt><dd><p>
       Per-table value for <a class="xref" href="runtime-config-logging.html#GUC-LOG-AUTOVACUUM-MIN-DURATION">log_autovacuum_min_duration</a>
       parameter.
+     </p></dd><dt id="RELOPTION-VACUUM-MAX-EAGER-FREEZE-FAILURE-RATE"><span class="term"><code class="literal">vacuum_max_eager_freeze_failure_rate</code>, <code class="literal">toast.vacuum_max_eager_freeze_failure_rate</code> (<code class="type">floating point</code>)
+    <a id="id-1.9.3.85.6.3.4.23.1.4" class="indexterm"></a>
+    </span> <a href="#RELOPTION-VACUUM-MAX-EAGER-FREEZE-FAILURE-RATE" class="id_link">#</a></dt><dd><p>
+      Per-table value for <a class="xref" href="runtime-config-vacuum.html#GUC-VACUUM-MAX-EAGER-FREEZE-FAILURE-RATE">vacuum_max_eager_freeze_failure_rate</a>
+      parameter.
      </p></dd><dt id="RELOPTION-USER-CATALOG-TABLE"><span class="term"><code class="literal">user_catalog_table</code> (<code class="type">boolean</code>)
-    <a id="id-1.9.3.85.6.3.4.22.1.3" class="indexterm"></a>
+    <a id="id-1.9.3.85.6.3.4.24.1.3" class="indexterm"></a>
     </span> <a href="#RELOPTION-USER-CATALOG-TABLE" class="id_link">#</a></dt><dd><p>
       Declare the table as an additional catalog table for purposes of
       logical replication. See
@@ -1454,11 +1551,6 @@ CREATE TABLE cities_partdef
     constraints), because the associated index is named the same as the
     constraint, and index names must be unique across all relations within
     the same schema.
-   </p><p>
-    Currently, <span class="productname">PostgreSQL</span> does not record names
-    for not-null constraints at all, so they are not
-    subject to the uniqueness restriction.  This might change in a future
-    release.
    </p></div><div class="refsect2" id="id-1.9.3.85.9.10"><h3>Inheritance</h3><p>
     Multiple inheritance via the <code class="literal">INHERITS</code> clause is
     a <span class="productname">PostgreSQL</span> language extension.
@@ -1482,9 +1574,9 @@ CREATE TABLE cities_partdef
     that applies to the entire statement, so having multiple identity columns
     with different behaviors is not well supported.
    </p></div><div class="refsect2" id="id-1.9.3.85.9.13"><h3>Generated Columns</h3><p>
-    The option <code class="literal">STORED</code> is not standard but is also used by
-    other SQL implementations.  The SQL standard does not specify the storage
-    of generated columns.
+    The options <code class="literal">STORED</code> and <code class="literal">VIRTUAL</code> are
+    not standard but are also used by other SQL implementations.  The SQL
+    standard does not specify the storage of generated columns.
    </p></div><div class="refsect2" id="id-1.9.3.85.9.14"><h3><code class="literal">LIKE</code> Clause</h3><p>
     While a <code class="literal">LIKE</code> clause exists in the SQL standard, many of the
     options that <span class="productname">PostgreSQL</span> accepts for it are not
@@ -1510,4 +1602,4 @@ CREATE TABLE cities_partdef
    </p></div><div class="refsect2" id="id-1.9.3.85.9.19"><h3><code class="literal">PARTITION OF</code> Clause</h3><p>
     The <code class="literal">PARTITION OF</code> clause is a
     <span class="productname">PostgreSQL</span> extension.
-   </p></div></div><div class="refsect1" id="id-1.9.3.85.10"><h2>See Also</h2><span class="simplelist"><a class="xref" href="sql-altertable.html" title="ALTER TABLE"><span class="refentrytitle">ALTER TABLE</span></a>, <a class="xref" href="sql-droptable.html" title="DROP TABLE"><span class="refentrytitle">DROP TABLE</span></a>, <a class="xref" href="sql-createtableas.html" title="CREATE TABLE AS"><span class="refentrytitle">CREATE TABLE AS</span></a>, <a class="xref" href="sql-createtablespace.html" title="CREATE TABLESPACE"><span class="refentrytitle">CREATE TABLESPACE</span></a>, <a class="xref" href="sql-createtype.html" title="CREATE TYPE"><span class="refentrytitle">CREATE TYPE</span></a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="sql-createsubscription.html" title="CREATE SUBSCRIPTION">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="sql-createtableas.html" title="CREATE TABLE AS">Next</a></td></tr><tr><td width="40%" align="left" valign="top">CREATE SUBSCRIPTION </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 17.6 Documentation">Home</a></td><td width="40%" align="right" valign="top"> CREATE TABLE AS</td></tr></table></div></body></html>
+   </p></div></div><div class="refsect1" id="id-1.9.3.85.10"><h2>See Also</h2><span class="simplelist"><a class="xref" href="sql-altertable.html" title="ALTER TABLE"><span class="refentrytitle">ALTER TABLE</span></a>, <a class="xref" href="sql-droptable.html" title="DROP TABLE"><span class="refentrytitle">DROP TABLE</span></a>, <a class="xref" href="sql-createtableas.html" title="CREATE TABLE AS"><span class="refentrytitle">CREATE TABLE AS</span></a>, <a class="xref" href="sql-createtablespace.html" title="CREATE TABLESPACE"><span class="refentrytitle">CREATE TABLESPACE</span></a>, <a class="xref" href="sql-createtype.html" title="CREATE TYPE"><span class="refentrytitle">CREATE TYPE</span></a></span></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="sql-createsubscription.html" title="CREATE SUBSCRIPTION">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="sql-commands.html" title="SQL Commands">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="sql-createtableas.html" title="CREATE TABLE AS">Next</a></td></tr><tr><td width="40%" align="left" valign="top">CREATE SUBSCRIPTION </td><td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 18.0 Documentation">Home</a></td><td width="40%" align="right" valign="top"> CREATE TABLE AS</td></tr></table></div></body></html>

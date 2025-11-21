@@ -3,11 +3,11 @@
 .\"    Author: The PostgreSQL Global Development Group
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
 .\"      Date: 2025
-.\"    Manual: PostgreSQL 17.6 Documentation
-.\"    Source: PostgreSQL 17.6
+.\"    Manual: PostgreSQL 18.0 Documentation
+.\"    Source: PostgreSQL 18.0
 .\"  Language: English
 .\"
-.TH "ALTER TABLE" "7" "2025" "PostgreSQL 17.6" "PostgreSQL 17.6 Documentation"
+.TH "ALTER TABLE" "7" "2025" "PostgreSQL 18.0" "PostgreSQL 18.0 Documentation"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -69,7 +69,8 @@ where \fIaction\fR is one of:
     ALTER [ COLUMN ] \fIcolumn_name\fR SET COMPRESSION \fIcompression_method\fR
     ADD \fItable_constraint\fR [ NOT VALID ]
     ADD \fItable_constraint_using_index\fR
-    ALTER CONSTRAINT \fIconstraint_name\fR [ DEFERRABLE | NOT DEFERRABLE ] [ INITIALLY DEFERRED | INITIALLY IMMEDIATE ]
+    ALTER CONSTRAINT \fIconstraint_name\fR [ DEFERRABLE | NOT DEFERRABLE ] [ INITIALLY DEFERRED | INITIALLY IMMEDIATE ] [ ENFORCED | NOT ENFORCED ]
+    ALTER CONSTRAINT \fIconstraint_name\fR [ INHERIT | NO INHERIT ]
     VALIDATE CONSTRAINT \fIconstraint_name\fR
     DROP CONSTRAINT [ IF EXISTS ]  \fIconstraint_name\fR [ RESTRICT | CASCADE ]
     DISABLE TRIGGER [ \fItrigger_name\fR | ALL | USER ]
@@ -109,28 +110,29 @@ WITH ( MODULUS \fInumeric_literal\fR, REMAINDER \fInumeric_literal\fR )
 and \fIcolumn_constraint\fR is:
 
 [ CONSTRAINT \fIconstraint_name\fR ]
-{ NOT NULL |
+{ NOT NULL [ NO INHERIT ] |
   NULL |
   CHECK ( \fIexpression\fR ) [ NO INHERIT ] |
   DEFAULT \fIdefault_expr\fR |
-  GENERATED ALWAYS AS ( \fIgeneration_expr\fR ) STORED |
+  GENERATED ALWAYS AS ( \fIgeneration_expr\fR ) [ STORED | VIRTUAL ] |
   GENERATED { ALWAYS | BY DEFAULT } AS IDENTITY [ ( \fIsequence_options\fR ) ] |
   UNIQUE [ NULLS [ NOT ] DISTINCT ] \fIindex_parameters\fR |
   PRIMARY KEY \fIindex_parameters\fR |
   REFERENCES \fIreftable\fR [ ( \fIrefcolumn\fR ) ] [ MATCH FULL | MATCH PARTIAL | MATCH SIMPLE ]
     [ ON DELETE \fIreferential_action\fR ] [ ON UPDATE \fIreferential_action\fR ] }
-[ DEFERRABLE | NOT DEFERRABLE ] [ INITIALLY DEFERRED | INITIALLY IMMEDIATE ]
+[ DEFERRABLE | NOT DEFERRABLE ] [ INITIALLY DEFERRED | INITIALLY IMMEDIATE ] [ ENFORCED | NOT ENFORCED ]
 
 and \fItable_constraint\fR is:
 
 [ CONSTRAINT \fIconstraint_name\fR ]
 { CHECK ( \fIexpression\fR ) [ NO INHERIT ] |
-  UNIQUE [ NULLS [ NOT ] DISTINCT ] ( \fIcolumn_name\fR [, \&.\&.\&. ] ) \fIindex_parameters\fR |
-  PRIMARY KEY ( \fIcolumn_name\fR [, \&.\&.\&. ] ) \fIindex_parameters\fR |
+  NOT NULL \fIcolumn_name\fR [ NO INHERIT ] |
+  UNIQUE [ NULLS [ NOT ] DISTINCT ] ( \fIcolumn_name\fR [, \&.\&.\&. ] [, \fIcolumn_name\fR WITHOUT OVERLAPS ] ) \fIindex_parameters\fR |
+  PRIMARY KEY ( \fIcolumn_name\fR [, \&.\&.\&. ] [, \fIcolumn_name\fR WITHOUT OVERLAPS ] ) \fIindex_parameters\fR |
   EXCLUDE [ USING \fIindex_method\fR ] ( \fIexclude_element\fR WITH \fIoperator\fR [, \&.\&.\&. ] ) \fIindex_parameters\fR [ WHERE ( \fIpredicate\fR ) ] |
-  FOREIGN KEY ( \fIcolumn_name\fR [, \&.\&.\&. ] ) REFERENCES \fIreftable\fR [ ( \fIrefcolumn\fR [, \&.\&.\&. ] ) ]
+  FOREIGN KEY ( \fIcolumn_name\fR [, \&.\&.\&. ] [, PERIOD \fIcolumn_name\fR ] ) REFERENCES \fIreftable\fR [ ( \fIrefcolumn\fR [, \&.\&.\&. ]  [, PERIOD \fIrefcolumn\fR ] ) ]
     [ MATCH FULL | MATCH PARTIAL | MATCH SIMPLE ] [ ON DELETE \fIreferential_action\fR ] [ ON UPDATE \fIreferential_action\fR ] }
-[ DEFERRABLE | NOT DEFERRABLE ] [ INITIALLY DEFERRED | INITIALLY IMMEDIATE ]
+[ DEFERRABLE | NOT DEFERRABLE ] [ INITIALLY DEFERRED | INITIALLY IMMEDIATE ] [ ENFORCED | NOT ENFORCED ]
 
 and \fItable_constraint_using_index\fR is:
 
@@ -188,7 +190,9 @@ clause must be provided if there is no implicit or assignment cast from old to n
 .sp
 When this form is used, the column\*(Aqs statistics are removed, so running
 \fBANALYZE\fR
-on the table afterwards is recommended\&.
+on the table afterwards is recommended\&. For a virtual generated column,
+\fBANALYZE\fR
+is not necessary because such columns never have statistics\&.
 .RE
 .PP
 SET/DROP DEFAULT
@@ -209,11 +213,15 @@ may only be applied to a column provided none of the records in the table contai
 NULL
 value for the column\&. Ordinarily this is checked during the
 ALTER TABLE
-by scanning the entire table; however, if a valid
+by scanning the entire table, unless
+NOT VALID
+is specified; however, if a valid
 CHECK
 constraint exists (and is not dropped in the same command) which proves no
 NULL
-can exist, then the table scan is skipped\&.
+can exist, then the table scan is skipped\&. If a column has an invalid not\-null constraint,
+SET NOT NULL
+validates it\&.
 .sp
 If this table is a partition, one cannot perform
 DROP NOT NULL
@@ -225,25 +233,33 @@ constraint from all the partitions, perform
 DROP NOT NULL
 on the parent table\&. Even if there is no
 NOT NULL
-constraint on the parent, such a constraint can still be added to individual partitions, if desired; that is, the children can disallow nulls even if the parent allows them, but not the other way around\&.
+constraint on the parent, such a constraint can still be added to individual partitions, if desired; that is, the children can disallow nulls even if the parent allows them, but not the other way around\&. It is also possible to drop the
+NOT NULL
+constraint from
+ONLY
+the parent table, which does not remove it from the children\&.
 .RE
 .PP
 SET EXPRESSION AS
 .RS 4
-This form replaces the expression of a generated column\&. Existing data in the column is rewritten and all the future changes will apply the new generation expression\&.
+This form replaces the expression of a generated column\&. Existing data in a stored generated column is rewritten and all the future changes will apply the new generation expression\&.
 .sp
-When this form is used, the column\*(Aqs statistics are removed, so running
+When this form is used on a stored generated column, its statistics are removed, so running
 \fBANALYZE\fR
-on the table afterwards is recommended\&.
+on the table afterwards is recommended\&. For a virtual generated column,
+\fBANALYZE\fR
+is not necessary because such columns never have statistics\&.
 .RE
 .PP
 DROP EXPRESSION [ IF EXISTS ]
 .RS 4
 This form turns a stored generated column into a normal base column\&. Existing data in the columns is retained, but future changes will no longer apply the generation expression\&.
 .sp
+This form is currently only supported for stored generated columns (not virtual ones)\&.
+.sp
 If
 DROP EXPRESSION IF EXISTS
-is specified and the column is not a stored generated column, no error is thrown\&. In this case a notice is issued instead\&.
+is specified and the column is not a generated column, no error is thrown\&. In this case a notice is issued instead\&.
 .RE
 .PP
 ADD GENERATED { ALWAYS | BY DEFAULT } AS IDENTITY
@@ -350,7 +366,7 @@ bytea
 values run faster, at the penalty of increased storage space\&. Note that
 ALTER TABLE \&.\&.\&. SET STORAGE
 doesn\*(Aqt itself change anything in the table; it just sets the strategy to be pursued during future table updates\&. See
-Section\ \&65.2
+Section\ \&66.2
 for more information\&.
 .RE
 .PP
@@ -377,11 +393,12 @@ ADD \fItable_constraint\fR [ NOT VALID ]
 .RS 4
 This form adds a new constraint to a table using the same constraint syntax as
 \fBCREATE TABLE\fR, plus the option
-NOT VALID, which is currently only allowed for foreign key and CHECK constraints\&.
+NOT VALID, which is currently only allowed for foreign\-key,
+CHECK, and not\-null constraints\&.
 .sp
 Normally, this form will cause a scan of the table to verify that all existing rows in the table satisfy the new constraint\&. But if the
 NOT VALID
-option is used, this potentially\-lengthy scan is skipped\&. The constraint will still be enforced against subsequent inserts or updates (that is, they\*(Aqll fail unless there is a matching row in the referenced table, in the case of foreign keys, or they\*(Aqll fail unless the new row matches the specified check condition)\&. But the database will not assume that the constraint holds for all rows in the table, until it is validated by using the
+option is used, this potentially\-lengthy scan is skipped\&. The constraint will still be applied against subsequent inserts or updates (that is, they\*(Aqll fail unless there is a matching row in the referenced table, in the case of foreign keys, or they\*(Aqll fail unless the new row matches the specified check condition)\&. But the database will not assume that the constraint holds for all rows in the table, until it is validated by using the
 VALIDATE CONSTRAINT
 option\&. See
 Notes
@@ -404,9 +421,7 @@ SHARE ROW EXCLUSIVE
 lock on the referenced table, in addition to the lock on the table on which the constraint is declared\&.
 .sp
 Additional restrictions apply when unique or primary key constraints are added to partitioned tables; see
-\fBCREATE TABLE\fR\&. Also, foreign key constraints on partitioned tables may not be declared
-NOT VALID
-at present\&.
+\fBCREATE TABLE\fR\&.
 .RE
 .PP
 ADD \fItable_constraint_using_index\fR
@@ -461,13 +476,21 @@ Adding a constraint using an existing index can be helpful in situations where a
 .PP
 ALTER CONSTRAINT
 .RS 4
-This form alters the attributes of a constraint that was previously created\&. Currently only foreign key constraints may be altered\&.
+This form alters the attributes of a constraint that was previously created\&. Currently only foreign key constraints may be altered in this fashion, but see below\&.
+.RE
+.PP
+ALTER CONSTRAINT \&.\&.\&. INHERIT
+.br
+ALTER CONSTRAINT \&.\&.\&. NO INHERIT
+.RS 4
+These forms modify a inheritable constraint so that it becomes not inheritable, or vice\-versa\&. Only not\-null constraints may be altered in this fashion at present\&. In addition to changing the inheritability status of the constraint, in the case where a non\-inheritable constraint is being marked inheritable, if the table has children, an equivalent constraint will be added to them\&. If marking an inheritable constraint as non\-inheritable on a table with children, then the corresponding constraint on children will be marked as no longer inherited, but not removed\&.
 .RE
 .PP
 VALIDATE CONSTRAINT
 .RS 4
-This form validates a foreign key or check constraint that was previously created as
-NOT VALID, by scanning the table to ensure there are no rows for which the constraint is not satisfied\&. Nothing happens if the constraint is already marked valid\&. (See
+This form validates a foreign key, check, or not\-null constraint that was previously created as
+NOT VALID, by scanning the table to ensure there are no rows for which the constraint is not satisfied\&. If the constraint was set to
+NOT ENFORCED, an error is thrown\&. Nothing happens if the constraint is already marked valid\&. (See
 Notes
 below for an explanation of the usefulness of this command\&.)
 .sp
@@ -574,7 +597,7 @@ DEFAULT
 selects the access method set as the
 default_table_access_method
 configuration parameter\&. See
-Chapter\ \&61
+Chapter\ \&62
 for more information\&.
 .sp
 When applied to a partitioned table, there is no data to rewrite, but partitions created afterwards will default to the given access method unless overridden by a
@@ -616,6 +639,8 @@ This form changes the table from unlogged to logged or vice\-versa (see
 UNLOGGED)\&. It cannot be applied to a temporary table\&.
 .sp
 This also changes the persistence of any sequences linked to the table (for identity or serial columns)\&. However, it is also possible to change the persistence of such sequences separately\&.
+.sp
+This form is not supported for partitioned tables\&.
 .RE
 .PP
 SET ( \fIstorage_parameter\fR [= \fIvalue\fR] [, \&.\&.\&. ] )
@@ -644,16 +669,14 @@ SET, a table rewrite might be needed to update the table entirely\&.
 .PP
 INHERIT \fIparent_table\fR
 .RS 4
-This form adds the target table as a new child of the specified parent table\&. Subsequently, queries against the parent will include records of the target table\&. To be added as a child, the target table must already contain all the same columns as the parent (it could have additional columns, too)\&. The columns must have matching data types, and if they have
-NOT NULL
-constraints in the parent then they must also have
-NOT NULL
-constraints in the child\&.
+This form adds the target table as a new child of the specified parent table\&. Subsequently, queries against the parent will include records of the target table\&. To be added as a child, the target table must already contain all the same columns as the parent (it could have additional columns, too)\&. The columns must have matching data types\&.
 .sp
-There must also be matching child\-table constraints for all
+In addition, all
 CHECK
-constraints of the parent, except those marked non\-inheritable (that is, created with
-ALTER TABLE \&.\&.\&. ADD CONSTRAINT \&.\&.\&. NO INHERIT) in the parent, which are ignored; all child\-table constraints matched must not be marked non\-inheritable\&. Currently
+and
+NOT NULL
+constraints on the parent must also exist on the child, except those marked non\-inheritable (that is, created with
+ALTER TABLE \&.\&.\&. ADD CONSTRAINT \&.\&.\&. NO INHERIT), which are ignored\&. All child\-table constraints matched must not be marked non\-inheritable\&. Currently
 UNIQUE,
 PRIMARY KEY, and
 FOREIGN KEY
@@ -690,7 +713,8 @@ This form changes the information which is written to the write\-ahead log to id
 .PP
 DEFAULT
 .RS 4
-Records the old values of the columns of the primary key, if any\&. This is the default for non\-system tables\&.
+Records the old values of the columns of the primary key\&. This is the default for non\-system tables\&. When there is no primary key, the behavior is the same as
+NOTHING\&.
 .RE
 .PP
 USING INDEX \fIindex_name\fR
@@ -812,7 +836,9 @@ DETACH CONCURRENTLY
 invocation that was canceled or interrupted is completed\&. At most one partition in a partitioned table can be pending detach at a time\&.
 .RE
 .PP
-All the forms of ALTER TABLE that act on a single table, except
+All the forms of
+\fBALTER TABLE\fR
+that act on a single table, except
 RENAME,
 SET SCHEMA,
 ATTACH PARTITION, and
@@ -966,25 +992,34 @@ When a column is added with
 ADD COLUMN
 and a non\-volatile
 DEFAULT
-is specified, the default is evaluated at the time of the statement and the result stored in the table\*(Aqs metadata\&. That value will be used for the column for all existing rows\&. If no
-DEFAULT
-is specified, NULL is used\&. In neither case is a rewrite of the table required\&.
+is specified, the default value is evaluated at the time of the statement and the result stored in the table\*(Aqs metadata, where it will be returned when any existing rows are accessed\&. The value will be only applied when the table is rewritten, making the
+\fBALTER TABLE\fR
+very fast even on large tables\&. If no column constraints are specified, NULL is used as the
+DEFAULT\&. In neither case is a rewrite of the table required\&.
 .PP
 Adding a column with a volatile
 DEFAULT
-or changing the type of an existing column will require the entire table and its indexes to be rewritten\&. As an exception, when changing the type of an existing column, if the
+(e\&.g\&.,
+\fBclock_timestamp()\fR), a stored generated column, an identity column, or a column with a domain data type that has constraints will cause the entire table and its indexes to be rewritten\&. Adding a virtual generated column never requires a rewrite\&.
+.PP
+Changing the type of an existing column will normally cause the entire table and its indexes to be rewritten\&. As an exception, when changing the type of an existing column, if the
 USING
-clause does not change the column contents and the old type is either binary coercible to the new type or an unconstrained domain over the new type, a table rewrite is not needed\&. However, indexes must always be rebuilt unless the system can verify that the new index would be logically equivalent to the existing one\&. For example, if the collation for a column has been changed, an index rebuild is always required because the new sort order might be different\&. However, in the absence of a collation change, a column can be changed from
+clause does not change the column contents and the old type is either binary coercible to the new type or an unconstrained domain over the new type, a table rewrite is not needed\&. However, indexes will still be rebuilt unless the system can verify that the new index would be logically equivalent to the existing one\&. For example, if the collation for a column has been changed, an index rebuild is required because the new sort order might be different\&. However, in the absence of a collation change, a column can be changed from
 text
 to
 varchar
-(or vice versa) without rebuilding the indexes because these data types sort identically\&. Table and/or index rebuilds may take a significant amount of time for a large table; and will temporarily require as much as double the disk space\&.
+(or vice versa) without rebuilding the indexes because these data types sort identically\&.
+.PP
+Table and/or index rebuilds may take a significant amount of time for a large table, and will temporarily require as much as double the disk space\&.
 .PP
 Adding a
 CHECK
 or
 NOT NULL
-constraint requires scanning the table to verify that existing rows meet the constraint, but does not require a table rewrite\&.
+constraint requires scanning the table to verify that existing rows meet the constraint, but does not require a table rewrite\&. If a
+CHECK
+constraint is added as
+NOT ENFORCED, no verification will be performed\&.
 .PP
 Similarly, when attaching a new partition it may be scanned to verify that existing rows meet the partition constraint\&.
 .PP
@@ -992,7 +1027,7 @@ The main reason for providing the option to specify multiple changes in a single
 \fBALTER TABLE\fR
 is that multiple table scans or rewrites can thereby be combined into a single pass over the table\&.
 .PP
-Scanning a large table to verify a new foreign key or check constraint can take a long time, and other updates to the table are locked out until the
+Scanning a large table to verify new foreign\-key, check, or not\-null constraints can take a long time, and other updates to the table are locked out until the
 \fBALTER TABLE ADD CONSTRAINT\fR
 command is committed\&. The main purpose of the
 NOT VALID
@@ -1466,9 +1501,7 @@ ALTER TABLE measurement
 .SH "COMPATIBILITY"
 .PP
 The forms
-ADD
-(without
-USING INDEX),
+ADD [COLUMN],
 DROP [COLUMN],
 DROP IDENTITY,
 RESTART,
@@ -1478,7 +1511,17 @@ SET DATA TYPE
 USING),
 SET GENERATED, and
 SET \fIsequence_option\fR
-conform with the SQL standard\&. The other forms are
+conform with the SQL standard\&. The form
+ADD \fItable_constraint\fR
+conforms with the SQL standard when the
+USING INDEX
+and
+NOT VALID
+clauses are omitted and the constraint type is one of
+CHECK,
+UNIQUE,
+PRIMARY KEY, or
+REFERENCES\&. The other forms are
 PostgreSQL
 extensions of the SQL standard\&. Also, the ability to specify more than one manipulation in a single
 \fBALTER TABLE\fR
