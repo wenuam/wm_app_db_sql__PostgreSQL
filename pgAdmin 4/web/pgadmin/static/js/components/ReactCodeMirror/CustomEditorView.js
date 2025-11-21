@@ -1,7 +1,16 @@
+/////////////////////////////////////////////////////////////
+//
+// pgAdmin 4 - PostgreSQL Tools
+//
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
+// This software is released under the PostgreSQL Licence
+//
+//////////////////////////////////////////////////////////////
+
 import {
   EditorView
 } from '@codemirror/view';
-import { StateEffect, EditorState, EditorSelection } from '@codemirror/state';
+import { EditorState, EditorSelection } from '@codemirror/state';
 import { syntaxTree } from '@codemirror/language';
 import { autocompletion } from '@codemirror/autocomplete';
 import {undo, indentMore, indentLess, toggleComment} from '@codemirror/commands';
@@ -9,6 +18,7 @@ import { errorMarkerEffect } from './extensions/errorMarker';
 import { currentQueryHighlighterEffect } from './extensions/currentQueryHighlighter';
 import { activeLineEffect, activeLineField } from './extensions/activeLineMarker';
 import { clearBreakpoints, hasBreakpoint, toggleBreakpoint } from './extensions/breakpointGutter';
+import { autoCompleteCompartment, eol, eolCompartment } from './extensions/extraStates';
 
 
 function getAutocompLoading({ bottom, left }, dom) {
@@ -26,14 +36,18 @@ function getAutocompLoading({ bottom, left }, dom) {
 export default class CustomEditorView extends EditorView {
   constructor(...args) {
     super(...args);
+    // Set the initial and clean state for the document and EOL(end of line).
     this._cleanDoc = this.state.doc;
+    this._cleanDocEOL = this.getEOL();
   }
 
-  getValue(tillCursor=false) {
+  getValue(tillCursor=false, useLineSep=false) {
     if(tillCursor) {
       return this.state.sliceDoc(0, this.state.selection.main.head);
+    } else if (useLineSep) {
+      return this.state.doc.sliceString(0, this.state.doc.length, this.getEOL());
     }
-    return this.state.doc.toString();
+    return this.state.sliceDoc();
   }
 
   /* Function to extract query based on position passed */
@@ -196,7 +210,13 @@ export default class CustomEditorView extends EditorView {
   }
 
   getSelection() {
-    return this.state.sliceDoc(this.state.selection.main.from, this.state.selection.main.to) ?? '';
+    return CustomEditorView.getSelectionFromState(this.state);
+  }
+
+  static getSelectionFromState(state) {
+    // function to get selection from EditorState
+    const lineSep = state.facet(eol);
+    return state.selection.ranges.map((range)=>state.sliceDoc(range.from, range.to)).join(lineSep) ?? '';
   }
 
   replaceSelection(newValue) {
@@ -265,10 +285,12 @@ export default class CustomEditorView extends EditorView {
 
   markClean() {
     this._cleanDoc = this.state.doc;
+    this._cleanDocEOL = this.getEOL(); // Update the initial EOL value.
   }
 
   isDirty() {
-    return !this._cleanDoc.eq(this.state.doc);
+    // Return true if either the document content or the EOL(end of line) has changed.
+    return !this._cleanDoc.eq(this.state.doc) || this._cleanDocEOL !== this.getEOL();
   }
 
   fireDOMEvent(event) {
@@ -292,7 +314,7 @@ export default class CustomEditorView extends EditorView {
 
   registerAutocomplete(completionFunc) {
     this.dispatch({
-      effects: StateEffect.appendConfig.of(
+      effects: autoCompleteCompartment.reconfigure(
         autocompletion({
           override: [(context) => {
             this.loadingDiv?.remove();
@@ -326,5 +348,22 @@ export default class CustomEditorView extends EditorView {
 
   setQueryHighlightMark(from,to) {
     this.dispatch({ effects: currentQueryHighlighterEffect.of({ from, to }) });
+  }
+
+  getEOL(){
+    return this.state.facet(eol);
+  }
+
+  setEOL(val){
+    this.dispatch({
+      effects: eolCompartment.reconfigure(eol.of(val))
+    });
+  }
+
+  // Use to detect EOL type.
+  detectEOL(content) {
+    const lineSep = content.includes('\r\n') ? '\r\n' : '\n';
+    this.setEOL(lineSep);
+    return lineSep == '\r\n' ? 'crlf' : 'lf';
   }
 }

@@ -2,13 +2,13 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
 
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 import BrowserComponent from '../js/BrowserComponent';
 import MainMenuFactory from '../../browser/static/js/MainMenuFactory';
 import Theme from '../js/Theme';
@@ -43,6 +43,7 @@ define('app', [
   initializeModules(pgAdmin);
   initializeModules(pgAdmin.Browser);
   initializeModules(pgAdmin.Tools);
+  pgAdmin.Browser.docker = {};
 
   // Add menus from back end.
   pgAdmin.Browser.utils.addBackendMenus(pgAdmin.Browser);
@@ -50,10 +51,14 @@ define('app', [
   // Create menus after all modules are initialized.
   MainMenuFactory.createMainMenus();
 
-  ReactDOM.render(
+  // Listen to menu click events and callback pgAdmin js code.
+  // This will be internally ignored if not running in electron.
+  MainMenuFactory.listenToElectronMenuClick();
+
+  const root = ReactDOM.createRoot(document.querySelector('#root'));
+  root.render(
     <Theme>
       <BrowserComponent pgAdmin={pgAdmin} />
-    </Theme>,
-    document.querySelector('#root')
+    </Theme>
   );
 });

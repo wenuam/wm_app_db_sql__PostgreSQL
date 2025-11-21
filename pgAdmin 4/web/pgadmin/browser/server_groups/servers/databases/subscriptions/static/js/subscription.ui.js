@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -129,7 +129,10 @@ export default class SubscriptionSchema extends BaseUISchema{
       id: 'port', label: gettext('Port'), type: 'int', group: gettext('Connection'),
       mode: ['properties', 'edit', 'create'], min: 1, max: 65535,
       depChange: (state)=>{
-        if(obj.origData.port != state.port && !obj.isNew(state) && state.connected){
+        if(
+          obj.origData.port != state.port && !obj.isNew(state) &&
+          state.connected
+        ) {
           obj.informText = gettext(
             'To apply changes to the connection configuration, please disconnect from the server and then reconnect.'
           );
@@ -145,7 +148,10 @@ export default class SubscriptionSchema extends BaseUISchema{
       id: 'username', label: gettext('Username'), type: 'text', group: gettext('Connection'),
       mode: ['properties', 'edit', 'create'],
       depChange: (state)=>{
-        if(obj.origData.username != state.username && !obj.isNew(state) && state.connected){
+        if(
+          obj.origData.username != state.username && !obj.isNew(state) &&
+          state.connected
+        ) {
           obj.informText = gettext(
             'To apply changes to the connection configuration, please disconnect from the server and then reconnect.'
           );
@@ -355,7 +361,7 @@ export default class SubscriptionSchema extends BaseUISchema{
       helpMessageMode: ['edit', 'create'],
     },
     {
-      id: 'sync', label: gettext('Synchronous commit'), control: 'select2', deps:['event'],
+      id: 'sync', label: gettext('Synchronous commit'), deps:['event'],
       group: gettext('With'), type: 'select',
       helpMessage: gettext('The value of this parameter overrides the synchronous_commit setting. The default value is off.'),
       helpMessageMode: ['edit', 'create'],

@@ -2,14 +2,14 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
 
 import _ from 'lodash';
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 
 import gettext from 'sources/gettext';
 import { sprintf } from 'sources/utils';
@@ -24,11 +24,11 @@ import FunctionArguments from './debugger_ui';
 import ModalProvider from '../../../../static/js/helpers/ModalProvider';
 import DebuggerComponent from './components/DebuggerComponent';
 import Theme from '../../../../static/js/Theme';
-import { BROWSER_PANELS } from '../../../../browser/static/js/constants';
+import { AllPermissionTypes, BROWSER_PANELS } from '../../../../browser/static/js/constants';
 import { NotifierProvider } from '../../../../static/js/helpers/Notifier';
 import usePreferences, { listenPreferenceBroadcast } from '../../../../preferences/static/js/store';
 import pgAdmin from 'sources/pgadmin';
-import { PgAdminContext } from '../../../../static/js/BrowserComponent';
+import { PgAdminProvider } from '../../../../static/js/PgAdminProvider';
 
 export default class DebuggerModule {
   static instance;
@@ -66,6 +66,7 @@ export default class DebuggerModule {
           object: 'function',
         },
         enable: 'canDebug',
+        permission: AllPermissionTypes.TOOLS_DEBUGGER,
       }, {
         name: 'global_debugger',
         node: 'function',
@@ -80,6 +81,7 @@ export default class DebuggerModule {
           debug_type: 'indirect',
         },
         enable: 'canDebug',
+        permission: AllPermissionTypes.TOOLS_DEBUGGER,
       }, {
         name: 'procedure_direct_debugger',
         node: 'procedure',
@@ -93,6 +95,7 @@ export default class DebuggerModule {
           object: 'procedure',
         },
         enable: 'canDebug',
+        permission: AllPermissionTypes.TOOLS_DEBUGGER,
       }, {
         name: 'procedure_indirect_debugger',
         node: 'procedure',
@@ -107,6 +110,7 @@ export default class DebuggerModule {
           debug_type: 'indirect',
         },
         enable: 'canDebug',
+        permission: AllPermissionTypes.TOOLS_DEBUGGER,
       }, {
         name: 'trigger_function_indirect_debugger',
         node: 'trigger_function',
@@ -121,6 +125,7 @@ export default class DebuggerModule {
           debug_type: 'indirect',
         },
         enable: 'canDebug',
+        permission: AllPermissionTypes.TOOLS_DEBUGGER,
       }, {
         name: 'trigger_indirect_debugger',
         node: 'trigger',
@@ -135,6 +140,7 @@ export default class DebuggerModule {
           debug_type: 'indirect',
         },
         enable: 'canDebug',
+        permission: AllPermissionTypes.TOOLS_DEBUGGER,
       }, {
         name: 'package_function_direct_debugger',
         node: 'edbfunc',
@@ -148,6 +154,7 @@ export default class DebuggerModule {
           object: 'edbfunc',
         },
         enable: 'canDebug',
+        permission: AllPermissionTypes.TOOLS_DEBUGGER,
       }, {
         name: 'package_function_global_debugger',
         node: 'edbfunc',
@@ -162,6 +169,7 @@ export default class DebuggerModule {
           debug_type: 'indirect',
         },
         enable: 'canDebug',
+        permission: AllPermissionTypes.TOOLS_DEBUGGER,
       }, {
         name: 'package_procedure_direct_debugger',
         node: 'edbproc',
@@ -175,6 +183,7 @@ export default class DebuggerModule {
           object: 'edbproc',
         },
         enable: 'canDebug',
+        permission: AllPermissionTypes.TOOLS_DEBUGGER,
       }, {
         name: 'package_procedure_global_debugger',
         node: 'edbproc',
@@ -189,6 +198,7 @@ export default class DebuggerModule {
           debug_type: 'indirect',
         },
         enable: 'canDebug',
+        permission: AllPermissionTypes.TOOLS_DEBUGGER,
       }
     ]);
   }
@@ -269,7 +279,7 @@ export default class DebuggerModule {
   }
 
   getUrl(_d, newTreeInfo, trans_id) {
-    let baseUrl = undefined;
+    let baseUrl;
     if (_d._type == 'function' || _d._type == 'edbfunc') {
       baseUrl = url_for(
         'debugger.initialize_target_for_function', {
@@ -367,7 +377,7 @@ export default class DebuggerModule {
 
             let browser_preferences = usePreferences.getState().getPreferencesForModule('browser');
             let open_new_tab = browser_preferences.new_browser_tab_open;
-            const db_label = self.checkDbNameChange(data, dbNode, newTreeInfo, db_label);
+            const db_label = self.checkDbNameChange(data, dbNode, newTreeInfo);
             let label = getAppropriateLabel(newTreeInfo);
             pgAdmin.Browser.Events.trigger(
               'pgadmin:tool:show',
@@ -570,14 +580,15 @@ export default class DebuggerModule {
     );
     await listenPreferenceBroadcast();
 
-    ReactDOM.render(
+    const root = ReactDOM.createRoot(container);
+    root.render(
       <Theme>
-        <PgAdminContext.Provider value={pgAdmin}>
+        <PgAdminProvider value={pgAdmin}>
           <ModalProvider>
             <NotifierProvider pgAdmin={pgAdmin} pgWindow={pgWindow} />
             <DebuggerComponent pgAdmin={pgWindow.pgAdmin} selectedNodeInfo={selectedNodeInfo}
               panelId={`${BROWSER_PANELS.DEBUGGER_TOOL}_${this.trans_id}`}
-              panelDocker={pgWindow.pgAdmin.Browser.docker}
+              panelDocker={pgWindow.pgAdmin.Browser.docker.default_workspace}
               layout={layout} params={{
                 transId: trans_id,
                 directDebugger: this,
@@ -585,9 +596,8 @@ export default class DebuggerModule {
               }}
             />
           </ModalProvider>
-        </PgAdminContext.Provider>
-      </Theme>,
-      container
+        </PgAdminProvider>
+      </Theme>
     );
   }
 

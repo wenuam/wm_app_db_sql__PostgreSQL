@@ -2,7 +2,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2024, The pgAdmin Development Team
+# Copyright (C) 2013 - 2025, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 ##########################################################################
@@ -13,7 +13,7 @@ import re
 from functools import wraps
 
 import json
-from flask import render_template, current_app, request, jsonify
+from flask import render_template, current_app, request, jsonify, Response
 from flask_babel import gettext as _
 from flask_security import current_user
 
@@ -24,7 +24,7 @@ from pgadmin.browser.server_groups.servers.databases.utils import \
     parse_sec_labels_from_db, parse_variables_from_db, \
     get_attributes_from_db_info
 from pgadmin.browser.server_groups.servers.utils import parse_priv_from_db, \
-    parse_priv_to_db
+    parse_priv_to_db, get_db_disp_restriction
 from pgadmin.browser.utils import PGChildNodeView
 from pgadmin.utils.ajax import gone
 from pgadmin.utils.ajax import make_json_response, \
@@ -35,6 +35,7 @@ from pgadmin.tools.sqleditor.utils.query_history import QueryHistory
 from pgadmin.tools.schema_diff.node_registry import SchemaDiffRegistry
 from pgadmin.model import db, Server, Database
 from pgadmin.browser.utils import underscore_escape
+from pgadmin.utils.constants import TWO_PARAM_STRING
 
 
 class DatabaseModule(CollectionNodeModule):
@@ -201,6 +202,10 @@ class DatabaseView(PGChildNodeView):
             {'get': 'get_icu_locale'},
             {'get': 'get_icu_locale'}
         ],
+        'get_builtin_locale': [
+            {'get': 'get_builtin_locale'},
+            {'get': 'get_builtin_locale'}
+        ],
         'vopts': [
             {}, {'get': 'variable_options'}
         ],
@@ -261,14 +266,7 @@ class DatabaseView(PGChildNodeView):
     def list(self, gid, sid):
         last_system_oid = self.retrieve_last_system_oid()
 
-        db_disp_res = None
-        params = None
-        if self.manager and self.manager.db_res:
-            db_disp_res = ", ".join(
-                ['%s'] * len(self.manager.db_res.split(','))
-            )
-            params = tuple(self.manager.db_res.split(','))
-
+        db_disp_res, params = get_db_disp_restriction(self.manager)
         SQL = render_template(
             "/".join([self.template_path, self._PROPERTIES_SQL]),
             conn=self.conn,
@@ -346,15 +344,7 @@ class DatabaseView(PGChildNodeView):
                 self.manager.did in self.manager.db_info:
             last_system_oid = self._DATABASE_LAST_SYSTEM_OID
 
-        server_node_res = self.manager
-
-        db_disp_res = None
-        params = None
-        if server_node_res and server_node_res.db_res:
-            db_disp_res = ", ".join(
-                ['%s'] * len(server_node_res.db_res.split(','))
-            )
-            params = tuple(server_node_res.db_res.split(','))
+        db_disp_res, params = get_db_disp_restriction(self.manager)
         SQL = render_template(
             "/".join([self.template_path, self._NODES_SQL]),
             last_system_oid=last_system_oid,
@@ -406,6 +396,8 @@ class DatabaseView(PGChildNodeView):
     @check_precondition(action="nodes")
     def nodes(self, gid, sid, is_schema_diff=False):
         res = self.get_nodes(gid, sid, is_schema_diff)
+        if isinstance(res, Response):
+            return res
 
         return make_json_response(
             data=res,
@@ -586,7 +578,7 @@ class DatabaseView(PGChildNodeView):
                 'icon': 'pg-icon-database',
                 'already_connected': already_connected,
                 'connected': True,
-                'info_prefix': '{0}/{1}'.
+                'info_prefix': TWO_PARAM_STRING.
                 format(Server.query.filter_by(id=sid)[0].name, conn.db)
             }
         )
@@ -609,7 +601,7 @@ class DatabaseView(PGChildNodeView):
                 data={
                     'icon': 'icon-database-not-connected',
                     'connected': False,
-                    'info_prefix': '{0}/{1}'.
+                    'info_prefix': TWO_PARAM_STRING.
                     format(Server.query.filter_by(id=sid)[0].name, conn.db)
                 }
             )
@@ -680,6 +672,29 @@ class DatabaseView(PGChildNodeView):
         for row in rset['rows']:
             res.append(
                 {'label': row['colliculocale'], 'value': row['colliculocale']})
+
+        return make_json_response(
+            data=res,
+            status=200
+        )
+
+    @check_precondition(action="get_builtin_locale")
+    def get_builtin_locale(self, gid, sid, did=None):
+        """
+        This function is used to get the list of builtin locale
+        """
+        res = []
+        SQL = render_template(
+            "/".join([self.template_path, 'get_builtin_locale.sql'])
+        )
+        status, rset = self.conn.execute_dict(SQL)
+        if not status:
+            return internal_server_error(errormsg=rset)
+
+        for row in rset['rows']:
+            res.append(
+                {'label': row['collbuiltinlocale'],
+                 'value': row['collbuiltinlocale']})
 
         return make_json_response(
             data=res,
@@ -1223,13 +1238,7 @@ class DatabaseView(PGChildNodeView):
         """
         last_system_oid = self.retrieve_last_system_oid()
 
-        db_disp_res = None
-        params = None
-        if self.manager and self.manager.db_res:
-            db_disp_res = ", ".join(
-                ['%s'] * len(self.manager.db_res.split(','))
-            )
-            params = tuple(self.manager.db_res.split(','))
+        db_disp_res, params = get_db_disp_restriction(self.manager)
 
         conn = self.manager.connection()
         status, res = conn.execute_dict(render_template(

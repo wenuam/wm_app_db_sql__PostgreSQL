@@ -2,12 +2,12 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
 
-import { makeStyles } from '@mui/styles';
+import { styled } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 
 import React, { useContext, useEffect, useMemo } from 'react';
@@ -19,18 +19,17 @@ import getApiInstance from '../../../../../static/js/api_instance';
 import CodeMirror from '../../../../../static/js/components/ReactCodeMirror';
 import { DEBUGGER_EVENTS } from '../DebuggerConstants';
 import { DebuggerContext, DebuggerEventsContext } from './DebuggerComponent';
-import { usePgAdmin } from '../../../../../static/js/BrowserComponent';
-import { isShortcutValue, toCodeMirrorKey } from '../../../../../static/js/utils';
+import { usePgAdmin } from '../../../../../static/js/PgAdminProvider';
+import { isShortcutValue, parseKeyEventValue, parseShortcutValue } from '../../../../../static/js/utils';
 
 
-const useStyles = makeStyles(() => ({
-  sql: {
+const StyledCodeMirror = styled(CodeMirror)(()=>({
+  '&.Query-sql': {
     height: '100%',
   }
 }));
 
 export default function DebuggerEditor({ getEditor, params }) {
-  const classes = useStyles();
   const editor = React.useRef();
   const eventBus = useContext(DebuggerEventsContext);
   const pgAdmin = usePgAdmin();
@@ -75,10 +74,15 @@ export default function DebuggerEditor({ getEditor, params }) {
 
   const shortcutOverrideKeys = useMemo(
     ()=>{
-      return Object.values(preferences)
+      // omit CM internal shortcuts
+      const debuggerShortcuts = Object.values(preferences)
         .filter((p)=>isShortcutValue(p))
-        .map((p)=>({
-          key: toCodeMirrorKey(p), run: (_v, e)=>{
+        .map((p)=>parseShortcutValue(p));
+
+      return [{
+        any: (_v, e)=>{
+          const eventStr = parseKeyEventValue(e);
+          if(debuggerShortcuts.includes(eventStr)) {
             debuggerCtx.containerRef?.current?.dispatchEvent(new KeyboardEvent('keydown', {
               which: e.which,
               keyCode: e.keyCode,
@@ -87,17 +91,19 @@ export default function DebuggerEditor({ getEditor, params }) {
               ctrlKey: e.ctrlKey,
               metaKey: e.metaKey,
             }));
+            e.preventDefault();
+            e.stopPropagation();
             return true;
-          },
-          preventDefault: true,
-          stopPropagation: true,
-        }));
+          }
+          return false;
+        },
+      }];
     },
     [preferences]
   );
 
   return (
-    <CodeMirror
+    <StyledCodeMirror
       currEditor={(obj) => {
         editor.current = obj;
       }}
@@ -105,7 +111,7 @@ export default function DebuggerEditor({ getEditor, params }) {
       onBreakPointChange={(line, on)=>{
         setBreakpoint(line, on ? 1 : 0);
       }}
-      className={classes.sql}
+      className='Query-sql'
       readonly={true}
       customKeyMap={shortcutOverrideKeys}
       breakpoint

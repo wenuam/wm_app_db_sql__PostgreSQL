@@ -2,7 +2,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2024, The pgAdmin Development Team
+# Copyright (C) 2013 - 2025, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 ##########################################################################
@@ -10,25 +10,27 @@
 """A blueprint module providing utility functions for the application."""
 
 from pgadmin.utils import driver
-from flask import render_template, Response, request, current_app
-from flask.helpers import url_for
+from flask import request, current_app
 from flask_babel import gettext
 from pgadmin.user_login_check import pga_login_required
 from pathlib import Path
-from pgadmin.utils import PgAdminModule, replace_binary_path, \
-    get_binary_path_versions
+from pgadmin.utils import PgAdminModule, get_binary_path_versions
+from pgadmin.utils.constants import PREF_LABEL_USER_INTERFACE, \
+    PREF_LABEL_FILE_DOWNLOADS
 from pgadmin.utils.csrf import pgCSRFProtect
 from pgadmin.utils.session import cleanup_session_files
 from pgadmin.misc.themes import get_all_themes
-from pgadmin.utils.constants import MIMETYPE_APP_JS, UTILITIES_ARRAY
 from pgadmin.utils.ajax import precondition_required, make_json_response, \
     internal_server_error
 from pgadmin.utils.heartbeat import log_server_heartbeat, \
     get_server_heartbeat, stop_server_heartbeat
 import config
+import threading
 import time
 import json
 import os
+import sys
+import ssl
 from urllib.request import urlopen
 from pgadmin.settings import get_setting, store_setting
 
@@ -53,9 +55,9 @@ class MiscModule(PgAdminModule):
 
         # Register options for the User language settings
         self.preference.register(
-            'user_language', 'user_language',
-            gettext("User language"), 'options', 'en',
-            category_label=gettext('User language'),
+            'user_interface', 'user_language',
+            gettext("Language"), 'options', 'en',
+            category_label=PREF_LABEL_USER_INTERFACE,
             options=lang_options,
             control_props={
                 'allowClear': False,
@@ -71,25 +73,95 @@ class MiscModule(PgAdminModule):
                 .replace('-', ' ')
                 .title(),
                 'value': theme,
-                'preview_src': url_for(
-                    'static', filename='js/generated/img/' +
-                                       theme_data['preview_img']
-                )
+                'preview_src': 'js/generated/img/' + theme_data['preview_img']
+                if 'preview_img' in theme_data else None
             })
 
         self.preference.register(
-            'themes', 'theme',
-            gettext("Theme"), 'options', 'standard',
-            category_label=gettext('Themes'),
+            'user_interface', 'theme',
+            gettext("Theme"), 'options', 'light',
+            category_label=PREF_LABEL_USER_INTERFACE,
             options=theme_options,
             control_props={
                 'allowClear': False,
+                'creatable': False,
             },
             help_str=gettext(
-                'A refresh is required to apply the theme. Above is the '
-                'preview of the theme'
+                'Click the save button to apply the theme. Below is the '
+                'preview of the theme.'
             )
         )
+        self.preference.register(
+            'user_interface', 'layout',
+            gettext("Layout"), 'options', 'workspace',
+            category_label=PREF_LABEL_USER_INTERFACE,
+            options=[{'label': gettext('Classic'), 'value': 'classic'},
+                     {'label': gettext('Workspace'), 'value': 'workspace'}],
+            control_props={
+                'allowClear': False,
+                'creatable': False,
+            },
+            help_str=gettext(
+                'Choose the layout that suits you best. pgAdmin offers two '
+                'options: the Classic layout, a longstanding and familiar '
+                'design, and the Workspace layout, which provides distraction '
+                'free dedicated areas for the Query Tool, PSQL, and Schema '
+                'Diff tools.'
+            )
+        )
+        self.preference.register(
+            'user_interface', 'open_in_res_workspace',
+            gettext("Open the Query Tool/PSQL in their respective workspaces"),
+            'boolean', False,
+            category_label=PREF_LABEL_USER_INTERFACE,
+            help_str=gettext(
+                'This setting applies only when the layout is set to '
+                'Workspace Layout. When set to True, all Query Tool/PSQL '
+                'tabs will open in their respective workspaces. By default, '
+                'this setting is False, meaning that Query Tool/PSQL tabs '
+                'will open in the currently active workspace (either the '
+                'default or the workspace selected at the time of opening)'
+            )
+        )
+
+        self.preference.register(
+            'user_interface', 'save_app_state',
+            gettext("Save the application state?"),
+            'boolean', True,
+            category_label=PREF_LABEL_USER_INTERFACE,
+            help_str=gettext(
+                'If set to True, pgAdmin will save the state of opened tools'
+                ' (such as Query Tool, PSQL, Schema Diff, and ERD), including'
+                ' any unsaved data. This data will be automatically restored'
+                ' in the event of an unexpected shutdown or browser refresh.'
+            )
+        )
+
+        if not config.SERVER_MODE:
+            self.preference.register(
+                'file_downloads', 'automatically_open_downloaded_file',
+                gettext("Automatically open downloaded file?"),
+                'boolean', False,
+                category_label=PREF_LABEL_FILE_DOWNLOADS,
+                help_str=gettext(
+                    '''This setting is applicable and visible only in
+                    desktop mode. When set to True, the downloaded file
+                    will automatically open in the system's default
+                    application associated with that file type.'''
+                )
+            )
+            self.preference.register(
+                'file_downloads', 'prompt_for_download_location',
+                gettext("Prompt for the download location?"),
+                'boolean', True,
+                category_label=PREF_LABEL_FILE_DOWNLOADS,
+                help_str=gettext(
+                    'This setting is applicable and visible only '
+                    'in desktop mode. When set to True, a prompt '
+                    'will appear after clicking the download button, '
+                    'allowing you to choose the download location'
+                )
+            )
 
     def get_exposed_url_endpoints(self):
         """
@@ -124,6 +196,22 @@ class MiscModule(PgAdminModule):
         from .statistics import blueprint as module
         self.submodules.append(module)
 
+        from .workspaces import blueprint as module
+        self.submodules.append(module)
+
+        def autovacuum_sessions():
+            try:
+                with app.app_context():
+                    cleanup_session_files()
+            finally:
+                # repeat every five minutes until exit
+                # https://github.com/python/cpython/issues/98230
+                t = threading.Timer(5 * 60, autovacuum_sessions)
+                t.daemon = True
+                t.start()
+
+        app.register_before_app_start(autovacuum_sessions)
+
         super().register(app, options)
 
 
@@ -154,8 +242,6 @@ def ping():
 @pgCSRFProtect.exempt
 def cleanup():
     driver.ping()
-    # Cleanup session files.
-    cleanup_session_files()
     return ""
 
 
@@ -274,8 +360,16 @@ def upgrade_check():
                 # Do not wait for more than 5 seconds.
                 # It stuck on rendering the browser.html, while working in the
                 # broken network.
-                if os.path.exists(config.CA_FILE):
-                    response = urlopen(url, data, 5, cafile=config.CA_FILE)
+                if os.path.exists(config.CA_FILE) and sys.version_info >= (
+                        3, 13):
+                    # Use SSL context for Python 3.13+
+                    context = ssl.create_default_context(cafile=config.CA_FILE)
+                    response = urlopen(url, data=data, timeout=5,
+                                       context=context)
+                elif os.path.exists(config.CA_FILE):
+                    # Use cafile parameter for older versions
+                    response = urlopen(url, data=data, timeout=5,
+                                       cafile=config.CA_FILE)
                 else:
                     response = urlopen(url, data, 5)
                 current_app.logger.debug(

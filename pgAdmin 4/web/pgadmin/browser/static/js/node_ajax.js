@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -124,7 +124,7 @@ export function getNodeAjaxOptions(url, nodeObj, treeNodeInfo, itemNodeData, par
           otherParams.useCache && cacheNode.cache(nodeObj.type + '#' + url, treeNodeInfo, cacheLevel, data);
           resolve(transform(data));
         }).catch((err)=>{
-          reject(err);
+          reject(err instanceof Error ? err : Error('Something went wrong'));
         });
       } else {
         // To fetch only options from cache, we do not need time from 'at'
@@ -136,7 +136,8 @@ export function getNodeAjaxOptions(url, nodeObj, treeNodeInfo, itemNodeData, par
 }
 
 /* Get the nodes list based on current selected node id */
-export function getNodeListById(nodeObj, treeNodeInfo, itemNodeData, params={}, filter=()=>true) {
+export function getNodeListById(nodeObj, treeNodeInfo, itemNodeData, params={}, filter=()=>true, postTransform=(res)=>res) {
+  nodeObj = typeof(nodeObj) == 'string' ? pgAdmin.Browser.Nodes[nodeObj] : nodeObj;
   /* Transform the result to add image details */
   const transform = (rows) => {
     let res = [];
@@ -158,7 +159,7 @@ export function getNodeListById(nodeObj, treeNodeInfo, itemNodeData, params={}, 
       }
     });
 
-    return res;
+    return postTransform(res);
   };
 
   return getNodeAjaxOptions('nodes', nodeObj, treeNodeInfo, itemNodeData, params, transform);

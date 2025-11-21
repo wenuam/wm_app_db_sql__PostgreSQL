@@ -2,19 +2,19 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
 import _ from 'lodash';
 import PropTypes from 'prop-types';
 
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 
 import { Box, Grid } from '@mui/material';
 import InfoRoundedIcon from '@mui/icons-material/InfoRounded';
 import HelpIcon from '@mui/icons-material/HelpRounded';
-import { makeStyles } from '@mui/styles';
+
 
 import gettext from 'sources/gettext';
 import url_for from 'sources/url_for';
@@ -31,34 +31,8 @@ import { SchemaDiffContext, SchemaDiffEventsContext } from './SchemaDiffComponen
 import { ResultGridComponent } from './ResultGridComponent';
 import { openSocket, socketApiGet } from '../../../../../static/js/socket_instance';
 import { parseApiError } from '../../../../../static/js/api_instance';
-import { usePgAdmin } from '../../../../../static/js/BrowserComponent';
-
-const useStyles = makeStyles(() => ({
-  table: {
-    minWidth: 650,
-  },
-  summaryContainer: {
-    flexGrow: 1,
-    minHeight: 0,
-    overflow: 'auto',
-  },
-  note: {
-    marginTop: '1.2rem',
-    textAlign: 'center',
-  },
-  helpBtn: {
-    display: 'flex',
-    flexDirection: 'row-reverse',
-    paddingRight: '0.3rem'
-  },
-  compareComp: {
-    flexGrow: 1,
-  },
-  diffBtn: {
-    display: 'flex',
-    justifyContent: 'flex-end'
-  }
-}));
+import { usePgAdmin } from '../../../../../static/js/PgAdminProvider';
+import { useApplicationState } from '../../../../../settings/static/ApplicationStateProvider';
 
 function generateFinalScript(script_array, scriptHeader, script_body) {
   _.each(Object.keys(script_array).reverse(), function (s) {
@@ -82,11 +56,11 @@ function checkAndGetSchemaQuery(data, script_array) {
   }
 }
 
-function getGenerateScriptData(rows, selectedIds, script_array) {
+function getGenerateScriptData(rows, selectedIds, script_array, selectedFilters) {
   for (let selRowVal of rows) {
     if (selectedIds.includes(`${selRowVal.id}`)) {
       let data = selRowVal;
-      if (!_.isUndefined(data.diff_ddl)) {
+      if (!_.isUndefined(data.diff_ddl) && selectedFilters.indexOf(data.status) > -1) {
         if (!(data.dependLevel in script_array)) script_array[data.dependLevel] = [];
         checkAndGetSchemaQuery(data, script_array);
         script_array[data.dependLevel].push(data.diff_ddl);
@@ -114,7 +88,6 @@ const onHelpClick=()=>{
 };
 
 export function SchemaDiffCompare({ params }) {
-  const classes = useStyles();
   const schemaDiffToolContext = useContext(SchemaDiffContext);
   const eventBus = useContext(SchemaDiffEventsContext);
 
@@ -144,6 +117,8 @@ export function SchemaDiffCompare({ params }) {
   const [isInit, setIsInit] = useState(true);
 
   const pgAdmin = usePgAdmin();
+  const {saveToolData, isSaveToolDataEnabled, getToolContent } = useApplicationState();
+  const oldSchemaDiffData = useRef(null);
 
   useEffect(() => {
     schemaDiffToolContext.api.get(url_for('schema_diff.servers')).then((res) => {
@@ -164,6 +139,29 @@ export function SchemaDiffCompare({ params }) {
     });
   }, []);
 
+  useEffect(()=>{
+    if(params.params?.restore == 'true'){
+      async function fetchData() {
+        const response = await getToolContent(params.transId);
+        oldSchemaDiffData.current = response?.data;
+      }
+      fetchData();
+    }
+  },[params.transId]);
+
+
+  useEffect(()=>{
+    if(oldSchemaDiffData.current){
+      _.each(oldSchemaDiffData.current,(d)=>{
+        if(d.diff_type == TYPE.SOURCE){
+          setSelectedSourceSid(d.selectedSourceSid);
+        }else{
+          setSelectedTargetSid(d.selectedTargetSid);
+        }
+      });
+    }
+  },[sourceGroupServerList]);
+
   useEffect(() => {
     // Register all eventes for debugger.
     eventBus.registerListener(
@@ -171,7 +169,6 @@ export function SchemaDiffCompare({ params }) {
 
     eventBus.registerListener(
       SCHEMA_DIFF_EVENT.TRIGGER_SELECT_DATABASE, triggerSelectDatabase);
-
 
     eventBus.registerListener(
       SCHEMA_DIFF_EVENT.TRIGGER_SELECT_SCHEMA, triggerSelectSchema);
@@ -186,7 +183,7 @@ export function SchemaDiffCompare({ params }) {
       SCHEMA_DIFF_EVENT.TRIGGER_GENERATE_SCRIPT, triggerGenerateScript);
 
   }, []);
-
+  
   function checkAndSetSourceData(diff_type, selectedOption) {
     if(selectedOption == null) {
       setSelectedRowIds([]);
@@ -203,6 +200,10 @@ export function SchemaDiffCompare({ params }) {
     }
 
   }
+
+  const handleServerSchemaChange = () => {
+    setSelectedRowIds([]);
+  };
 
   function setSourceTargetSid(diff_type, selectedOption) {
     if (diff_type == TYPE.SOURCE) {
@@ -287,6 +288,15 @@ export function SchemaDiffCompare({ params }) {
       pgAdmin.Browser.notifier.alert(gettext('Selection Error'),
         gettext('Please select the different source and target.'));
     } else {
+
+      if(isSaveToolDataEnabled('schema_diff')){
+        let toolData =  [
+          { diff_type: TYPE.SOURCE, selectedSourceSid: sourceData.sid, selectedSourceDid:sourceData.did, selectedSourceScid: sourceData.scid},
+          { diff_type: TYPE.TARGET, selectedTargetSid:targetData.sid, selectedTargetDid:targetData.did, selectedTargetScid:targetData.scid },
+        ];
+        saveToolData('schema_diff', null, params.transId, toolData);
+      }
+
       setLoaderText('Comparing objects... (this may take a few minutes)...');
       let url_params = {
         'trans_id': params.transId,
@@ -337,7 +347,7 @@ export function SchemaDiffCompare({ params }) {
     setFilterOptions(filterParams);
   };
 
-  const triggerGenerateScript = ({ sid, did, selectedIds, rows }) => {
+  const triggerGenerateScript = ({ sid, did, selectedIds, rows, selectedFilters }) => {
     setLoaderText(gettext('Generating script...'));
     let generatedScript, scriptHeader;
 
@@ -349,7 +359,7 @@ export function SchemaDiffCompare({ params }) {
     if (selectedIds.length > 0) {
       let script_array = { 1: [], 2: [], 3: [], 4: [], 5: [] },
         script_body = '';
-      getGenerateScriptData(rows, selectedIds, script_array);
+      getGenerateScriptData(rows, selectedIds, script_array, selectedFilters);
 
       generatedScript = generateFinalScript(script_array, scriptHeader, script_body);
       openQueryTool({ sid: sid, did: did, generatedScript: generatedScript, scriptHeader: scriptHeader });
@@ -649,7 +659,6 @@ export function SchemaDiffCompare({ params }) {
       url_for('schema_diff.databases', { 'sid': sid })
     ).then((res) => {
       res.data.data.map((opt) => {
-
         if (opt.is_maintenance_db) {
           if (diff_type == TYPE.SOURCE) {
             setSelectedSourceDid(opt.value);
@@ -664,9 +673,20 @@ export function SchemaDiffCompare({ params }) {
       } else {
         setTargetDatabaseList(res.data.data);
       }
-
     });
   }
+
+  useEffect(()=>{
+    if(oldSchemaDiffData.current){
+      _.each(oldSchemaDiffData.current,(d)=>{
+        if(d.diff_type == TYPE.SOURCE){
+          setSelectedSourceDid(d.selectedSourceDid);
+        }else{
+          setSelectedTargetDid(d.selectedTargetDid);
+        }
+      });
+    }
+  },[targetDatabaseList, sourceDatabaseList]);
 
   function getSchemaList(sid, did, diff_type) {
     schemaDiffToolContext.api.get(
@@ -677,9 +697,20 @@ export function SchemaDiffCompare({ params }) {
       } else {
         setTargetSchemaList(res.data.data);
       }
-
     });
   }
+
+  useEffect(()=>{
+    if(oldSchemaDiffData.current){
+      _.each(oldSchemaDiffData.current,(d)=>{
+        if(d.diff_type == TYPE.SOURCE){
+          setSelectedSourceScid(d.selectedSourceScid);
+        }else{
+          setSelectedTargetScid(d.selectedTargetScid);
+        }
+      });
+    }
+  },[targetSchemaList, sourceSchemaList]);
 
   function showConnectServer(result, sid, diff_type, serverList) {
     schemaDiffToolContext.modal.showModal(gettext('Connect to server'), (closeModal) => {
@@ -716,7 +747,7 @@ export function SchemaDiffCompare({ params }) {
           direction="row"
           alignItems="center"
         >
-          <Grid item lg={7} md={7} sm={10} xs={10}>
+          <Grid size={{ lg: 7, md: 7, sm: 10, xs: 10 }}>
             <InputComponent
               label={gettext('Select Source')}
               serverList={sourceGroupServerList}
@@ -726,9 +757,10 @@ export function SchemaDiffCompare({ params }) {
               selectedDid={selectedSourceDid}
               selectedScid={selectedSourceScid}
               diff_type={TYPE.SOURCE}
+              onServerSchemaChange={handleServerSchemaChange}
             ></InputComponent>
           </Grid>
-          <Grid item lg={5} md={5} sm={2} xs={2} className={classes.helpBtn}>
+          <Grid sx={{  display: 'flex',flexDirection: 'row-reverse',paddingRight: '0.3rem'}} size={{ lg: 5, md: 5, sm: 2, xs: 2 }}>
             <PgButtonGroup size="small">
               <PgIconButton data-test='schema-diff-help' title={gettext('Help')} icon={<HelpIcon />} onClick={onHelpClick} />
             </PgButtonGroup>
@@ -739,7 +771,7 @@ export function SchemaDiffCompare({ params }) {
           direction="row"
           alignItems="center"
         >
-          <Grid item lg={7} md={7} sm={10} xs={10}>
+          <Grid size={{ lg: 7, md: 7, sm: 10, xs: 10 }}>
             <InputComponent
               label={gettext('Select Target')}
               serverList={sourceGroupServerList}
@@ -749,10 +781,11 @@ export function SchemaDiffCompare({ params }) {
               selectedDid={selectedTargetDid}
               selectedScid={selectedTargetScid}
               diff_type={TYPE.TARGET}
+              onServerSchemaChange={handleServerSchemaChange}
             ></InputComponent>
           </Grid>
 
-          <Grid item lg={5} md={5} sm={12} xs={12} className={classes.diffBtn}>
+          <Grid size={{ lg: 5, md: 5, sm: 12, xs: 12 }}>
             <SchemaDiffButtonComponent
               sourceData={{
                 'sid': selectedSourceSid,
@@ -760,6 +793,7 @@ export function SchemaDiffCompare({ params }) {
                 'scid': selectedSourceScid,
               }}
               selectedRowIds={selectedRowIds}
+              onServerSchemaChange={handleServerSchemaChange}
               rows={apiResult}
               targetData={{
                 'sid': selectedTargetSid,
@@ -792,7 +826,7 @@ export function SchemaDiffCompare({ params }) {
           }}
         ></ResultGridComponent>
         :
-        <Box className={classes.note}>
+        <Box sx={{  marginTop: '1.2rem',textAlign: 'center'}}>
           <InfoRoundedIcon style={{ fontSize: '1.2rem' }} />
           {gettext(' Source and Target database server must be of the same major version.')}<br />
           <strong>{gettext(' Database Compare:')}</strong>

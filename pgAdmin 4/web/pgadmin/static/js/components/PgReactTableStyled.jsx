@@ -2,23 +2,25 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
 
 import React, { forwardRef, useEffect } from 'react';
 import { flexRender } from '@tanstack/react-table';
-import { styled } from '@mui/styles';
+import { styled } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import EditRoundedIcon from '@mui/icons-material/EditRounded';
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import { PgIconButton } from './Buttons';
-import clsx from 'clsx';
 import CustomPropTypes from '../custom_prop_types';
 import { InputSwitch } from './FormComponents';
-
+import { Checkbox } from '@mui/material';
+import { getEnterKeyHandler } from '../utils';
 
 const StyledDiv = styled('div')(({theme})=>({
   '&.pgrt': {
@@ -130,6 +132,21 @@ const StyledDiv = styled('div')(({theme})=>({
               whiteSpace: 'nowrap',
               userSelect: 'text',
               width: '100%',
+            },
+
+            '& .reorder-cell': {
+              cursor: 'move',
+              padding: '4px 2px',
+            },
+            '& .pgrt-cell-button': {
+              border: 0,
+              borderRadius: 0,
+              padding: 0,
+              minWidth: 0,
+              backgroundColor: 'inherit',
+              '&.Mui-disabled': {
+                border: 0,
+              },
             }
           }
         },
@@ -140,7 +157,7 @@ const StyledDiv = styled('div')(({theme})=>({
           flexGrow: 1,
         }
       }
-    }
+    },
   }
 }));
 
@@ -158,8 +175,11 @@ export const PgReactTableCell = forwardRef(({row, cell, children, className}, re
   if (row.original.row_type === 'alert') {
     classNames.push('row-alert');
   }
-  if(row.original.icon && row.original.icon[cell.column.id]) {
+  if(row.original.icon?.[cell.column.id]) {
     classNames.push(row.original.icon[cell.column.id], 'cell-with-icon');
+  }
+  if(cell.column.columnDef.dataClassName){
+    classNames.push(cell.column.columnDef.dataClassName);
   }
 
   classNames.push(className);
@@ -169,9 +189,9 @@ export const PgReactTableCell = forwardRef(({row, cell, children, className}, re
       flex: `var(--col-${cell.column.id.replace(/\W/g, '_')}-size) 0 auto`,
       width: `calc(var(--col-${cell.column.id.replace(/\W/g, '_')}-size)*1px)`,
       ...(cell.column.columnDef.maxSize ? { maxWidth: `${cell.column.columnDef.maxSize}px` } : {})
-    }} role='cell'
-    className={clsx(...classNames)}
-    title={String(cell.getValue() ?? '')}>
+    }}
+    className={classNames.join(' ')}
+    title={typeof(cell.getValue()) === 'object' ? '' : String(cell.getValue() ?? '')}>
       <div className='pgrd-row-cell-content'>{children}</div>
     </div>
   );
@@ -187,7 +207,7 @@ PgReactTableCell.propTypes = {
 
 export const PgReactTableRow = forwardRef(({ children, className, ...props }, ref)=>{
   return (
-    <div className={clsx('pgrt-row', className)} ref={ref} role="row" {...props}>
+    <div className={['pgrt-row', className].join(' ')} ref={ref} {...props}>
       {children}
     </div>
   );
@@ -200,7 +220,7 @@ PgReactTableRow.propTypes = {
 
 export const PgReactTableRowContent = forwardRef(({children, className, ...props}, ref)=>{
   return (
-    <div className={clsx('pgrt-row-content', className)} ref={ref} {...props}>
+    <div className={['pgrt-row-content', className].join(' ')} ref={ref} {...props}>
       {children}
     </div>
   );
@@ -230,8 +250,8 @@ PgReactTableRowExpandContent.propTypes = {
 export function PgReactTableHeader({table}) {
   return (
     <div className='pgrt-header'>
-      {table.getHeaderGroups().map((headerGroup, idx) => (
-        <div key={idx} className='pgrt-header-row' style={{  }}>
+      {table.getHeaderGroups().map((headerGroup) => (
+        <div key={headerGroup.id} className='pgrt-header-row' style={{  }}>
           {headerGroup.headers.map((header) => (
             <div
               key={header.id}
@@ -240,11 +260,13 @@ export function PgReactTableHeader({table}) {
                 flex: `var(--header-${header?.id.replace(/\W/g, '_')}-size) 0 auto`,
                 width: `calc(var(--header-${header?.id.replace(/\W/g, '_')}-size)*1px)`,
                 ...(header.column.columnDef.maxSize ? { maxWidth: `${header.column.columnDef.maxSize}px` } : {}),
-                cursor: header.column.getCanSort() ? 'pointer' : 'initial',
               }}
-              onClick={header.column.getCanSort() ? header.column.getToggleSortingHandler() : undefined}
             >
-              <div title={flexRender(header.column.columnDef.header, header.getContext())}>
+              <div title={flexRender(header.column.columnDef.header, header.getContext())}
+                style={{cursor: header.column.getCanSort() ? 'pointer' : 'initial'}}
+                onClick={header.column.getCanSort() ? header.column.getToggleSortingHandler() : undefined}
+                onKeyDown={header.column.getCanSort() ? getEnterKeyHandler(header.column.getToggleSortingHandler): undefined}
+              >
                 {flexRender(header.column.columnDef.header, header.getContext())}
                 {header.column.getCanSort() && header.column.getIsSorted() &&
                   <span>
@@ -284,7 +306,7 @@ PgReactTableBody.propTypes = {
   children: CustomPropTypes.children,
 };
 
-export const PgReactTable = forwardRef(({children, table, rootClassName, tableClassName, ...props}, ref)=>{
+export const PgReactTable = forwardRef(({children, table, rootClassName, tableClassName, onScrollFunc, ...props}, ref)=>{
   const columns = table.getAllColumns();
 
   useEffect(()=>{
@@ -302,8 +324,8 @@ export const PgReactTable = forwardRef(({children, table, rootClassName, tableCl
   const columnSizeVars = React.useMemo(() => {
     const headers = table.getFlatHeaders();
     const colSizes = {};
-    for (let i = 0; i < headers.length; i++) {
-      const header = headers[i];
+    for (let value of headers) {
+      const header = value;
       colSizes[`--header-${header.id.replace(/\W/g, '_')}-size`] = header.getSize();
       colSizes[`--col-${header.column.id.replace(/\W/g, '_')}-size`] = header.column.getSize();
     }
@@ -311,8 +333,8 @@ export const PgReactTable = forwardRef(({children, table, rootClassName, tableCl
   }, [columns, table.getState().columnSizingInfo]);
 
   return (
-    <StyledDiv className={clsx('pgrt', rootClassName)} ref={ref} >
-      <div className={clsx('pgrt-table', tableClassName)} style={{ ...columnSizeVars }} {...props}>
+    <StyledDiv className={['pgrt', rootClassName].join(' ')} ref={ref} onScroll={e => onScrollFunc?.(e.target)}>
+      <div className={['pgrt-table', tableClassName].join(' ')} style={{ ...columnSizeVars }} {...props}>
         {children}
       </div>
     </StyledDiv>
@@ -324,9 +346,10 @@ PgReactTable.propTypes = {
   rootClassName: PropTypes.any,
   tableClassName: PropTypes.any,
   children: CustomPropTypes.children,
+  onScrollFunc: PropTypes.any,
 };
 
-export function getExpandCell({ onClick, ...props }) {
+export function getExpandCell({ onClick, title }) {
   const Cell = ({ row }) => {
     const onClickFinal = (e) => {
       e.preventDefault();
@@ -344,16 +367,14 @@ export function getExpandCell({ onClick, ...props }) {
           )
         }
         noBorder
-        {...props}
         onClick={onClickFinal}
-        aria-label={props.title}
+        aria-label={title}
       />
     );
   };
 
   Cell.displayName = 'ExpandCell';
   Cell.propTypes = {
-    title: PropTypes.string,
     row: PropTypes.any,
   };
 
@@ -368,6 +389,86 @@ export function getSwitchCell() {
   Cell.displayName = 'SwitchCell';
   Cell.propTypes = {
     getValue: PropTypes.func,
+  };
+
+  return Cell;
+}
+
+export function getCheckboxCell({title}) {
+  const Cell = ({ table }) => {
+    return (
+      <div style={{textAlign: 'center', minWidth: 20}}>
+        <Checkbox
+          color="primary"
+          checked={table.getIsAllRowsSelected()}
+          indeterminate={table.getIsSomeRowsSelected()}
+          onChange={table.getToggleAllRowsSelectedHandler()}
+          inputProps={{ 'aria-label': title }}
+        />
+      </div>
+    );
+  };
+
+  Cell.displayName = 'CheckboxCell';
+  Cell.propTypes = {
+    table: PropTypes.object,
+  };
+
+  return Cell;
+}
+
+export function getCheckboxHeaderCell({title}) {
+  const Cell = ({ row }) => {
+    return (
+      <div style={{textAlign: 'center', minWidth: 20}}>
+        <Checkbox
+          color="primary"
+          checked={row.getIsSelected()}
+          indeterminate={row.getIsSomeSelected()}
+          disabled={!row.getCanSelect()}
+          onChange={row.getToggleSelectedHandler()}
+          inputProps={{ 'aria-label': title }}
+        />
+      </div>
+    );
+  };
+
+  Cell.displayName = 'CheckboxHeaderCell';
+  Cell.propTypes = {
+    row: PropTypes.object,
+  };
+
+  return Cell;
+}
+
+export function getEditCell({isDisabled, title, onClick}) {
+  const Cell = ({ row }) => {
+    return <PgIconButton data-test="expand-row" title={title} icon={<EditRoundedIcon fontSize="small" />} className='pgrt-cell-button'
+      onClick={()=>{
+        onClick ? onClick(row) : row.toggleExpanded();
+      }} disabled={isDisabled?.(row)}
+    />;
+  };
+
+  Cell.displayName = 'EditCell';
+  Cell.propTypes = {
+    row: PropTypes.any,
+  };
+
+  return Cell;
+}
+
+export function getDeleteCell({isDisabled, title, onClick}) {
+  const Cell = ({ row }) => (
+    <PgIconButton data-test="delete-row" title={title} icon={<DeleteRoundedIcon fontSize="small" />}
+      onClick={()=>onClick?.(row)}
+      className='pgrt-cell-button' disabled={isDisabled?.(row)}
+    />
+  );
+
+  Cell.displayName = 'DeleteCell';
+  Cell.propTypes = {
+    row: PropTypes.any,
   };
 
   return Cell;

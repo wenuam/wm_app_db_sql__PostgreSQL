@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -165,9 +165,8 @@ export default class CollationSchema extends BaseUISchema {
           else {
             if (actionObj.oldState.is_deterministic) {
               return { is_deterministic: false };
-            } else {
-              return { is_deterministic: true };
             }
+            return { is_deterministic: true };
           }
         },
       },

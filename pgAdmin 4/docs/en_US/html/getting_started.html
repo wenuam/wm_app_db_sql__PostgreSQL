@@ -7,12 +7,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; pgAdmin 4 8.7 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <title>Getting Started &#8212; pgAdmin 4 9.6 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/style.css?v=d36593c3" />
     
-    <script src="_static/documentation_options.js?v=70b0b77f"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/documentation_options.js?v=a51d793f"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     
     <script src="_static/sidebar.js"></script>
@@ -22,7 +22,7 @@
     <link rel="next" title="Deployment" href="deployment.html" />
     <link rel="prev" title="pgAdmin 4" href="index.html" /> 
   </head><body>
-    <div class="related" role="navigation" aria-label="related navigation">
+    <div class="related" role="navigation" aria-label="Related">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="index.html" title="pgAdmin 4"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 9.6 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Getting Started</a></li> 
       </ul>
     </div>  
@@ -86,8 +86,18 @@ Mode is pre-configured for security.</p>
 <li class="toctree-l2"><a class="reference internal" href="mfa.html#configure-two-factor-authentication">Configure two-factor authentication</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="user_management.html">User Management Dialog</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="user_management.html#using-setup-py-command-line-script">Using ‘setup.py’ command line script</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_management.html">User Management</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user_management.html#users-tab">Users Tab</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_management.html#roles-tab">Roles Tab</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_management.html#permissions-tab">Permissions Tab</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_management.html#manage-users">Manage Users</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_management.html#add-user">Add User</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_management.html#add-external-user">Add External User</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_management.html#update-user">Update User</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_management.html#update-external-user">Update External User</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_management.html#delete-user">Delete User</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_management.html#get-user">Get User</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_management.html#output">Output</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="change_ownership.html">Change Ownership Dialog</a></li>
@@ -106,6 +116,7 @@ Mode is pre-configured for security.</p>
 <li class="toctree-l2"><a class="reference internal" href="oauth2.html#redirect-url">Redirect URL</a></li>
 <li class="toctree-l2"><a class="reference internal" href="oauth2.html#master-password">Master Password</a></li>
 <li class="toctree-l2"><a class="reference internal" href="oauth2.html#login-page">Login Page</a></li>
+<li class="toctree-l2"><a class="reference internal" href="oauth2.html#pkce-workflow">PKCE Workflow</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="webserver.html">Enabling Webserver Authentication</a><ul>
@@ -152,7 +163,8 @@ the <em>Help</em> menu, and selecting the name of the resource that you wish to 
 <li class="toctree-l1"><a class="reference internal" href="toolbar.html">Toolbar</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tabbed_browser.html">Tabbed Browser</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tree_control.html">Tree Control</a></li>
-<li class="toctree-l1"><a class="reference internal" href="preferences.html">Preferences Dialog</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="preferences.html">Preferences</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="preferences.html#header">Header</a></li>
 <li class="toctree-l2"><a class="reference internal" href="preferences.html#the-browser-node">The Browser Node</a></li>
 <li class="toctree-l2"><a class="reference internal" href="preferences.html#the-dashboards-node">The Dashboards Node</a></li>
 <li class="toctree-l2"><a class="reference internal" href="preferences.html#the-debugger-node">The Debugger Node</a></li>
@@ -170,7 +182,7 @@ the <em>Help</em> menu, and selecting the name of the resource that you wish to 
 <li class="toctree-l2"><a class="reference internal" href="preferences.html#json-format">JSON format</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="keyboard_shortcuts.html">Keyboard Shortcuts:</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="keyboard_shortcuts.html">Keyboard Shortcuts</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="keyboard_shortcuts.html#main-browser-window">Main Browser Window</a></li>
 <li class="toctree-l2"><a class="reference internal" href="keyboard_shortcuts.html#property-grid-controls">Property Grid Controls</a></li>
 <li class="toctree-l2"><a class="reference internal" href="keyboard_shortcuts.html#sql-editors">SQL Editors</a></li>
@@ -193,7 +205,7 @@ in the next section.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <h3><a href="index.html">Table of Contents</a></h3>
 <ul class="current">
@@ -201,7 +213,7 @@ in the next section.</p>
 <li class="toctree-l2"><a class="reference internal" href="deployment.html">Deployment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="login.html">Login Page</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mfa.html">Enabling two-factor authentication (2FA)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user_management.html">User Management Dialog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_management.html">User Management</a></li>
 <li class="toctree-l2"><a class="reference internal" href="change_ownership.html">Change Ownership Dialog</a></li>
 <li class="toctree-l2"><a class="reference internal" href="change_user_password.html">Change User Password Dialog</a></li>
 <li class="toctree-l2"><a class="reference internal" href="restore_locked_user.html">Lock/Restore Account</a></li>
@@ -214,8 +226,8 @@ in the next section.</p>
 <li class="toctree-l2"><a class="reference internal" href="toolbar.html">Toolbar</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tabbed_browser.html">Tabbed Browser</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tree_control.html">Tree Control</a></li>
-<li class="toctree-l2"><a class="reference internal" href="preferences.html">Preferences Dialog</a></li>
-<li class="toctree-l2"><a class="reference internal" href="keyboard_shortcuts.html">Keyboard Shortcuts:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="preferences.html">Preferences</a></li>
+<li class="toctree-l2"><a class="reference internal" href="keyboard_shortcuts.html">Keyboard Shortcuts</a></li>
 <li class="toctree-l2"><a class="reference internal" href="search_objects.html">Search objects</a></li>
 </ul>
 </li>
@@ -252,7 +264,7 @@ in the next section.</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
+    <div class="related" role="navigation" aria-label="Related">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -264,17 +276,17 @@ in the next section.</p>
         <li class="right" >
           <a href="index.html" title="pgAdmin 4"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 9.6 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Getting Started</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         <div class="related" role="navigation" aria-label="related navigation">
           <ul>
-              <li class="left" style="margin-left: 10px">&#169; Copyright (C) 2013 - 2024, The pgAdmin Development Team.</li>
-            <li class="right" style="margin-right: 10px"><a href="genindex.html" title="General Index" accesskey="I">index</a></li>
-            <li class="right" ><a href="deployment.html" title="Deployment" accesskey="N">next</a> |</li>
-            <li class="right" ><a href="index.html" title="pgAdmin 4" accesskey="P">previous</a> |</li>
+              <li class="left" style="margin-left: 10px">&#169; Copyright (C) 2013 - 2025, The pgAdmin Development Team.</li>
+            <li class="right" style="margin-right: 10px"><a href="genindex.html" title="General Index">index</a></li>
+            <li class="right" ><a href="deployment.html" title="Deployment">next</a> |</li>
+            <li class="right" ><a href="index.html" title="pgAdmin 4">previous</a> |</li>
           </ul>
         </div>
     </div>

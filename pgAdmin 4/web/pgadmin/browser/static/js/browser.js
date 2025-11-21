@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -122,6 +122,7 @@ define('pgadmin.browser', [
     menu_categories: {
       /* name, label (pair) */
       'register': {
+        name: 'register',
         label: gettext('Register'),
         priority: 1,
         /* separator above this menu */
@@ -131,6 +132,7 @@ define('pgadmin.browser', [
         single: true,
       },
       'create': {
+        name: 'create',
         label: gettext('Create'),
         priority: 2,
         /* separator above this menu */
@@ -147,126 +149,9 @@ define('pgadmin.browser', [
       scripts[n].push({'name': m, 'path': p, loaded: false});
     },
     masterpass_callback_queue: [],
-    getMenuList: function(name, item, d, skipDisabled=false) {
-      let obj = this;
-      //This 'checkNoMenuOptionForNode' function will check if showMenu flag is present or not for selected node
-      let {flag,showMenu}=MainMenuFactory.checkNoMenuOptionForNode(d);
-      if(flag){
-        if(showMenu===false){
-          return [MainMenuFactory.createMenuItem({
-            enable : false,
-            label: gettext('No menu available for this object.'),
-            name:'',
-            priority: 1,
-            category: 'create',
-          })];
-        }
-      }else{
-        let category = {
-          'common': []
-        };
-        const nodeTypeMenus = obj.all_menus_cache[name][d._type];
-        for(let key of Object.keys(nodeTypeMenus)) {
-          let menuItem = nodeTypeMenus[key];
-          let menuCategory = menuItem.category ?? 'common';
-          category[menuCategory] = category[menuCategory] ?? [];
-          category[menuCategory].push(menuItem);
-        }
-        let menuItemList = [];
-
-        for(let c in category) {
-          if((c in obj.menu_categories || category[c].length > 1) && c != 'common' ) {
-            let allMenuItemsDisabled = true;
-            category[c].forEach((mi)=> {
-              mi.checkAndSetDisabled(d, item);
-              if(allMenuItemsDisabled) {
-                allMenuItemsDisabled = mi.isDisabled;
-              }
-            });
-
-            const categoryMenuOptions = obj.menu_categories[c];
-            let label = categoryMenuOptions?.label ?? c;
-            let priority = categoryMenuOptions?.priority ?? 10;
-
-            if(categoryMenuOptions?.above) {
-              menuItemList.push(MainMenuFactory.getSeparator(label, priority));
-            }
-            if(!allMenuItemsDisabled && skipDisabled) {
-              let _menuItem = MainMenuFactory.createMenuItem({
-                name: c,
-                label: label,
-                module: c,
-                category: c,
-                menu_items: category[c],
-                priority: priority
-              });
-
-              menuItemList.push(_menuItem);
-            } else if(!skipDisabled){
-              let _menuItem = MainMenuFactory.createMenuItem({
-                name: c,
-                label: label,
-                module:c,
-                category: c,
-                menu_items: category[c],
-                priority: priority
-              });
-
-              menuItemList.push(_menuItem);
-            }
-            if(categoryMenuOptions?.below) {
-              menuItemList.push(MainMenuFactory.getSeparator(label, priority));
-            }
-          } else {
-            category[c].forEach((c)=> {
-              c.checkAndSetDisabled(d, item);
-            });
-
-            category[c].forEach((m)=> {
-              if(!skipDisabled) {
-                menuItemList.push(m);
-              } else if(skipDisabled && !m.isDisabled){
-                menuItemList.push(m);
-              }
-            });
-          }
-        }
-
-        return menuItemList;
-      }
-    },
     // Enable/disable menu options
     enable_disable_menus: function(item) {
-      let obj = this;
-      let d = item ? obj.tree.itemData(item) : undefined;
-
-      // All menus (except for the object menus) are already present.
-      // They will just require to check, whether they are
-      // enabled/disabled.
-      pgBrowser.MainMenus.filter((m)=>m.name != 'object').forEach((menu) => {
-        menu.menuItems.forEach((mitem) => {
-          mitem.checkAndSetDisabled(d, item);
-        });
-      });
-
-      // Create the object menu dynamically
-      let objectMenu = pgBrowser.MainMenus.find((menu) => menu.name == 'object');
-      if (item && obj.all_menus_cache['object']?.[d._type]) {
-        let menuItemList = obj.getMenuList('object', item, d);
-        objectMenu && MainMenuFactory.refreshMainMenuItems(objectMenu, menuItemList);
-        let ctxMenuList = obj.getMenuList('context', item, d, true);
-        obj.BrowserContextMenu = MainMenuFactory.getContextMenu(ctxMenuList);
-      } else {
-        objectMenu && MainMenuFactory.refreshMainMenuItems(objectMenu, [
-          MainMenuFactory.createMenuItem({
-            name: '',
-            label: gettext('No object selected'),
-            category: 'create',
-            priority: 1,
-            enable: false,
-          })
-        ]);
-      }
+      MainMenuFactory.enableDisableMenus(item);
     },
     init: function() {
       let obj=this;
@@ -321,6 +206,8 @@ define('pgadmin.browser', [
     uiloaded: function() {
       this.set_master_password('');
       this.check_version_update();
+      // Assign and Update shortcuts from preferences.
+      MainMenuFactory.subscribeShortcutChanges();
     },
     check_corrupted_db_file: function() {
       getApiInstance().get(
@@ -427,29 +314,29 @@ define('pgadmin.browser', [
       });
     },
 
-    add_menu_category: function(
-      id, label, priority, icon, above_separator, below_separator, single
-    ) {
-      this.menu_categories[id] = {
-        label: label,
-        priority: priority,
-        icon: icon,
-        above: (above_separator === true),
-        below: (below_separator === true),
-        single: single,
+    add_menu_category: function({name, ...options}) {
+      this.menu_categories[name] = {
+        name: name,
+        label: '(No Label)',
+        priority: 10,
+        icon: '',
+        above: false,
+        below: false,
+        parent: null,
+        isCategory: true,
+        ...options,
       };
     },
 
     // Add menus of module/extension at appropriate menu
     add_menus: function(menus) {
-      let pgMenu = this.all_menus_cache;
+      const self = this;
+      let allMenus = this.all_menus_cache;
 
       _.each(menus, function(m) {
         _.each(m.applies, function(a) {
           /* We do support menu type only from this list */
           if(['context', 'file', 'edit', 'object','management', 'tools', 'help'].indexOf(a) > -1){
-            let _menus;
-
             // If current node is not visible in browser tree
             // then return from here
             if(!checkNodeVisibility(m.node)) {
@@ -461,16 +348,19 @@ define('pgadmin.browser', [
                 return;
               }
             }
-
-            pgMenu[a] = pgMenu[a] || {};
-            if (_.isString(m.node)) {
-              _menus = pgMenu[a][m.node] = pgMenu[a][m.node] || {};
-            } else if (_.isString(m.category)) {
-              _menus = pgMenu[a][m.category] = pgMenu[a][m.category] || {};
-            }
-            else {
-              _menus = pgMenu[a];
-            }
+            const getFullPath = (currPath, currMenu)=>{
+              if(currMenu.node) {
+                return currPath.concat([currMenu.node]);
+              } else if((currMenu.category??'common') != 'common') {
+                const currCat = self.menu_categories[currMenu.category];
+                if(currCat?.category) {
+                  return getFullPath(currPath.concat([currMenu.category]), currCat);
+                }
+                return [currMenu.category].concat(currPath);
+              } else {
+                return currPath;
+              }
+            };
 
             let get_menuitem_obj = function(_m) {
               let enable = _m.enable;
@@ -485,9 +375,10 @@ define('pgadmin.browser', [
                 _m.callback = () => {
                   showQuickSearch();
                 };
+                _m.shortcut_preference =['browser', 'open_quick_search'];
               }
 
-              return MainMenuFactory.createMenuItem({
+              return {
                 name: _m.name,
                 label: _m.label,
                 module: _m.module,
@@ -503,22 +394,24 @@ define('pgadmin.browser', [
                 checked: _m.checked,
                 below: _m.below,
                 applies: _m.applies,
-              });
+                permission: _m.permission,
+                shortcut_preference: _m.shortcut_preference,
+                shortcut:_m.shortcut
+              };
             };
 
-            if (!_.has(_menus, m.name)) {
-              _menus[m.name] = get_menuitem_obj(m);
+            const menuPath = [a].concat(getFullPath([], m)).concat([m.name]);
+            const _menus = _.set(allMenus, menuPath, get_menuitem_obj(m));
 
-              if(m.menu_items) {
-                let sub_menu_items = [];
+            if(m.menu_items) {
+              let sub_menu_items = [];
 
-                for(let mnu_val of m.menu_items) {
-                  sub_menu_items.push(get_menuitem_obj(mnu_val));
-                }
-                _menus[m.name]['menu_items'] = sub_menu_items;
+              for(let mnu_val of m.menu_items) {
+                sub_menu_items.push(get_menuitem_obj(mnu_val));
               }
+              _menus[m.name]['menu_items'] = sub_menu_items;
             }
-          } else  {
+          } else {
             console.warn(
               'Developer warning: Category \'' +
                   a +
@@ -933,7 +826,7 @@ define('pgadmin.browser', [
 
                     this.success = function() {
                       addItemNode();
-                    }.bind(this);
+                    };
                     // We can refresh the collection node, but - let's not bother about
                     // it right now.
                     this.notFound = errorOut;
@@ -974,7 +867,7 @@ define('pgadmin.browser', [
 
                     this.success = function() {
                       addItemNode();
-                    }.bind(this);
+                    };
                     // We can refresh the collection node, but - let's not bother about
                     // it right now.
                     this.notFound = errorOut;
@@ -1034,7 +927,7 @@ define('pgadmin.browser', [
             this.load = true;
             this.success = function() {
               addItemNode();
-            }.bind(this);
+            };
 
             if (_d._type == this.old._type) {
               // We were already searching the old object under the parent.
@@ -1127,7 +1020,7 @@ define('pgadmin.browser', [
               this.t.openPath(this.i);
               this.t.select(this.i);
               if (
-                _ctx.o && _ctx.o.success && typeof(_ctx.o.success) == 'function'
+                _ctx.o?.success && typeof(_ctx.o?.success) == 'function'
               ) {
                 _ctx.o.success.apply(_ctx.t, [_ctx.i, _new]);
               }
@@ -1356,7 +1249,7 @@ define('pgadmin.browser', [
             ctx.b._refreshNode(ctx, ctx.branch);
           },
           error: function() {
-            let fail = (_opts.o && _opts.o.fail) || _opts.fail;
+            let fail = _opts.o?.fail || _opts?.fail;
 
             if (typeof(fail) == 'function') {
               fail();
@@ -1436,7 +1329,7 @@ define('pgadmin.browser', [
             });
           }
         });
-      }.bind(this);
+      };
 
       if (n?.collection_node) {
         let p = ctx.i = this.tree.parent(_i),
@@ -1673,7 +1566,7 @@ define('pgadmin.browser', [
     _refreshNode: function(_ctx, _d) {
       let traverseNodes = function(__d) {
         let __ctx = this, idx = 0, ctx, d,
-          size = (__d.branch && __d.branch.length) || 0,
+          size = __d?.branch?.length || 0,
           findNode = function(i_findNode, d_findNode, ctx_findNode) {
             setTimeout(
               function() {
@@ -1703,7 +1596,7 @@ define('pgadmin.browser', [
         }
       }.bind(_ctx, _d);
 
-      if (!_d || !_d.open)
+      if (!_d?.open)
         return;
 
       if (!_ctx.t.isOpen(_ctx.i)) {
@@ -1717,37 +1610,7 @@ define('pgadmin.browser', [
       }
 
     },
-
-    editor_shortcut_keys: {
-      // Autocomplete sql command
-      'Ctrl-Space': 'autocomplete',
-      'Cmd-Space': 'autocomplete',
-
-      'Alt-Up': 'goLineUp',
-      'Alt-Down': 'goLineDown',
-
-      // Move word by word left/right
-      'Ctrl-Alt-Left': 'goGroupLeft',
-      'Cmd-Alt-Left': 'goGroupLeft',
-      'Ctrl-Alt-Right': 'goGroupRight',
-      'Cmd-Alt-Right': 'goGroupRight',
-
-      // Allow user to delete Tab(s)
-      'Shift-Tab': 'indentLess',
-    },
-    editor_options: {
-      tabSize: parseInt(pgBrowser.utils.tabSize),
-      wrapCode: pgBrowser.utils.wrapCode,
-      insert_pair_brackets: pgBrowser.utils.insertPairBrackets,
-      brace_matching: pgBrowser.utils.braceMatching,
-      indent_with_tabs: pgBrowser.utils.is_indent_with_tabs,
-    },
   });
-
-  // Use spaces instead of tab
-  if (pgBrowser.utils.useSpaces == 'True') {
-    pgAdmin.Browser.editor_shortcut_keys.Tab = 'insertSoftTab';
-  }
 
   return pgAdmin.Browser;
 });

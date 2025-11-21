@@ -2,14 +2,14 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
 
 import _ from 'lodash';
 import getApiInstance from '../../../static/js/api_instance';
-import { BROWSER_PANELS } from './constants';
+import { AllPermissionTypes, BROWSER_PANELS } from './constants';
 import React from 'react';
 import ObjectNodeProperties from '../../../misc/properties/ObjectNodeProperties';
 import ErrorBoundary from '../../../static/js/helpers/ErrorBoundary';
@@ -113,7 +113,7 @@ define('pgadmin.browser.node', [
       if (self.node_initialized)
         return;
       self.node_initialized = true;
-
+      
       pgAdmin.Browser.add_menus([{
         name: 'refresh',
         node: self.type,
@@ -122,6 +122,7 @@ define('pgadmin.browser.node', [
         callback: 'refresh',
         priority: 2,
         label: gettext('Refresh...'),
+        shortcut_preference: ['browser', 'sub_menu_refresh'],        
         enable: true,
       }]);
 
@@ -137,10 +138,12 @@ define('pgadmin.browser.node', [
           data: {
             'action': 'edit',
           },
+          shortcut_preference: ['browser', 'sub_menu_properties'],
           enable: _.isFunction(self.canEdit) ?
             function() {
               return !!(self.canEdit(...arguments));
             } : (!!self.canEdit),
+          permission: self.type == 'server' ? AllPermissionTypes.OBJECT_REGISTER_SERVER : undefined,
         }]);
       }
 
@@ -152,15 +155,17 @@ define('pgadmin.browser.node', [
           applies: ['object', 'context'],
           callback: 'delete_obj',
           priority: self.dropPriority,
-          label: (self.dropAsRemove) ? gettext('Remove %s', self.label) : gettext('Delete'),
+          label: (self.dropAsRemove) ? gettext('Remove %s', self.label) : gettext('Drop'),
           data: {
             'url': 'drop',
             data_disabled: gettext('The selected tree node does not support this option.'),
           },
+          shortcut_preference: ['browser', 'sub_menu_delete'],
           enable: _.isFunction(self.canDrop) ?
             function() {
               return !!(self.canDrop(...arguments));
             } : (!!self.canDrop),
+          permission: self.type == 'server' ? AllPermissionTypes.OBJECT_REGISTER_SERVER : undefined,
         }]);
 
         if (self.canDropCascade) {
@@ -171,7 +176,7 @@ define('pgadmin.browser.node', [
             applies: ['object', 'context'],
             callback: 'delete_obj',
             priority: 2,
-            label: gettext('Delete (Cascade)'),
+            label: gettext('Drop (Cascade)'),
             data: {
               'url': 'delete',
             },
@@ -202,6 +207,8 @@ define('pgadmin.browser.node', [
           priority: 998,
           label: gettext('Query Tool'),
           enable: enable,
+          permission: AllPermissionTypes.TOOLS_QUERY_TOOL,
+          shortcut_preference: ['browser', 'sub_menu_query_tool'],        
         }]);
 
         // show search objects same as query tool
@@ -210,6 +217,8 @@ define('pgadmin.browser.node', [
           applies: ['context'], callback: 'show_search_objects',
           priority: 997, label: gettext('Search Objects...'),
           icon: 'fa fa-search', enable: enable,
+          permission: AllPermissionTypes.TOOLS_SEARCH_OBJECTS,
+          shortcut_preference: ['browser', 'sub_menu_search_objects'],
         }]);
 
         if(pgAdmin['enable_psql']) {
@@ -218,6 +227,7 @@ define('pgadmin.browser.node', [
             name: 'show_psql_tool', node: this.type, module: this,
             applies: ['context'], callback: 'show_psql_tool',
             priority: 998, label: gettext('PSQL Tool'),
+            permission: AllPermissionTypes.TOOLS_PSQL_TOOL,
           }]);
         }
       }
@@ -247,6 +257,7 @@ define('pgadmin.browser.node', [
               data_disabled: gettext('The selected tree node does not support this option.'),
             },
             enable: self.check_user_permission,
+            permission: AllPermissionTypes.TOOLS_QUERY_TOOL,
           }]);
         });
       }
@@ -382,7 +393,7 @@ define('pgadmin.browser.node', [
 
           treeNodeInfo = pgBrowser.tree.getTreeNodeHierarchy(nodeItem);
           const panelId = _.uniqueId(BROWSER_PANELS.EDIT_PROPERTIES);
-          const onClose = (force=false)=>pgBrowser.docker.close(panelId, force);
+          const onClose = (force=false)=>{ pgBrowser.docker.default_workspace.close(panelId, force); };
           const onSave = (newNodeData)=>{
             // Clear the cache for this node now.
             setTimeout(()=>{
@@ -412,7 +423,7 @@ define('pgadmin.browser.node', [
           // browser tree upon the 'Save' button click.
           treeNodeInfo = pgBrowser.tree.getTreeNodeHierarchy(nodeItem);
           const panelId = _.uniqueId(BROWSER_PANELS.EDIT_PROPERTIES);
-          const onClose = (force=false)=>pgBrowser.docker.close(panelId, force);
+          const onClose = (force=false)=>{ pgBrowser.docker.default_workspace.close(panelId, force); };
           const onSave = (newNodeData)=>{
             // Clear the cache for this node now.
             setTimeout(()=>{
@@ -438,7 +449,7 @@ define('pgadmin.browser.node', [
           });
         } else {
           const panelId = BROWSER_PANELS.EDIT_PROPERTIES+nodeData.id;
-          const onClose = (force=false)=>pgBrowser.docker.close(panelId, force);
+          const onClose = (force=false)=>{ pgBrowser.docker.default_workspace.close(panelId, force); };
           const onSave = (newNodeData)=>{
             let _old = nodeData,
               _new = newNodeData.node,
@@ -466,7 +477,7 @@ define('pgadmin.browser.node', [
             );
             onClose();
           };
-          if(pgBrowser.docker.find(panelId)) {
+          if(pgBrowser.docker.default_workspace.find(panelId)) {
             let msg = gettext('Are you sure want to stop editing the properties of %s "%s"?');
             if (args.action == 'edit') {
               msg = gettext('Are you sure want to reset the current changes and re-open the panel for %s "%s"?');
@@ -521,13 +532,13 @@ define('pgadmin.browser.node', [
         let msg, title;
 
         if (input.url == 'delete' && d._type === 'database') {
-          msg = gettext('Delete database with the force option will attempt to terminate all existing connections to the <b>"%s"</b> database. Are you sure you want to proceed?', d.label);
-          title = gettext('Delete FORCE %s?', obj.label);
+          msg = gettext('Drop database with the force option will attempt to terminate all existing connections to the <b>"%s"</b> database. Are you sure you want to proceed?', d.label);
+          title = gettext('Drop FORCE %s?', obj.label);
 
         } else if (input.url == 'delete') {
-          msg = gettext('Are you sure you want to delete %s <b>"%s"</b> and all the objects that depend on it?',
+          msg = gettext('Are you sure you want to drop the %s <b>"%s"</b> and all the objects that depend on it?',
             obj.label.toLowerCase(), d.label);
-          title = gettext('Delete CASCADE %s?', obj.label);
+          title = gettext('Drop CASCADE %s?', obj.label);
 
           if (!(_.isFunction(obj.canDropCascade) ?
             obj.canDropCascade(d, i) : obj.canDropCascade)) {
@@ -539,11 +550,11 @@ define('pgadmin.browser.node', [
           }
         } else {
           if (obj.dropAsRemove) {
-            msg = gettext('Are you sure you want to remove %s "%s"?', obj.label.toLowerCase(), d.label);
+            msg = gettext('Are you sure you want to remove the %s <b>"%s"</b>?', obj.label.toLowerCase(), d.label);
             title = gettext('Remove %s?', obj.label);
           } else {
-            msg = gettext('Are you sure you want to delete %s <b>"%s"</b>?', obj.label.toLowerCase(), d.label);
-            title = gettext('Delete %s?', obj.label);
+            msg = gettext('Are you sure you want to drop the %s <b>"%s"</b>?', obj.label.toLowerCase(), d.label);
+            title = gettext('Drop %s?', obj.label);
           }
 
           if (!(_.isFunction(obj.canDrop) ?
@@ -555,7 +566,7 @@ define('pgadmin.browser.node', [
             return;
           }
         }
-        pgAdmin.Browser.notifier.confirm(title, msg,
+        pgAdmin.Browser.notifier.confirmDelete(title, msg,
           function() {
             getApiInstance().delete(
               obj.generate_url(i, input.url, d, true),
@@ -592,7 +603,10 @@ define('pgadmin.browser.node', [
               }
               pgAdmin.Browser.notifier.alert(gettext('Error dropping/removing %s: "%s"', obj.label, objName), errmsg);
             });
-          }
+          },
+          () => {},
+          obj.dropAsRemove ? gettext('Remove') : gettext('Drop'),
+          gettext('Cancel'),
         );
       },
       // Callback for creating script(s) & opening them in Query editor
@@ -720,9 +734,19 @@ define('pgadmin.browser.node', [
             _item.clear_cache.apply(_item);
           }, 0);
         }
-        pgBrowser.Events.trigger('pgadmin:browser:tree:expand-from-previous-tree-state',
-          item);
         pgBrowser.Node.callbacks.change_server_background(item, data);
+        // Suppress added tree event being called during object search operations
+        // where tree.select clashes due to previous tree state restore
+        const suppressPath = pgBrowser.tree.suppressEventsForPath;
+        if (suppressPath) {
+          if (item.path === suppressPath) {
+            pgBrowser.tree.suppressEventsForPath = null;
+          } else {
+            return;
+          }
+        }
+
+        pgBrowser.Events.trigger('pgadmin:browser:tree:expand-from-previous-tree-state', item);
       },
       // Callback called - when a node is selected in browser tree.
       selected: function(item, data) {
@@ -741,6 +765,11 @@ define('pgadmin.browser.node', [
         pgBrowser.Events.trigger('pgadmin:browser:tree:update-tree-state',
           item);
         return true;
+      },
+      // Callback called - when a node is deselected in browser tree.
+      deselected: function() {
+        // The following call disables all menus mapped to any selected tree node.
+        pgAdmin.Browser.enable_disable_menus.apply(pgBrowser, []);
       },
       removed: function(item) {
         let self = this;
@@ -763,6 +792,16 @@ define('pgadmin.browser.node', [
       opened: function(item) {
         let tree = pgBrowser.tree,
           auto_expand = usePreferences.getState().getPreferences('browser', 'auto_expand_sole_children');
+        // Suppress opened tree event being called during object search operations
+        // where tree.select clashes due to only child of parent opens automatically.
+        const suppressPath = pgBrowser.tree.suppressEventsForPath;
+        if (suppressPath) {
+          if (item.path === suppressPath) {
+            pgBrowser.tree.suppressEventsForPath = null;
+          } else {
+            return;
+          }
+        }
 
         if (auto_expand?.value && tree.children(item).length == 1) {
           // Automatically expand the child node, if a treeview node has only a single child.
@@ -838,10 +877,10 @@ define('pgadmin.browser.node', [
       if(update) {
         dialogProps.onClose(true);
         setTimeout(()=>{
-          pgBrowser.docker.openDialog(panelData, w, h);
+          pgBrowser.docker.default_workspace.openDialog(panelData, w, h);
         }, 10);
       } else {
-        pgBrowser.docker.openDialog(panelData, w, h);
+        pgBrowser.docker.default_workspace.openDialog(panelData, w, h);
       }
     },
     _find_parent_node: function(t, i, d) {
@@ -935,9 +974,7 @@ define('pgadmin.browser.node', [
     cache: function(url, node_info, level, data) {
       let cached = this.cached = this.cached || {},
         hash = url,
-        min_priority = (
-          node_info?.[level] && node_info?.[level].priority
-        ) || 0;
+        min_priority = node_info?.[level]?.priority || 0;
 
       if (node_info) {
         _.each(_.sortBy(_.values(_.pickBy(

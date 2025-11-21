@@ -2,7 +2,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2024, The pgAdmin Development Team
+# Copyright (C) 2013 - 2025, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 ##########################################################################
@@ -10,22 +10,21 @@
 import json
 import logging
 import os
+import secrets
 import sys
 from abc import ABCMeta, abstractmethod
 from smtplib import SMTPConnectError, SMTPResponseException, \
     SMTPServerDisconnected, SMTPDataError, SMTPHeloError, SMTPException, \
     SMTPAuthenticationError, SMTPSenderRefused, SMTPRecipientsRefused
 from socket import error as SOCKETErrorException
-from urllib.request import urlopen
-from pgadmin.utils.constants import KEY_RING_SERVICE_NAME, \
-    KEY_RING_USERNAME_FORMAT, KEY_RING_DESKTOP_USER, KEY_RING_TUNNEL_FORMAT, \
-    MessageType
-
-import time
 
 import keyring
+from keyring.errors import KeyringLocked, NoKeyringError
+from pgadmin.utils.constants import KEY_RING_SERVICE_NAME, \
+    KEY_RING_USER_NAME,MessageType
+
 from flask import current_app, render_template, url_for, make_response, \
-    flash, Response, request, after_this_request, redirect, session
+    flash, Response, request, redirect, session
 from flask_babel import gettext
 from libgravatar import Gravatar
 from flask_security import current_user
@@ -44,34 +43,30 @@ from werkzeug.datastructures import MultiDict
 import config
 from pgadmin import current_blueprint
 from pgadmin.authenticate import get_logout_url
-from pgadmin.authenticate.mfa.utils import mfa_required, is_mfa_enabled
-from pgadmin.settings import get_setting, store_setting
+from pgadmin.authenticate.mfa.utils import is_mfa_enabled
+from pgadmin.settings import get_setting, get_layout
 from pgadmin.utils import PgAdminModule
 from pgadmin.utils.ajax import make_json_response, internal_server_error, \
     bad_request
 from pgadmin.utils.csrf import pgCSRFProtect
 from pgadmin.utils.preferences import Preferences
-from pgadmin.utils.menu import MenuItem
 from pgadmin.browser.register_browser_preferences import \
     register_browser_preferences
 from pgadmin.utils.master_password import validate_master_password, \
     set_masterpass_check_text, cleanup_master_password, get_crypt_key, \
-    set_crypt_key, process_masterpass_disabled
+    set_crypt_key, process_masterpass_disabled, \
+    delete_local_storage_master_key, \
+    get_master_password_key_from_os_secret, \
+    get_master_password_from_master_hook
 from pgadmin.model import User, db
-from pgadmin.utils.constants import MIMETYPE_APP_JS, PGADMIN_NODE,\
-    INTERNAL, KERBEROS, LDAP, QT_DEFAULT_PLACEHOLDER, OAUTH2, WEBSERVER,\
-    VW_EDT_DEFAULT_PLACEHOLDER
+from pgadmin.utils.constants import MIMETYPE_APP_JS, PGADMIN_NODE, \
+    INTERNAL, KERBEROS, LDAP, QT_DEFAULT_PLACEHOLDER, OAUTH2, WEBSERVER, \
+    VW_EDT_DEFAULT_PLACEHOLDER, NO_CACHE_CONTROL
 from pgadmin.authenticate import AuthSourceManager
 from pgadmin.utils.exception import CryptKeyMissing
 
 from pgadmin.user_login_check import pga_login_required
-
-try:
-    from flask_security.views import default_render_json
-except ImportError as e:
-    # Support Flask-Security-Too == 3.2
-    if sys.version_info < (3, 8):
-        from flask_security.views import _render_json as default_render_json
+from flask_security.views import default_render_json
 
 MODULE_NAME = 'browser'
 BROWSER_STATIC = 'browser.static'
@@ -80,7 +75,7 @@ PGADMIN_BROWSER = 'pgAdmin.Browser'
 PASS_ERROR_MSG = gettext('Your password has not been changed.')
 SMTP_SOCKET_ERROR = gettext(
     'SMTP Socket error: {error}\n {pass_error}').format(
-        error={}, pass_error=PASS_ERROR_MSG)
+    error={}, pass_error=PASS_ERROR_MSG)
 SMTP_ERROR = gettext('SMTP error: {error}\n {pass_error}').format(
     error={}, pass_error=PASS_ERROR_MSG)
 PASS_ERROR = gettext('Error: {error}\n {pass_error}').format(
@@ -405,12 +400,6 @@ def index():
             'pass_enc_key' in session:
         session['allow_save_password'] = False
 
-    response = Response(render_template(
-        MODULE_NAME + "/index.html",
-        username=current_user.username,
-        _=gettext
-    ))
-
     # Set the language cookie after login, so next time the user will have that
     # same option at the login time.
     misc_preference = Preferences.module('misc')
@@ -421,10 +410,21 @@ def index():
     if user_languages:
         language = user_languages.get() or 'en'
 
+    # Get the theme preference
+    user_theme = misc_preference.preference('theme')
+    theme = user_theme.get() or 'light' if user_theme else 'light'
+
     domain = dict()
     if config.COOKIE_DEFAULT_DOMAIN and\
             config.COOKIE_DEFAULT_DOMAIN != 'localhost':
         domain['domain'] = config.COOKIE_DEFAULT_DOMAIN
+
+    response = Response(render_template(
+        MODULE_NAME + "/index.html",
+        username=current_user.username,
+        theme=theme,
+        _=gettext
+    ))
 
     response.set_cookie("PGADMIN_LANGUAGE", value=language,
                         path=config.SESSION_COOKIE_PATH,
@@ -474,39 +474,14 @@ def get_shared_storage_list():
 @pgCSRFProtect.exempt
 @pga_login_required
 def utils():
-    layout = get_setting('Browser/Layout', default='')
+    layout = get_layout()
+
     snippets = []
 
     prefs = Preferences.module('paths')
     pg_help_path_pref = prefs.preference('pg_help_path')
     pg_help_path = pg_help_path_pref.get()
 
-    # Added to have theme value available at app start page loading
-    prefs = Preferences.module('misc')
-    theme = prefs.preference('theme').get()
-
-    # Get sqleditor options
-    prefs = Preferences.module('sqleditor')
-
-    editor_tab_size_pref = prefs.preference('tab_size')
-    editor_tab_size = editor_tab_size_pref.get()
-
-    editor_use_spaces_pref = prefs.preference('use_spaces')
-    editor_use_spaces = editor_use_spaces_pref.get()
-
-    editor_wrap_code_pref = prefs.preference('wrap_code')
-    editor_wrap_code = editor_wrap_code_pref.get()
-
-    brace_matching_pref = prefs.preference('brace_matching')
-    brace_matching = brace_matching_pref.get()
-
-    insert_pair_brackets_perf = prefs.preference('insert_pair_brackets')
-    insert_pair_brackets = insert_pair_brackets_perf.get()
-
-    # This will be opposite of use_space option
-    editor_indent_with_tabs = False if editor_use_spaces else True
-
-    prefs = Preferences.module('browser')
     # Try to fetch current libpq version from the driver
     try:
         from config import PG_DEFAULT_DRIVER
@@ -515,17 +490,6 @@ def utils():
         pg_libpq_version = driver.libpq_version()
     except Exception:
         pg_libpq_version = 0
-
-    # Get the pgadmin server's locale
-    default_locale = ''
-    if current_app.PGADMIN_RUNTIME:
-        import locale
-        try:
-            locale_info = locale.getdefaultlocale()
-            if len(locale_info) > 0:
-                default_locale = locale_info[0].replace('_', '-')
-        except Exception:
-            current_app.logger.debug('Failed to get the default locale.')
 
     for submodule in current_blueprint.submodules:
         snippets.extend(submodule.jssnippets)
@@ -542,19 +506,12 @@ def utils():
     shared_storage_list, \
         restricted_shared_storage_list = get_shared_storage_list()
 
-    return make_response(
+    response = make_response(
         render_template(
             'browser/js/utils.js',
             layout=layout,
-            theme=theme,
             jssnippets=snippets,
             pg_help_path=pg_help_path,
-            editor_tab_size=editor_tab_size,
-            editor_use_spaces=editor_use_spaces,
-            editor_wrap_code=editor_wrap_code,
-            editor_brace_matching=brace_matching,
-            editor_insert_pair_brackets=insert_pair_brackets,
-            editor_indent_with_tabs=editor_indent_with_tabs,
             app_name=config.APP_NAME,
             app_version_int=config.APP_VERSION_INT,
             pg_libpq_version=pg_libpq_version,
@@ -564,7 +521,6 @@ def utils():
             qt_default_placeholder=QT_DEFAULT_PLACEHOLDER,
             vw_edt_default_placeholder=VW_EDT_DEFAULT_PLACEHOLDER,
             enable_psql=config.ENABLE_PSQL,
-            pgadmin_server_locale=default_locale,
             _=gettext,
             auth_only_internal=auth_only_internal,
             mfa_enabled=is_mfa_enabled(),
@@ -578,8 +534,11 @@ def utils():
             restricted_shared_storage_list=[] if current_user.has_role(
                 "Administrator") else restricted_shared_storage_list,
             enable_server_passexec_cmd=config.ENABLE_SERVER_PASS_EXEC_CMD,
-        ),
-        200, {'Content-Type': MIMETYPE_APP_JS})
+            max_server_tags_allowed=config.MAX_SERVER_TAGS_ALLOWED,
+        ), 200)
+    response.headers['Content-Type'] = MIMETYPE_APP_JS
+    response.headers['Cache-Control'] = NO_CACHE_CONTROL
+    return response
 
 
 @blueprint.route("/js/endpoints.js")
@@ -636,14 +595,13 @@ def get_nodes():
 
 
 def form_master_password_response(existing=True, present=False, errmsg=None,
-                                  keyring_name='',
-                                  invalid_master_password_hook=False):
+                                  keyring_name='', master_password_hook=False):
     return make_json_response(data={
         'present': present,
         'reset': existing,
         'errmsg': errmsg,
         'keyring_name': keyring_name,
-        'invalid_master_password_hook': invalid_master_password_hook,
+        'master_password_hook': master_password_hook,
         'is_error': True if errmsg else False
     })
 
@@ -678,17 +636,14 @@ def reset_master_password():
     Removes the master password and remove all saved passwords
     This password will be used to encrypt/decrypt saved server passwords
     """
-    if not config.DISABLED_LOCAL_PASSWORD_STORAGE:
-        # This is to set the Desktop user password so it will not ask for
-        # migrate exiting passwords as those are getting cleared
-        keyring.set_password(KEY_RING_SERVICE_NAME,
-                             KEY_RING_DESKTOP_USER.format(
-                                 current_user.username), 'test')
     cleanup_master_password()
     status, crypt_key = get_crypt_key()
+    if not status and config.MASTER_PASSWORD_HOOK:
+        crypt_key = get_master_password_from_master_hook()
+
     # Set masterpass_check if MASTER_PASSWORD_HOOK is set which provides
     # encryption key
-    if config.MASTER_PASSWORD_REQUIRED and config.MASTER_PASSWORD_HOOK:
+    if config.SERVER_MODE and config.MASTER_PASSWORD_HOOK:
         set_masterpass_check_text(crypt_key)
     return make_json_response(data=status)
 
@@ -700,9 +655,7 @@ def set_master_password():
     Set the master password and store in the memory
     This password will be used to encrypt/decrypt saved server passwords
     """
-
     data = None
-
     if request.form:
         data = request.form
     elif request.data:
@@ -713,130 +666,110 @@ def set_master_password():
         if data != '':
             data = json.loads(data)
 
-    if not config.DISABLED_LOCAL_PASSWORD_STORAGE and \
-            (config.ALLOW_SAVE_PASSWORD or config.ALLOW_SAVE_TUNNEL_PASSWORD):
-        if data.get('password') and config.MASTER_PASSWORD_REQUIRED and\
-                not validate_master_password(data.get('password')):
-            return form_master_password_response(
-                present=False,
-                keyring_name=config.KEYRING_NAME,
-                errmsg=gettext("Incorrect master password")
-            )
-        from pgadmin.model import Server
-        from pgadmin.utils.crypto import decrypt
-        desktop_user = current_user
+    keyring_name = ''
+    errmsg = ''
+    master_password_hook = False
+    if not config.SERVER_MODE:
+        if config.USE_OS_SECRET_STORAGE:
+            try:
+                # Try to get master key is from local os storage
+                master_key = get_master_password_key_from_os_secret()
+                master_password = data.get('password', None)
+                keyring_name = config.KEYRING_NAME
+                if not master_key:
+                    # Generate new one and migration required
+                    master_key = secrets.token_urlsafe(12)
+                    keyring.delete_password(KEY_RING_SERVICE_NAME,
+                                            'entry_to_check_keychain_access')
+                    # migrate existing server passwords
+                    from pgadmin.browser.server_groups.servers.utils \
+                        import migrate_saved_passwords
+                    migrated_save_passwords, error = migrate_saved_passwords(
+                        master_key, master_password)
 
-        enc_key = data['password']
-        if not config.MASTER_PASSWORD_REQUIRED:
-            status, enc_key = get_crypt_key()
-            if not status:
-                raise CryptKeyMissing
-
-        try:
-            all_server = Server.query.all()
-            saved_password_servers = [server for server in all_server if
-                                      server.save_password]
-            # pgAdmin will use the OS password manager to store the server
-            # password, here migrating the existing saved server password to
-            # OS password manager
-            if len(saved_password_servers) > 0 and (keyring.get_password(
-                    KEY_RING_SERVICE_NAME, KEY_RING_DESKTOP_USER.format(
-                        desktop_user.username)) or enc_key):
-                is_migrated = False
-
-                for server in saved_password_servers:
-                    if enc_key:
-                        if server.password and config.ALLOW_SAVE_PASSWORD:
-                            name = KEY_RING_USERNAME_FORMAT.format(server.name,
-                                                                   server.id)
-                            password = decrypt(server.password,
-                                               enc_key).decode()
-                            # Store the password using OS password manager
-                            keyring.set_password(KEY_RING_SERVICE_NAME, name,
-                                                 password)
-                            is_migrated = True
-                            setattr(server, 'password', None)
-
-                        if server.tunnel_password and \
-                                config.ALLOW_SAVE_TUNNEL_PASSWORD:
-                            tname = KEY_RING_TUNNEL_FORMAT.format(server.name,
-                                                                  server.id)
-                            tpassword = decrypt(server.tunnel_password,
-                                                enc_key).decode()
-                            # Store the password using OS password manager
-                            keyring.set_password(KEY_RING_SERVICE_NAME, tname,
-                                                 tpassword)
-                            is_migrated = True
-                            setattr(server, 'tunnel_password', None)
-
-                db.session.commit()
-
-                # Store the password using OS password manager
-                keyring.set_password(KEY_RING_SERVICE_NAME,
-                                     KEY_RING_DESKTOP_USER.format(
-                                         desktop_user.username), 'test')
-                return form_master_password_response(
-                    existing=True,
-                    present=True,
-                    keyring_name=config.KEYRING_NAME if is_migrated else ''
-                )
-            else:
-                if len(all_server) == 0:
-                    # Store the password using OS password manager
-                    keyring.set_password(KEY_RING_SERVICE_NAME,
-                                         KEY_RING_DESKTOP_USER.format(
-                                             desktop_user.username), 'test')
-                    return form_master_password_response(
-                        present=True,
-                    )
-                else:
-                    is_master_password_present = True
-                    keyring_name = ''
-                    for server in all_server:
-                        is_password_present = \
-                            server.save_password or server.tunnel_password
-                        if server.password and is_password_present:
-                            is_master_password_present = False
-                            keyring_name = config.KEYRING_NAME
-                            break
-
-                    if is_master_password_present:
-                        # Store the password using OS password manager
+                    if migrated_save_passwords:
+                        # Update keyring
                         keyring.set_password(KEY_RING_SERVICE_NAME,
-                                             KEY_RING_DESKTOP_USER.format(
-                                                 desktop_user.username),
-                                             'test')
-
+                                             KEY_RING_USER_NAME,
+                                             master_key)
+                        # set crypt key
+                        set_crypt_key(master_key)
+                        return form_master_password_response(
+                            existing=True,
+                            present=True,
+                            keyring_name=keyring_name)
+                    else:
+                        if not error:
+                            # Update keyring
+                            keyring.set_password(KEY_RING_SERVICE_NAME,
+                                                 KEY_RING_USER_NAME,
+                                                 master_key)
+                            set_crypt_key(master_key)
+                            return form_master_password_response(
+                                present=True)
+                        # Migration failed
+                        elif error != 'Master password required':
+                            errmsg = error
+                            return form_master_password_response(
+                                existing=False,
+                                present=True,
+                                errmsg=errmsg,
+                                keyring_name=keyring_name)
+                else:
+                    current_app.logger.debug(
+                        'Master key was already present in the keyring,'
+                        'hence not doing any migration')
+                    # Key is already generated and set, no migration required
+                    # set crypt key
+                    set_crypt_key(master_key)
                     return form_master_password_response(
-                        present=is_master_password_present,
-                        keyring_name=keyring_name
-                    )
-        except Exception as e:
-            current_app.logger.warning(
-                'Fail set password using OS password manager'
-                ', fallback to master password. Error: {0}'.format(e)
-            )
-            config.DISABLED_LOCAL_PASSWORD_STORAGE = True
+                        present=True)
+            except Exception as e:
+                error = 'Failed to get/set encryption key using OS password ' \
+                        'manager because of exception.' \
+                        ' Error: {0}'.format(e)
+                current_app.logger.exception(error)
+                # Disable local os storage if any exception other than
+                # access denied
+                if not isinstance(e, KeyringLocked):
+                    config.USE_OS_SECRET_STORAGE = False
+                    # delete key if exception other than no keyring backend
+                    # error
+                    if not isinstance(e, NoKeyringError):
+                        delete_local_storage_master_key()
 
-    # If the master password is required and the master password hook
-    # is specified then try to retrieve the encryption key and update data.
-    # If there is an error while retrieving it, return an error message.
-    if config.SERVER_MODE and config.MASTER_PASSWORD_REQUIRED and \
-            config.MASTER_PASSWORD_HOOK:
-        status, enc_key = get_crypt_key()
-        if status:
-            data = {'password': enc_key, 'submit_password': True}
-        else:
-            error = gettext('The master password could not be retrieved from '
-                            'the MASTER_PASSWORD_HOOK utility specified {0}.'
-                            'Please check that the hook utility is configured'
-                            ' correctly.'.format(config.MASTER_PASSWORD_HOOK))
-            return form_master_password_response(
-                existing=False,
-                present=False,
-                errmsg=error,
-                invalid_master_password_hook=True
-            )
+                    # Delete saved password encrypted with keychain master key
+                #     from pgadmin.browser.server_groups.servers.utils \
+                #         import remove_saved_passwords, update_session_manager
+                #     remove_saved_passwords(current_user.id)
+                #     update_session_manager(current_user.id)
+                #
+                # return form_master_password_response(
+                #     existing=False,
+                #     present=True,
+                #     errmsg=errmsg,
+                #     keyring_name=keyring_name)
+    else:
+        # If the master password is required and the master password hook
+        # is specified then try to retrieve the encryption key and update data.
+        # If there is an error while retrieving it, return an error message.
+        if config.MASTER_PASSWORD_REQUIRED and config.MASTER_PASSWORD_HOOK:
+            master_password = get_master_password_from_master_hook()
+            if master_password:
+                data = {'password': master_password, 'submit_password': True}
+            else:
+                errmsg = gettext(
+                    'The master password could not be retrieved from the'
+                    ' MASTER_PASSWORD_HOOK utility specified {0}. Please check'
+                    ' that the hook utility is configured correctly.'.format(
+                        config.MASTER_PASSWORD_HOOK))
+                return form_master_password_response(
+                    existing=False,
+                    present=False,
+                    errmsg=errmsg,
+                    master_password_hook=config.MASTER_PASSWORD_HOOK,
+                    keyring_name=keyring_name
+                )
 
     # Master password is applicable for Desktop mode and in server mode
     # only when auth sources are oauth, kerberos, webserver.
@@ -848,20 +781,21 @@ def set_master_password():
         if current_user.masterpass_check is not None and \
             data.get('submit_password', False) and \
                 not validate_master_password(data.get('password')):
-            errmsg = '' if config.MASTER_PASSWORD_HOOK \
-                else gettext("Incorrect master password")
-            invalid_master_password_hook = \
-                True if config.MASTER_PASSWORD_HOOK else False
+
+            if config.SERVER_MODE and config.MASTER_PASSWORD_HOOK:
+                master_password_hook = True
+            else:
+                errmsg = gettext("Incorrect master password")
             return form_master_password_response(
                 existing=True,
                 present=False,
                 errmsg=errmsg,
-                invalid_master_password_hook=invalid_master_password_hook
+                master_password_hook=master_password_hook,
+                keyring_name=keyring_name
             )
 
         # if master password received in request
         if data != '' and data.get('password', '') != '':
-
             # store the master pass in the memory
             set_crypt_key(data.get('password'))
 
@@ -869,7 +803,6 @@ def set_master_password():
                 # master check is not set, which means the server password
                 # data is old and is encrypted with old key
                 # Re-encrypt with new key
-
                 from pgadmin.browser.server_groups.servers.utils \
                     import reencrpyt_server_passwords
                 reencrpyt_server_passwords(
@@ -882,13 +815,14 @@ def set_master_password():
 
         # If password in request is empty then try to get it with
         # get_crypt_key method. If get_crypt_key() returns false status and
-        # masterpass_check is already set, provide a pop to enter
+        # masterpass_check is already set, provide a popup to enter
         # master password(present) without the reset option.(existing).
         elif not get_crypt_key()[0] and \
                 current_user.masterpass_check is not None:
             return form_master_password_response(
                 existing=True,
                 present=False,
+                keyring_name=keyring_name
             )
 
         # If get_crypt_key return True,but crypt_key is none and
@@ -901,7 +835,8 @@ def set_master_password():
             return form_master_password_response(
                 existing=False,
                 present=False,
-                errmsg=error_message
+                errmsg=error_message,
+                keyring_name=keyring_name
             )
 
     # if master password is disabled now, but was used once then
@@ -909,7 +844,6 @@ def set_master_password():
     process_masterpass_disabled()
 
     if config.SERVER_MODE and current_user.masterpass_check is None:
-
         crypt_key = get_crypt_key()[1]
         from pgadmin.browser.server_groups.servers.utils \
             import reencrpyt_server_passwords
@@ -926,8 +860,6 @@ def set_master_password():
 # Only register route if SECURITY_CHANGEABLE is set to True
 # We can't access app context here so cannot
 # use app.config['SECURITY_CHANGEABLE']
-
-
 if hasattr(config, 'SECURITY_CHANGEABLE') and config.SECURITY_CHANGEABLE:
     @blueprint.route("/change_password", endpoint="change_password",
                      methods=['GET', 'POST'])
@@ -1108,8 +1040,7 @@ if hasattr(config, 'SECURITY_RECOVERABLE') and config.SECURITY_RECOVERABLE:
         form_class = _security.forms.get('reset_password_form').cls
         form = form_class(request.form) if request.form else form_class()
 
-        if sys.version_info >= (3, 8):
-            form.user = user
+        form.user = user
 
         if form.validate_on_submit():
             try:

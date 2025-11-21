@@ -2,7 +2,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2024, The pgAdmin Development Team
+# Copyright (C) 2013 - 2025, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 ##########################################################################
@@ -18,10 +18,11 @@ from pgadmin.utils.menu import MenuItem
 from pgadmin.utils.constants import MIMETYPE_APP_JS
 from pgadmin.utils.ajax import make_json_response
 import config
-import httpagentparser
 from pgadmin.model import User
 from user_agents import parse
 import platform
+import re
+import sys
 
 MODULE_NAME = 'about'
 
@@ -59,21 +60,23 @@ def index():
     """Render the about box."""
     info = {}
     # Get OS , NW.js, Browser details
-    browser, os_details, nwjs_version = detect_browser(request)
+    browser, os_details, electron_version = detect_browser(request)
     admin = is_admin(current_user.email)
 
-    if nwjs_version:
-        info['nwjs'] = nwjs_version
+    if electron_version:
+        info['electron'] = electron_version
 
     if config.SERVER_MODE:
         info['app_mode'] = gettext('Server')
     else:
         info['app_mode'] = gettext('Desktop')
 
+    info['commit_hash'] = getattr(config, 'COMMIT_HASH', None)
     info['browser_details'] = browser
     info['version'] = config.APP_VERSION
     info['admin'] = admin
     info['current_user'] = current_user.email
+    info['python_version'] = sys.version.split(" ", maxsplit=1)[0]
 
     if admin:
         settings = ""
@@ -118,32 +121,29 @@ def is_admin(load_user):
 
 def detect_browser(request):
     """This function returns the browser and os details"""
-    nwjs_version = None
+    electron_version = None
     agent = request.environ.get('HTTP_USER_AGENT')
-    os_details = parse(platform.platform()).ua_string
 
-    if 'Nwjs' in agent:
-        agent = agent.split('-')
-        nwjs_version = agent[0].split(':')[1]
-        browser = 'Chromium' + ' ' + agent[2]
+    try:
+        # available only for python 3.10 and above
+        os_release = platform.freedesktop_os_release()
+        os_details = os_release.get('PRETTY_NAME', '')
+        if os_details:
+            os_details += ', '
+    except Exception as _:
+        os_details = ''
 
+    os_details += parse(platform.platform()).ua_string
+
+    if 'Electron' in agent:
+        electron_version = re.findall('Electron/([\\d.]+\\d+)', agent)[0]
+
+    browser = re.findall(
+        '(opera|chrome|safari|firefox|msie|trident(?=/))/?\\s*([\\d.]+\\d+)',
+        agent, re.IGNORECASE)
+    if not browser:
+        browser = agent.split('/')[0]
     else:
-        browser = httpagentparser.detect(agent)
-        if not browser:
-            browser = agent.split('/')[0]
-        else:
-            browser = browser['browser']['name'] + ' ' + browser['browser'][
-                'version']
+        browser = " ".join(browser[0])
 
-    return browser, os_details, nwjs_version
-
-
-@blueprint.route("/about.js")
-@pga_login_required
-def script():
-    """render the required javascript"""
-    return Response(
-        response=render_template("about/about.js", _=gettext),
-        status=200,
-        mimetype=MIMETYPE_APP_JS
-    )
+    return browser, os_details, electron_version

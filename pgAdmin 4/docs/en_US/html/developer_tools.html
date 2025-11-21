@@ -7,12 +7,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Developer Tools &#8212; pgAdmin 4 8.7 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <title>Developer Tools &#8212; pgAdmin 4 9.6 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/style.css?v=d36593c3" />
     
-    <script src="_static/documentation_options.js?v=70b0b77f"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/documentation_options.js?v=a51d793f"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     
     <script src="_static/sidebar.js"></script>
@@ -22,7 +22,7 @@
     <link rel="next" title="Debugger" href="debugger.html" />
     <link rel="prev" title="Restore Dialog" href="restore_dialog.html" /> 
   </head><body>
-    <div class="related" role="navigation" aria-label="related navigation">
+    <div class="related" role="navigation" aria-label="Related">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="restore_dialog.html" title="Restore Dialog"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 9.6 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Developer Tools</a></li> 
       </ul>
     </div>  
@@ -58,6 +58,7 @@ PL/SQL code.</p>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="query_tool.html">Query Tool</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="query_tool.html#query-tool-in-workspace-layout">Query Tool in Workspace Layout</a></li>
 <li class="toctree-l2"><a class="reference internal" href="query_tool.html#toolbar">Toolbar</a></li>
 <li class="toctree-l2"><a class="reference internal" href="query_tool.html#the-sql-editor-panel">The SQL Editor Panel</a></li>
 <li class="toctree-l2"><a class="reference internal" href="query_tool.html#query-history-panel">Query History Panel</a></li>
@@ -69,6 +70,7 @@ PL/SQL code.</p>
 <li class="toctree-l2"><a class="reference internal" href="query_tool.html#connection-status">Connection Status</a></li>
 <li class="toctree-l2"><a class="reference internal" href="query_tool.html#change-connection">Change connection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="query_tool.html#macros">Macros</a></li>
+<li class="toctree-l2"><a class="reference internal" href="query_tool.html#server-side-cursor">Server Side Cursor</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="editgrid.html">View/Edit Data</a><ul>
@@ -79,8 +81,7 @@ PL/SQL code.</p>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="schema_diff.html">Schema Diff</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="schema_diff.html#the-schema-diff-object-comparison-panel">The Schema Diff Object Comparison Panel</a></li>
-<li class="toctree-l2"><a class="reference internal" href="schema_diff.html#schema-diff-ddl-comparison-panel">Schema Diff DDL Comparison Panel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="schema_diff.html#schema-diff-in-workspace-layout">Schema Diff in Workspace Layout</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="erd_tool.html">ERD Tool</a><ul>
@@ -94,13 +95,17 @@ PL/SQL code.</p>
 <li class="toctree-l2"><a class="reference internal" href="erd_tool.html#zoom-options">Zoom Options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="erd_tool.html#table-dialog">Table Dialog</a></li>
 <li class="toctree-l2"><a class="reference internal" href="erd_tool.html#table-node">Table Node</a></li>
+<li class="toctree-l2"><a class="reference internal" href="erd_tool.html#the-one-to-one-link-dialog">The One to One Link Dialog</a></li>
 <li class="toctree-l2"><a class="reference internal" href="erd_tool.html#the-one-to-many-link-dialog">The One to Many Link Dialog</a></li>
 <li class="toctree-l2"><a class="reference internal" href="erd_tool.html#the-many-to-many-link-dialog">The Many to Many Link Dialog</a></li>
 <li class="toctree-l2"><a class="reference internal" href="erd_tool.html#the-table-link">The Table Link</a></li>
 <li class="toctree-l2"><a class="reference internal" href="erd_tool.html#the-table-notes">The Table Notes</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="psql_tool.html">PSQL Tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="psql_tool.html">PSQL Tool</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="psql_tool.html#psql-tool-in-workspace-layout">PSQL Tool in Workspace Layout</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </section>
@@ -110,7 +115,7 @@ PL/SQL code.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <h3><a href="index.html">Table of Contents</a></h3>
 <ul class="current">
@@ -156,7 +161,7 @@ PL/SQL code.</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
+    <div class="related" role="navigation" aria-label="Related">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -168,17 +173,17 @@ PL/SQL code.</p>
         <li class="right" >
           <a href="restore_dialog.html" title="Restore Dialog"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 9.6 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Developer Tools</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         <div class="related" role="navigation" aria-label="related navigation">
           <ul>
-              <li class="left" style="margin-left: 10px">&#169; Copyright (C) 2013 - 2024, The pgAdmin Development Team.</li>
-            <li class="right" style="margin-right: 10px"><a href="genindex.html" title="General Index" accesskey="I">index</a></li>
-            <li class="right" ><a href="debugger.html" title="Debugger" accesskey="N">next</a> |</li>
-            <li class="right" ><a href="restore_dialog.html" title="Restore Dialog" accesskey="P">previous</a> |</li>
+              <li class="left" style="margin-left: 10px">&#169; Copyright (C) 2013 - 2025, The pgAdmin Development Team.</li>
+            <li class="right" style="margin-right: 10px"><a href="genindex.html" title="General Index">index</a></li>
+            <li class="right" ><a href="debugger.html" title="Debugger">next</a> |</li>
+            <li class="right" ><a href="restore_dialog.html" title="Restore Dialog">previous</a> |</li>
           </ul>
         </div>
     </div>

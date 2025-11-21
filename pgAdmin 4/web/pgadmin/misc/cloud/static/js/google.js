@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -18,15 +18,6 @@ import getApiInstance from '../../../../static/js/api_instance';
 import { CloudWizardEventsContext } from './CloudWizard';
 import {MESSAGE_TYPE } from '../../../../static/js/components/FormComponents';
 import gettext from 'sources/gettext';
-import { makeStyles } from '@mui/styles';
-
-const useStyles = makeStyles(() =>
-  ({
-    formClass: {
-      overflow: 'auto',
-    }
-  }),
-);
 
 
 export function GoogleCredentials(props) {
@@ -96,7 +87,7 @@ export function GoogleCredentials(props) {
               })
               .catch((error)=>{
                 clearInterval(interval);
-                reject(error);
+                reject(error instanceof Error ? error : Error(gettext('Something went wrong')));
               });
             countdown = countdown - 1;
           }, 1000);
@@ -126,7 +117,6 @@ GoogleCredentials.propTypes = {
 // Google Instance
 export function GoogleInstanceDetails(props) {
   const [googleInstanceSchema, setGoogleInstanceSchema] = React.useState();
-  const classes = useStyles();
 
   React.useMemo(() => {
     const GoogleClusterSchemaObj = new GoogleClusterSchema({
@@ -186,7 +176,6 @@ export function GoogleInstanceDetails(props) {
     onDataChange={(isChanged, changedData) => {
       props.setGoogleInstanceData(changedData);
     }}
-    formClassName={classes.formClass}
   />;
 }
 GoogleInstanceDetails.propTypes = {
@@ -202,7 +191,6 @@ GoogleInstanceDetails.propTypes = {
 // Google Database Details
 export function GoogleDatabaseDetails(props) {
   const [googleDBInstance, setGoogleDBInstance] = React.useState();
-  const classes = useStyles();
 
   React.useMemo(() => {
     const googleDBSchema = new GoogleDatabaseSchema({
@@ -226,7 +214,6 @@ export function GoogleDatabaseDetails(props) {
     onDataChange={(isChanged, changedData) => {
       props.setGoogleDatabaseData(changedData);
     }}
-    formClassName={classes.formClass}
   />;
 }
 GoogleDatabaseDetails.propTypes = {

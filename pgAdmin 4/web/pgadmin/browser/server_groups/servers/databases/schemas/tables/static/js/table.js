@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -9,6 +9,7 @@
 import { getNodeTableSchema } from './table.ui';
 import _ from 'lodash';
 import getApiInstance from '../../../../../../../../static/js/api_instance';
+import { AllPermissionTypes } from '../../../../../../../static/js/constants';
 
 define('pgadmin.node.table', [
   'pgadmin.tables.js/enable_disable_triggers',
@@ -67,12 +68,14 @@ define('pgadmin.node.table', [
           category: 'create', priority: 1, label: gettext('Table...'),
           data: {action: 'create', check: true},
           enable: 'canCreate',
+          shortcut_preference: ['browser', 'sub_menu_create'],
         },{
           name: 'create_table', node: 'table', module: this,
           applies: ['object', 'context'], callback: 'show_obj_properties',
           category: 'create', priority: 1, label: gettext('Table...'),
           data: {action: 'create', check: true},
           enable: 'canCreate',
+          shortcut_preference: ['browser', 'sub_menu_create'],
         },{
           name: 'create_table__on_schema', node: 'schema', module: this,
           applies: ['object', 'context'], callback: 'show_obj_properties',
@@ -119,15 +122,16 @@ define('pgadmin.node.table', [
         },{
           name: 'count_table_rows', node: 'table', module: this,
           applies: ['object', 'context'], callback: 'count_table_rows',
-          category: 'Count', priority: 2, label: gettext('Count Rows'),
+          priority: 2, label: gettext('Count Rows'),
           enable: true,
         },{
           name: 'generate_erd', node: 'table', module: this,
           applies: ['object', 'context'], callback: 'generate_erd',
-          category: 'erd', priority: 5, label: gettext('ERD For Table'),
+          priority: 5, label: gettext('ERD For Table'),
           enable: (_, item) => {
             return !('catalog' in pgAdmin.Browser.tree.getTreeNodeHierarchy(item));
-          }
+          },
+          permission: AllPermissionTypes.TOOLS_ERD_TOOL,
         }
         ]);
         pgBrowser.Events.on(
@@ -398,11 +402,14 @@ define('pgadmin.node.table', [
           }
           insertChildrenNodes();
         }
+
+        let selectedTable = pgBrowser.tree.selected();
+        pgBrowser.tree.refresh(selectedTable);
       },
       handle_cache: function() {
         // Clear Table's cache as column's type is dependent on two node
         // 1) Type node 2) Domain node
-        this.clear_cache.apply(this, null);
+        this.clear_cache(null);
       },
     });
   }

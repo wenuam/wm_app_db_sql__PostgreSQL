@@ -2,12 +2,12 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
 import React, {useContext, useCallback, useEffect, useState} from 'react';
-import { makeStyles } from '@mui/styles';
+import { styled } from '@mui/material/styles';
 import { Box } from '@mui/material';
 import { PgButtonGroup, PgIconButton } from '../../../../../../static/js/components/Buttons';
 import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
@@ -34,20 +34,19 @@ import CustomPropTypes from '../../../../../../static/js/custom_prop_types';
 import ConfirmTransactionContent from '../dialogs/ConfirmTransactionContent';
 import { LayoutDocker } from '../../../../../../static/js/helpers/Layout';
 import CloseRunningDialog from '../dialogs/CloseRunningDialog';
+import { MODAL_DIALOGS } from '../QueryToolConstants';
 
-const useStyles = makeStyles((theme)=>({
-  root: {
-    padding: '2px 4px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '4px',
-    backgroundColor: theme.otherVars.editorToolbarBg,
-    flexWrap: 'wrap',
-    ...theme.mixins.panelBorder.bottom,
-  },
+const StyledBox = styled(Box)(({theme}) => ({
+  padding: '2px 4px',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '4px',
+  backgroundColor: theme.otherVars.editorToolbarBg,
+  flexWrap: 'wrap',
+  ...theme.mixins.panelBorder.bottom,
 }));
 
-function autoCommitRollback(type, api, transId, value) {
+function changeQueryExecutionSettings(type, api, transId, value) {
   let url = url_for(`sqleditor.${type}`, {
     'trans_id': transId,
   });
@@ -55,10 +54,10 @@ function autoCommitRollback(type, api, transId, value) {
 }
 
 export function MainToolBar({containerRef, onFilterClick, onManageMacros, onAddToMacros}) {
-  const classes = useStyles();
   const eventBus = useContext(QueryToolEventsContext);
   const queryToolCtx = useContext(QueryToolContext);
   const queryToolConnCtx = useContext(QueryToolConnectionContext);
+  const modalId = MODAL_DIALOGS.QT_CONFIRMATIONS;
 
   const [highlightFilter, setHighlightFilter] = useState(false);
   const [limit, setLimit] = useState('-1');
@@ -77,6 +76,7 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros, onAddT
   const [checkedMenuItems, setCheckedMenuItems] = React.useState({});
   /* Menu button refs */
   const saveAsMenuRef = React.useRef(null);
+  const openInNewTabMenuRef = React.useRef(null);
   const editMenuRef = React.useRef(null);
   const autoCommitMenuRef = React.useRef(null);
   const explainMenuRef = React.useRef(null);
@@ -92,7 +92,7 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros, onAddT
     if(!queryToolCtx.preferences.sqleditor.underline_query_cursor && queryToolCtx.preferences.sqleditor.underlined_query_execute_warning){
       eventBus.fireEvent(QUERY_TOOL_EVENTS.EXECUTE_CURSOR_WARNING);
     } else {
-      eventBus.fireEvent(QUERY_TOOL_EVENTS.TRIGGER_EXECUTION,true);
+      eventBus.fireEvent(QUERY_TOOL_EVENTS.TRIGGER_EXECUTION, null, '', true);
     }
   }, [queryToolCtx.preferences.sqleditor]);
   const executeScript = useCallback(()=>{
@@ -103,7 +103,7 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros, onAddT
   }, []);
 
   const explain = useCallback((analyze=false)=>{
-    eventBus.fireEvent(QUERY_TOOL_EVENTS.TRIGGER_EXECUTION, false, {
+    eventBus.fireEvent(QUERY_TOOL_EVENTS.TRIGGER_EXECUTION, {
       format: 'json',
       analyze: analyze,
       verbose: Boolean(checkedMenuItems['explain_verbose']),
@@ -123,8 +123,11 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros, onAddT
   const checkMenuClick = useCallback((e)=>{
     setCheckedMenuItems((prev)=>{
       let newVal = !prev[e.value];
-      if(e.value === 'auto_commit' || e.value === 'auto_rollback') {
-        autoCommitRollback(e.value, queryToolCtx.api, queryToolCtx.params.trans_id, newVal)
+      if (e.value === 'server_cursor') {
+        queryToolCtx.updateServerCursor({server_cursor: newVal});
+      }
+      if(e.value === 'auto_commit' || e.value === 'auto_rollback' || e.value === 'server_cursor') {
+        changeQueryExecutionSettings(e.value, queryToolCtx.api, queryToolCtx.params.trans_id, newVal)
           .catch ((error)=>{
             newVal = prev[e.value];
             eventBus.fireEvent(QUERY_TOOL_EVENTS.HANDLE_API_ERROR, error, {
@@ -141,9 +144,9 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros, onAddT
 
   const openFile = useCallback(()=>{
     confirmDiscard(()=>{
-      eventBus.fireEvent(QUERY_TOOL_EVENTS.TRIGGER_LOAD_FILE);
+      eventBus.fireEvent(QUERY_TOOL_EVENTS.TRIGGER_LOAD_FILE, Boolean(checkedMenuItems['open_in_new_tab']));
     }, true);
-  }, [buttonsDisabled['save']]);
+  }, [buttonsDisabled['save'], checkedMenuItems]);
 
   const saveFile = useCallback((saveAs=false)=>{
     eventBus.fireEvent(QUERY_TOOL_EVENTS.TRIGGER_SAVE_FILE, saveAs);
@@ -239,18 +242,24 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros, onAddT
               eventBus.fireEvent(QUERY_TOOL_EVENTS.FORCE_CLOSE_PANEL);
             }}
           />
-        ));
+        ), {id: modalId});
         return;
       } else {
         eventBus.fireEvent(QUERY_TOOL_EVENTS.FORCE_CLOSE_PANEL);
         return;
       }
     }
+    let _confirm_msg = gettext('The current transaction is not committed to the database. '
+        +'Do you want to commit or rollback the transaction?');
+    if (queryToolCtx.server_cursor) {
+      _confirm_msg = gettext('The query was executed with a server-side cursor, '
+        + 'which runs within a transaction.') + _confirm_msg;
+    }
+
     queryToolCtx.modal.showModal(gettext('Commit transaction?'), (closeModal)=>(
       <ConfirmTransactionContent
         closeModal={closeModal}
-        text={gettext('The current transaction is not committed to the database. '
-          +'Do you want to commit or rollback the transaction?')}
+        text={_confirm_msg}
         onRollback={()=>{
           onExecutionDone();
           onRollbackClick();
@@ -260,12 +269,12 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros, onAddT
           onCommitClick();
         }}
       />
-    ));
+    ), {id: modalId});
   };
   useEffect(()=>{
     if(isInTxn()) {
-      setDisableButton('commit', false);
-      setDisableButton('rollback', false);
+      setDisableButton('commit', queryToolCtx.params.server_cursor && !queryToolCtx.params.is_query_tool ? true : false);
+      setDisableButton('rollback', queryToolCtx.params.server_cursor && !queryToolCtx.params.is_query_tool ? true : false);
       setDisableButton('execute-options', true);
     } else {
       setDisableButton('commit', true);
@@ -279,20 +288,17 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros, onAddT
   }, [queryToolConnCtx.connectionStatus]);
 
   const onCommitClick=()=>{
-    eventBus.fireEvent(QUERY_TOOL_EVENTS.EXECUTION_START, 'COMMIT;', null, true);
+    eventBus.fireEvent(QUERY_TOOL_EVENTS.EXECUTION_START, 'COMMIT;', {external: true});
   };
   const onRollbackClick=()=>{
-    eventBus.fireEvent(QUERY_TOOL_EVENTS.EXECUTION_START, 'ROLLBACK;', null, true);
+    eventBus.fireEvent(QUERY_TOOL_EVENTS.EXECUTION_START, 'ROLLBACK;', {external: true});
   };
   const executeMacro = (m)=>{
-    eventBus.fireEvent(QUERY_TOOL_EVENTS.TRIGGER_EXECUTION,false, null, m.sql);
+    eventBus.fireEvent(QUERY_TOOL_EVENTS.TRIGGER_EXECUTION, null, m.sql);
   };
   const onLimitChange=(e)=>{
     setLimit(e.target.value);
     eventBus.fireEvent(QUERY_TOOL_EVENTS.TRIGGER_SET_LIMIT,e.target.value);
-  };
-  const formatSQL=()=>{
-    eventBus.fireEvent(QUERY_TOOL_EVENTS.TRIGGER_FORMAT_SQL);
   };
   const toggleCase=()=>{
     eventBus.fireEvent(QUERY_TOOL_EVENTS.EDITOR_TOGGLE_CASE);
@@ -340,6 +346,8 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros, onAddT
           explain_summary: queryToolPref.explain_summary,
           explain_settings: queryToolPref.explain_settings,
           explain_wal: queryToolPref.explain_wal,
+          open_in_new_tab: queryToolPref.open_in_new_tab,
+          server_cursor: queryToolPref.server_cursor,
         });
       }
     }
@@ -443,12 +451,6 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros, onAddT
         callback: ()=>{clearQuery();}
       }
     },
-    {
-      shortcut: queryToolPref.format_sql,
-      options: {
-        callback: ()=>{formatSQL();}
-      }
-    },
   ], containerRef);
 
   /* Macro shortcuts */
@@ -499,11 +501,16 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros, onAddT
   ], containerRef);
 
   return (
-    <>
-      <Box className={classes.root}>
+    (<>
+      <StyledBox>
         <PgButtonGroup size="small">
           <PgIconButton title={gettext('Open File')} icon={<FolderRoundedIcon />} disabled={!queryToolCtx.params.is_query_tool}
             shortcut={queryToolPref.btn_open_file} onClick={openFile} />
+          <PgIconButton title={gettext('Open in a new tab')} icon={<KeyboardArrowDownIcon />} splitButton disabled={!queryToolCtx.params.is_query_tool}
+            name="menu-openfileintab" ref={openInNewTabMenuRef} onClick={toggleMenu}
+          />
+        </PgButtonGroup>
+        <PgButtonGroup size="small">
           <PgIconButton title={gettext('Save File')} icon={<SaveRoundedIcon />}
             shortcut={queryToolPref.btn_save_file} disabled={buttonsDisabled['save'] || !queryToolCtx.params.is_query_tool}
             onClick={()=>{saveFile(false);}} />
@@ -564,14 +571,23 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros, onAddT
         <PgButtonGroup size="small">
           <PgIconButton title={gettext('Help')} icon={<HelpIcon />} onClick={onHelpClick} />
         </PgButtonGroup>
-      </Box>
+      </StyledBox>
+      <PgMenu
+        anchorRef={openInNewTabMenuRef}
+        open={openMenuName=='menu-openfileintab'}
+        onClose={onMenuClose}
+        label={gettext('Open file Menu')}
+      >
+        <PgMenuItem hasCheck value="open_in_new_tab" checked={checkedMenuItems['open_in_new_tab']}
+          onClick={checkMenuClick}>{gettext('Open in a new tab?')}</PgMenuItem>
+      </PgMenu>
       <PgMenu
         anchorRef={saveAsMenuRef}
         open={openMenuName=='menu-saveas'}
         onClose={onMenuClose}
-        label={gettext('File Menu')}
+        label={gettext('Save As')}
       >
-        <PgMenuItem onClick={()=>{saveFile(true);}}>{gettext('Save as')}</PgMenuItem>
+        <PgMenuItem onClick={()=>{saveFile(true);}}>{gettext('Save As')}</PgMenuItem>
       </PgMenu>
       <PgMenu
         anchorRef={editMenuRef}
@@ -583,7 +599,7 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros, onAddT
           onClick={()=>{eventBus.fireEvent(QUERY_TOOL_EVENTS.EDITOR_FIND_REPLACE, false);}}>{gettext('Find')}</PgMenuItem>
         <PgMenuItem shortcut={queryToolPref.replace}
           onClick={()=>{eventBus.fireEvent(QUERY_TOOL_EVENTS.EDITOR_FIND_REPLACE, true);}}>{gettext('Replace')}</PgMenuItem>
-        <PgMenuItem shortcut={queryToolPref.gotolinecol}
+        <PgMenuItem shortcut={queryToolPref.goto_line_col}
           onClick={()=>{executeCmd('gotoLineCol');}}>{gettext('Go to Line/Column')}</PgMenuItem>
         <PgMenuDivider />
         <PgMenuItem shortcut={queryToolPref.indent}
@@ -597,7 +613,7 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros, onAddT
         <PgMenuItem shortcut={queryToolPref.clear_query}
           onClick={clearQuery}>{gettext('Clear Query')}</PgMenuItem>
         <PgMenuDivider />
-        <PgMenuItem shortcut={queryToolPref.format_sql}onClick={formatSQL}>{gettext('Format SQL')}</PgMenuItem>
+        <PgMenuItem shortcut={queryToolPref.format_sql} onClick={()=>{executeCmd('formatSql');}}>{gettext('Format SQL')}</PgMenuItem>
       </PgMenu>
       <PgMenu
         anchorRef={filterMenuRef}
@@ -619,6 +635,8 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros, onAddT
           onClick={checkMenuClick}>{gettext('Auto commit?')}</PgMenuItem>
         <PgMenuItem hasCheck value="auto_rollback" checked={checkedMenuItems['auto_rollback']}
           onClick={checkMenuClick}>{gettext('Auto rollback on error?')}</PgMenuItem>
+        <PgMenuItem hasCheck value="server_cursor" checked={checkedMenuItems['server_cursor']}
+          onClick={checkMenuClick}>{gettext('Use server cursor?')}</PgMenuItem>
       </PgMenu>
       <PgMenu
         anchorRef={explainMenuRef}
@@ -664,7 +682,7 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros, onAddT
           );
         })}
       </PgMenu>
-    </>
+    </>)
   );
 }
 

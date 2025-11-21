@@ -1,1 +1,1 @@
-define((()=>(()=>{"use strict";var e={};return e=e.default})()));
+define(()=>(()=>{"use strict";var e={};return e=e.default})());

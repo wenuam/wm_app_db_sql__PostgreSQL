@@ -2,18 +2,19 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
 
 import PropTypes from 'prop-types';
 
+import { styled } from '@mui/material/styles';
+
 import React, { useEffect, useRef } from 'react';
 
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import { Box } from '@mui/material';
-import { makeStyles } from '@mui/styles';
 import BugReportRoundedIcon from '@mui/icons-material/BugReportRounded';
 import CloseSharpIcon from '@mui/icons-material/CloseSharp';
 
@@ -32,44 +33,44 @@ import { BROWSER_PANELS } from '../../../../../browser/static/js/constants';
 import usePreferences from '../../../../../preferences/static/js/store';
 
 
-const useStyles = makeStyles((theme) =>
-  ({
-    root: {
-      display: 'flex',
-      flexDirection: 'column',
-      flexGrow: 1,
-      height: '100%',
+const StyledBox = styled(Box)(({theme}) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  flexGrow: 1,
+  height: '100%',
+  backgroundColor: theme.palette.background.default,
+  overflow: 'hidden',
+  '& .DebuggerArgument-body': {
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%',
+    minHeight: 0,
+    '& .DebuggerArgument-schema': {
+      padding: 0 + ' !important',
       backgroundColor: theme.palette.background.default,
-      overflow: 'hidden',
-    },
-    body: {
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%',
-      minHeight: 0,
-    },
-    actionBtn: {
-      alignItems: 'flex-start',
-    },
-    buttonMargin: {
-      marginLeft: '0.5em'
-    },
-    debugBtn: {
-      fontSize: '1.12rem !important',
-    },
-    footer: {
-      borderTop: `1px solid ${theme.otherVars.inputBorderColor} !important`,
-      padding: '0.5rem',
-      display: 'flex',
-      width: '100%',
-      background: theme.otherVars.headerBg,
     }
-  }),
-);
+  },
+  '& .DebuggerArgument-footer': {
+    borderTop: `1px solid ${theme.otherVars.inputBorderColor} !important`,
+    padding: '0.5rem',
+    display: 'flex',
+    width: '100%',
+    background: theme.otherVars.headerBg,
+    '& .DebuggerArgument-actionBtn': {
+      alignItems: 'flex-start',
+      '& .DebuggerArgument-buttonMargin': {
+        marginLeft: '0.5em'
+      },
+      '& .DebuggerArgument-debugBtn': {
+        fontSize: '1.12rem !important',
+      },
+    },
+  }
+}));
 
 
 export default function DebuggerArgumentComponent({ debuggerInfo, restartDebug, isEdbProc, transId, pgTreeInfo, pgData, ...props }) {
-  const classes = useStyles();
+
   const debuggerArgsSchema = useRef(new DebuggerArgumentSchema());
   const api = getApiInstance();
   const debuggerArgsData = useRef([]);
@@ -318,16 +319,7 @@ export default function DebuggerArgumentComponent({ debuggerInfo, restartDebug, 
     let myObj = [];
     for (let i = 0; i < argType.length; i++) {
       let useDefValue = checkIsDefault(defValList[i]);
-      if (debuggerInfo['proargmodes'] == null) {
-        myObj.push({
-          'name': myargname[i],
-          'type': argType[i],
-          'use_default': useDefValue,
-          'default_value': defValList[i],
-          'disable_use_default': defValList[i] == DEBUGGER_ARGS.NO_DEFAULT_VALUE,
-        });
-      } else if (argMode && (argMode[i] == 'i' || argMode[i] == 'b' ||
-          (isEdbProc && argMode[i] == 'o'))) {
+      if (debuggerInfo['proargmodes'] == null || (argMode?.[i] == 'i' || argMode?.[i] == 'b' || (isEdbProc && argMode?.[i] == 'o'))) {
         myObj.push({
           'name': myargname[i],
           'type': argType[i],
@@ -350,13 +342,23 @@ export default function DebuggerArgumentComponent({ debuggerInfo, restartDebug, 
   }
 
   function setDebuggerArgs(funcArgsData, funcObj, myObj) {
+    // Ensure unchecked boolean checkboxes are set to false.
+    const setBooleanDefaults = (dataArray) => {
+      dataArray.forEach(data => {
+        if (data.type === 'boolean' && (data.value === undefined || data.value === '' || data.value === '0' )) {
+          data.value = false;
+        }
+      });
+    };
     // Check if the arguments already available in the sqlite database
     // then we should use the existing arguments
     let initVal = { 'aregsCollection': [] };
     if (funcArgsData.length == 0) {
+      setBooleanDefaults(myObj);
       initVal = { 'aregsCollection': myObj };
       debuggerArgsData.current = initVal;
     } else {
+      setBooleanDefaults(funcObj);
       initVal = { 'aregsCollection': funcObj };
       debuggerArgsData.current = initVal;
     }
@@ -441,7 +443,7 @@ export default function DebuggerArgumentComponent({ debuggerInfo, restartDebug, 
     try {
       resolve(debuggerArgsData.current);
     } catch (error) {
-      reject(error);
+      reject(error instanceof Error ? error : Error(gettext('Something went wrong')));
     }
   });
 
@@ -808,8 +810,8 @@ export default function DebuggerArgumentComponent({ debuggerInfo, restartDebug, 
   }
 
   return (
-    <Box className={classes.root}>
-      <Box className={classes.body}>
+    <StyledBox>
+      <Box className='DebuggerArgument-body'>
         {
           loadArgs > 0 &&
           <>
@@ -822,12 +824,13 @@ export default function DebuggerArgumentComponent({ debuggerInfo, restartDebug, 
               showFooter={false}
               isTabView={false}
               Notifier={pgAdmin.Browser.notifier}
+              formClassName='DebuggerArgument-schema'
               onDataChange={(isChanged, changedData) => {
                 let isValid = false;
                 let skipStep = false;
-                if ('_sessData' in debuggerArgsSchema.current) {
+                if ('sessData' in debuggerArgsSchema.current) {
                   isValid = true;
-                  debuggerArgsSchema.current._sessData.aregsCollection.forEach((data) => {
+                  debuggerArgsSchema.current.sessData.aregsCollection.forEach((data) => {
 
                     if (skipStep) { return; }
 
@@ -852,25 +855,24 @@ export default function DebuggerArgumentComponent({ debuggerInfo, restartDebug, 
           </>
         }
       </Box>
-      <Box className={classes.footer}>
+      <Box className='DebuggerArgument-footer'>
         <Box>
-          <DefaultButton className={classes.buttonMargin} onClick={() => { clearArgs(); }} startIcon={<DeleteSweepIcon onClick={() => { clearArgs(); }} />}>
+          <DefaultButton className='DebuggerArgument-buttonMargin' onClick={() => { clearArgs(); }} startIcon={<DeleteSweepIcon onClick={() => { clearArgs(); }} />}>
             {gettext('Clear All')}
           </DefaultButton>
         </Box>
-        <Box className={classes.actionBtn} marginLeft="auto">
-          <DefaultButton className={classes.buttonMargin} onClick={() => { props.closeModal(); }} startIcon={<CloseSharpIcon onClick={() => { props.closeModal(); }} />}>
+        <Box className='DebuggerArgument-actionBtn' marginLeft="auto">
+          <DefaultButton className='DebuggerArgument-buttonMargin' onClick={() => { props.closeModal(); }} startIcon={<CloseSharpIcon onClick={() => { props.closeModal(); }} />}>
             {gettext('Cancel')}
           </DefaultButton>
-          <PrimaryButton className={classes.buttonMargin} startIcon={<BugReportRoundedIcon className={classes.debugBtn} />}
+          <PrimaryButton className='DebuggerArgument-buttonMargin' startIcon={<BugReportRoundedIcon className='DebuggerArgument-debugBtn' />}
             disabled={isDisableDebug}
             onClick={() => { startDebugging(); }}>
             {gettext('Debug')}
           </PrimaryButton>
         </Box>
       </Box>
-    </Box>
-
+    </StyledBox>
   );
 }
 

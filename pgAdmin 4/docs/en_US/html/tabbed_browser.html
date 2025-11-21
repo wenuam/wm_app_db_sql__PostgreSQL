@@ -7,12 +7,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Tabbed Browser &#8212; pgAdmin 4 8.7 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <title>Tabbed Browser &#8212; pgAdmin 4 9.6 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/style.css?v=d36593c3" />
     
-    <script src="_static/documentation_options.js?v=70b0b77f"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/documentation_options.js?v=a51d793f"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     
     <script src="_static/sidebar.js"></script>
@@ -22,7 +22,7 @@
     <link rel="next" title="Tree Control" href="tree_control.html" />
     <link rel="prev" title="Toolbar" href="toolbar.html" /> 
   </head><body>
-    <div class="related" role="navigation" aria-label="related navigation">
+    <div class="related" role="navigation" aria-label="Related">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="toolbar.html" title="Toolbar"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 9.6 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="getting_started.html" accesskey="U">Getting Started</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Tabbed Browser</a></li> 
       </ul>
@@ -51,10 +51,10 @@
 display information about the object currently selected in the <em>pgAdmin</em> tree
 control in the left window.  Select a tab to access information about the
 highlighted object in the tree control.</p>
-<img alt="Dashboard panel" class="align-center" src="_images/main_dashboard_general.png" />
+<img alt="Dashboard Activity" class="align-center" src="_images/dashboard_activity.png" />
 <p>The graphs and tables on the <em>Dashboard</em> tab provides an active analysis of system statistics and the usage
 statistics for the selected server or database.</p>
-<p>Click the <em>General</em> tab to get the usage statistics for the selected server or database:</p>
+<p>Click the <em>Activity</em> tab to get the usage statistics for the selected server or database:</p>
 <ul class="simple">
 <li><p>The <em>Server sessions</em> or <em>Database sessions</em> graph displays the interactions
 with the server or database.</p></li>
@@ -68,8 +68,10 @@ from the server or database.</p></li>
 or fetched from the buffer cache (but not the operating system’s file system
 cache) for the server or database.</p></li>
 </ul>
-<p>The <em>Server activity</em> panel displays information about sessions, locks, prepared
-transactions, and server configuration (if applicable). The information is
+<img alt="Dashboard Activity" class="align-center" src="_images/dashboard_stat.png" />
+<p>Click the <em>Stat</em> tab to get the usage statistics for the selected server or database:</p>
+<p>The <em>Stat</em> panel displays information about sessions, locks, prepared
+transactions. The information is
 presented in context-sensitive tables.  Use controls located above the table to:</p>
 <ul class="simple">
 <li><p>Click the <em>Refresh</em> button to update the information displayed in each table.</p></li>
@@ -93,6 +95,15 @@ value displayed in the <em>State</em> column of the table will be updated from
 terminated.</p></li>
 <li><p>Use the <em>Details</em> icon (located in the third column) to open the <em>Details</em>
 tab; the tab displays information about the selected session.</p></li>
+</ul>
+<img alt="Dashboard Activity" class="align-center" src="_images/dashboard_config.png" />
+<p>Click the <em>Configuration</em> tab to get the server configuration details.</p>
+<img alt="Dashboard Activity" class="align-center" src="_images/dashboard_logs.png" />
+<p>Click the <em>Logs</em> tab to get the server logs.</p>
+<ul class="simple">
+<li><p>Use the Log Format switch to select the format you want. Text/Plain, JSON and CSV are supported.
+The enable/disable state of the log format depends on the Postgresql.conf setting.</p></li>
+<li><p>Use the Logs in tabular format? switch if you want to see the logs in a tabular format.</p></li>
 </ul>
 <p>Click the <em>System Statistics</em> tab to get the statistics for the system:</p>
 <img alt="Summary panel" class="align-center" src="_images/main_dashboard_sys_statistics_summary.png" />
@@ -296,7 +307,7 @@ from the <em>File</em> menu.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <h3><a href="index.html">Table of Contents</a></h3>
 <ul class="current">
@@ -304,7 +315,7 @@ from the <em>File</em> menu.</p>
 <li class="toctree-l2"><a class="reference internal" href="deployment.html">Deployment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="login.html">Login Page</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mfa.html">Enabling two-factor authentication (2FA)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user_management.html">User Management Dialog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_management.html">User Management</a></li>
 <li class="toctree-l2"><a class="reference internal" href="change_ownership.html">Change Ownership Dialog</a></li>
 <li class="toctree-l2"><a class="reference internal" href="change_user_password.html">Change User Password Dialog</a></li>
 <li class="toctree-l2"><a class="reference internal" href="restore_locked_user.html">Lock/Restore Account</a></li>
@@ -317,8 +328,8 @@ from the <em>File</em> menu.</p>
 <li class="toctree-l2"><a class="reference internal" href="toolbar.html">Toolbar</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Tabbed Browser</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tree_control.html">Tree Control</a></li>
-<li class="toctree-l2"><a class="reference internal" href="preferences.html">Preferences Dialog</a></li>
-<li class="toctree-l2"><a class="reference internal" href="keyboard_shortcuts.html">Keyboard Shortcuts:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="preferences.html">Preferences</a></li>
+<li class="toctree-l2"><a class="reference internal" href="keyboard_shortcuts.html">Keyboard Shortcuts</a></li>
 <li class="toctree-l2"><a class="reference internal" href="search_objects.html">Search objects</a></li>
 </ul>
 </li>
@@ -355,7 +366,7 @@ from the <em>File</em> menu.</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
+    <div class="related" role="navigation" aria-label="Related">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -367,7 +378,7 @@ from the <em>File</em> menu.</p>
         <li class="right" >
           <a href="toolbar.html" title="Toolbar"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 9.6 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="getting_started.html" >Getting Started</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Tabbed Browser</a></li> 
       </ul>
@@ -375,10 +386,10 @@ from the <em>File</em> menu.</p>
     <div class="footer" role="contentinfo">
         <div class="related" role="navigation" aria-label="related navigation">
           <ul>
-              <li class="left" style="margin-left: 10px">&#169; Copyright (C) 2013 - 2024, The pgAdmin Development Team.</li>
-            <li class="right" style="margin-right: 10px"><a href="genindex.html" title="General Index" accesskey="I">index</a></li>
-            <li class="right" ><a href="tree_control.html" title="Tree Control" accesskey="N">next</a> |</li>
-            <li class="right" ><a href="toolbar.html" title="Toolbar" accesskey="P">previous</a> |</li>
+              <li class="left" style="margin-left: 10px">&#169; Copyright (C) 2013 - 2025, The pgAdmin Development Team.</li>
+            <li class="right" style="margin-right: 10px"><a href="genindex.html" title="General Index">index</a></li>
+            <li class="right" ><a href="tree_control.html" title="Tree Control">next</a> |</li>
+            <li class="right" ><a href="toolbar.html" title="Toolbar">previous</a> |</li>
           </ul>
         </div>
     </div>

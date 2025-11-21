@@ -2,30 +2,33 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
 
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 
 import gettext from 'sources/gettext';
 import url_for from 'sources/url_for';
 import pgWindow from 'sources/window';
+import * as commonUtils from 'sources/utils';
 
 import getApiInstance from '../../../../static/js/api_instance';
 import Theme from '../../../../static/js/Theme';
 import ModalProvider from '../../../../static/js/helpers/ModalProvider';
 import SchemaDiffComponent from './components/SchemaDiffComponent';
-import { BROWSER_PANELS } from '../../../../browser/static/js/constants';
+import { AllPermissionTypes, BROWSER_PANELS } from '../../../../browser/static/js/constants';
 import { NotifierProvider } from '../../../../static/js/helpers/Notifier';
 import usePreferences, { listenPreferenceBroadcast } from '../../../../preferences/static/js/store';
 import pgAdmin from 'sources/pgadmin';
-import { PgAdminContext } from '../../../../static/js/BrowserComponent';
+import { PgAdminProvider } from '../../../../static/js/PgAdminProvider';
+import { ApplicationStateProvider } from '../../../../settings/static/ApplicationStateProvider';
 
 export default class SchemaDiff {
   static instance;
+  static panelTitleCount = 1;
 
   static getInstance(...args) {
     if (!SchemaDiff.instance) {
@@ -50,34 +53,19 @@ export default class SchemaDiff {
       name: 'schema_diff',
       module: self,
       applies: ['tools'],
-      callback: 'showSchemaDiffTool',
+      callback: 'launchSchemaDiff',
       priority: 1,
       label: gettext('Schema Diff'),
       enable: true,
       below: true,
+      permission: AllPermissionTypes.TOOLS_SCHEMA_DIFF,
     }]);
   }
 
-  showSchemaDiffTool() {
-    let self = this;
-
-    self.api({
-      url: url_for('schema_diff.initialize', null),
-      method: 'GET',
-    })
-      .then(function (res) {
-        self.trans_id = res.data.data.schemaDiffTransId;
-        res.data.data.panel_title = gettext('Schema Diff');
-        self.launchSchemaDiff(res.data.data);
-      })
-      .catch(function (error) {
-        pgAdmin.Browser.notifier.error(gettext(`Error in schema diff initialize ${error.response.data}`));
-      });
-  }
-
-  launchSchemaDiff(data) {
-    let panelTitle = data.panel_title,
-      trans_id = data.schemaDiffTransId;
+  launchSchemaDiff(params={}) {
+    let panelTitle = SchemaDiff.panelTitleCount > 1 ? gettext('Schema Diff - %s', SchemaDiff.panelTitleCount) : gettext('Schema Diff');
+    SchemaDiff.panelTitleCount++;
+    const trans_id = commonUtils.getRandomInt(1, 9999999);
 
     let url_params = {
         'trans_id': trans_id,
@@ -92,28 +80,28 @@ export default class SchemaDiff {
       'pgadmin:tool:show',
       `${BROWSER_PANELS.SCHEMA_DIFF_TOOL}_${trans_id}`,
       baseUrl,
-      null,
+      {...params},
       {title: panelTitle, icon: 'pg-font-icon icon-compare', manualClose: false, renamable: true},
       Boolean(openInNewTab?.includes('schema_diff'))
     );
     return true;
   }
 
-  async load(container, trans_id) {
+  async load(container, trans_id, params) {
     pgAdmin.Browser.keyboardNavigation.init();
     await listenPreferenceBroadcast();
-
-    ReactDOM.render(
+    const root = ReactDOM.createRoot(container);
+    root.render(
       <Theme>
-        <PgAdminContext.Provider value={pgAdmin}>
-          <ModalProvider>
-            <NotifierProvider pgAdmin={pgAdmin} pgWindow={pgWindow} />
-            <SchemaDiffComponent params={{ transId: trans_id, pgAdmin: pgWindow.pgAdmin }}></SchemaDiffComponent>
-          </ModalProvider>
-        </PgAdminContext.Provider>
-      </Theme>,
-      container
+        <PgAdminProvider value={pgAdmin}>
+          <ApplicationStateProvider>
+            <ModalProvider>
+              <NotifierProvider pgAdmin={pgAdmin} pgWindow={pgWindow} />
+              <SchemaDiffComponent params={{ transId: trans_id, pgAdmin: pgWindow.pgAdmin, params:params }}></SchemaDiffComponent>
+            </ModalProvider>
+          </ApplicationStateProvider>
+        </PgAdminProvider>
+      </Theme>
     );
   }
-
 }

@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -66,12 +66,14 @@ define('pgadmin.node.subscription', [
           category: 'create', priority: 4, label: gettext('Subscription...'),
           data: {action: 'create'},
           enable: 'canCreate',
+          shortcut_preference: ['browser', 'sub_menu_create'],
         },{
           name: 'create_subscription', node: 'subscription', module: this,
           applies: ['object', 'context'], callback: 'show_obj_properties',
           category: 'create', priority: 4, label: gettext('Subscription...'),
           data: {action: 'create'},
           enable: 'canCreate',
+          shortcut_preference: ['browser', 'sub_menu_create'],
         }]);
       },
       getSchema: function(treeNodeInfo, itemNodeData){
@@ -104,7 +106,7 @@ define('pgadmin.node.subscription', [
                           gettext('Publication fetched successfully.')
                         );
                       }else if(!_.isNull(res.data.errormsg) && _.isNull(res.data.data)){
-                        reject(res.data.errormsg);
+                        reject(new Error(res.data.errormsg));
                         pgAdmin.Browser.notifier.alert(
                           gettext('Check connection?'),
                           gettext(res.data.errormsg)
@@ -112,7 +114,7 @@ define('pgadmin.node.subscription', [
                       }
                     })
                     .catch((err)=>{
-                      reject(err);
+                      reject(err instanceof Error ? err : Error(gettext('Something went wrong')));
                     });
                 }
               });

@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////////////////
@@ -45,7 +45,7 @@ function isCtrlAltBoth(event) {
 /* Returns the key of shortcut */
 function shortcut_key(shortcut) {
   let key = '';
-  if(shortcut?.['key'] && shortcut?.['key']['char']) {
+  if(shortcut?.['key']?.['char']) {
     key = shortcut['key']['char'].toUpperCase();
   }
   return key;

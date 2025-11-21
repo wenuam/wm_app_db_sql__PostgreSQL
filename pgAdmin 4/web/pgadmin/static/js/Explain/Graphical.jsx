@@ -2,12 +2,12 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
 import { Box, Card, CardContent, CardHeader, useTheme } from '@mui/material';
-import { makeStyles } from '@mui/styles';
+import { styled } from '@mui/material/styles';
 import React, {useEffect} from 'react';
 import _ from 'lodash';
 import { PgButtonGroup, PgIconButton } from '../components/Buttons';
@@ -20,9 +20,40 @@ import ReactDOMServer from 'react-dom/server';
 import url_for from 'sources/url_for';
 import { downloadSvg } from './svg_download';
 import CloseIcon from '@mui/icons-material/CloseRounded';
-import { commonTableStyles } from '../Theme';
-import clsx from 'clsx';
 import PropTypes from 'prop-types';
+import Table from '../components/Table';
+
+const StyledBox = styled(Box)(({theme}) => ({
+  '& .Graphical-explainDetails': {
+    minWidth: '200px',
+    maxWidth: '300px',
+    position: 'absolute',
+    top: '0.25rem',
+    bottom: '0.25rem',
+    right: '0.25rem',
+    borderColor: theme.otherVars.borderColor,
+    // box-shadow: 0 0.125rem 0.5rem rgb(132 142 160 / 28%);
+    wordBreak: 'break-all',
+    display: 'flex',
+    flexDirection: 'column',
+    zIndex: 99,
+    '& .Graphical-explainContent': {
+      height: '100%',
+      overflow: 'auto',
+      '& .Graphical-tableBorderBottom':{
+        '& tbody tr:last-of-type td': {
+          borderBottom: '1px solid '+theme.otherVars.borderColor,
+        },
+      },
+      '& .Graphical-tablewrapTd': {
+        '& tbody td': {
+          whiteSpace: 'pre-wrap',
+        }
+      },
+    },
+  },
+}
+));
 
 // Some predefined constants used to calculate image location and its border
 let pWIDTH = 100;
@@ -127,9 +158,9 @@ function Multitext({currentXpos, currentYpos, label, maxWidth}) {
       return res;
     };
 
-  for (let i = 0; i < words.length; i++) {
+  for (const word of words) {
     let tmpArr = splitTextInMultiLine(
-      currLine, widthSoFar, words[i]
+      currLine, widthSoFar, word
     );
 
     if (currLine) {
@@ -207,7 +238,7 @@ function NodeDetails({plan, download=false}) {
       } else {
         return (<tr key={key}>
           <td>{key}</td>
-          <td>{value}</td>
+          <td>{`${value !== undefined ? value : ''}`}</td>
         </tr>);
       }
     })}
@@ -338,30 +369,8 @@ PlanSVG.propTypes = {
 };
 
 
-const useStyles = makeStyles((theme)=>({
-  explainDetails: {
-    minWidth: '200px',
-    maxWidth: '300px',
-    position: 'absolute',
-    top: '0.25rem',
-    bottom: '0.25rem',
-    right: '0.25rem',
-    borderColor: theme.otherVars.borderColor,
-    // box-shadow: 0 0.125rem 0.5rem rgb(132 142 160 / 28%);
-    wordBreak: 'break-all',
-    display: 'flex',
-    flexDirection: 'column',
-    zIndex: 99,
-  },
-  explainContent: {
-    height: '100%',
-    overflow: 'auto',
-  }
-}));
-
 export default function Graphical({planData, ctx}) {
-  const tableStyles = commonTableStyles();
-  const classes = useStyles();
+
   const graphContainerRef = React.useRef();
   const [zoomFactor, setZoomFactor] = React.useState(INIT_ZOOM_FACTOR);
   const [[explainPlanTitle, explainPlanDetails], setExplainPlanDetails] = React.useState([null, null]);
@@ -405,8 +414,12 @@ export default function Graphical({planData, ctx}) {
     setExplainPlanDetails([title, details]);
   }, []);
 
+  useEffect(()=>{
+    setExplainPlanDetails([null, null]);
+  }, [planData]);
+
   return (
-    <Box ref={graphContainerRef} height="100%" width="100%" overflow="auto">
+    <StyledBox ref={graphContainerRef} height="100%" width="100%" overflow="auto">
       <Box position="absolute" top="4px" left="4px" gap="4px" display="flex">
         <PgButtonGroup size="small">
           <PgIconButton title={gettext('Zoom in')} icon={<ZoomInIcon />} onClick={()=>onCmdClick('in')}/>
@@ -421,22 +434,22 @@ export default function Graphical({planData, ctx}) {
         onNodeClick={onNodeClick}
       />
       {Boolean(explainPlanDetails) &&
-      <Card className={classes.explainDetails} data-label="explain-details">
+      <Card className='Graphical-explainDetails' data-label="explain-details">
         <CardHeader title={<Box display="flex">
           {explainPlanTitle}
           <Box marginLeft="auto">
             <PgIconButton title={gettext('Close')} icon={<CloseIcon />} size="xs" noBorder onClick={()=>setExplainPlanDetails([null, null])}/>
           </Box>
         </Box>} />
-        <CardContent className={classes.explainContent}>
-          <table className={clsx(tableStyles.table, tableStyles.borderBottom, tableStyles.wrapTd)}>
+        <CardContent className='Graphical-explainContent'>
+          <Table classNameRoot={'Graphical-tableBorderBottom Graphical-tablewrapTd'}>
             <tbody>
               <NodeDetails download={false} plan={explainPlanDetails} />
             </tbody>
-          </table>
+          </Table>
         </CardContent>
       </Card>}
-    </Box>
+    </StyledBox>
   );
 }
 

@@ -2,7 +2,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2024, The pgAdmin Development Team
+# Copyright (C) 2013 - 2025, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 ##########################################################################
@@ -20,7 +20,7 @@ from flask_security import current_user
 from pgadmin.browser.server_groups.servers import databases
 from config import PG_DEFAULT_DRIVER
 from pgadmin.browser.server_groups.servers.databases.schemas.utils import \
-    SchemaChildModule, parse_rule_definition, VacuumSettings, get_schema
+    SchemaChildModule, parse_rule_definition, VacuumSettings, check_pgstattuple
 from pgadmin.browser.server_groups.servers.utils import parse_priv_from_db, \
     parse_priv_to_db
 from pgadmin.browser.utils import PGChildNodeView
@@ -29,9 +29,10 @@ from pgadmin.utils.ajax import make_json_response, internal_server_error, \
 from pgadmin.utils.driver import get_driver
 from pgadmin.tools.schema_diff.node_registry import SchemaDiffRegistry
 from .schema_diff_view_utils import SchemaDiffViewCompare
-from pgadmin.utils import html, does_utility_exist, get_server
+from pgadmin.utils import does_utility_exist, get_server
 from pgadmin.model import Server
 from pgadmin.misc.bgprocess.processes import BatchProcess, IProcessDesc
+from pgadmin.utils.constants import SERVER_NOT_FOUND
 
 
 """
@@ -2425,7 +2426,7 @@ class MViewNode(ViewNode, VacuumSettings):
         if server is None:
             return make_json_response(
                 success=0,
-                errormsg=gettext("Could not find the specified server.")
+                errormsg=SERVER_NOT_FOUND
             )
 
         driver = get_driver(PG_DEFAULT_DRIVER)
@@ -2476,14 +2477,7 @@ class MViewNode(ViewNode, VacuumSettings):
             )
         else:
             # For Individual mview stats
-
-            # Check if pgstattuple extension is already created?
-            # if created then only add extended stats
-            status, is_pgstattuple = self.conn.execute_scalar("""
-            SELECT (count(extname) > 0) AS is_pgstattuple
-            FROM pg_catalog.pg_extension
-            WHERE extname='pgstattuple'
-            """)
+            status, is_pgstattuple = check_pgstattuple(self.conn, vid)
             if not status:
                 return internal_server_error(errormsg=is_pgstattuple)
 

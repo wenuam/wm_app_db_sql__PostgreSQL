@@ -2,14 +2,15 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
 import _ from 'lodash';
+import { styled } from '@mui/material/styles';
 import React, { useContext, useEffect, useRef, useState }  from 'react';
 import QueryToolDataGrid, { GRID_ROW_SELECT_KEY } from '../QueryToolDataGrid';
-import {CONNECTION_STATUS, PANELS, QUERY_TOOL_EVENTS} from '../QueryToolConstants';
+import {CONNECTION_STATUS, PANELS, QUERY_TOOL_EVENTS, MODAL_DIALOGS} from '../QueryToolConstants';
 import url_for from 'sources/url_for';
 import getApiInstance, { parseApiError } from '../../../../../../static/js/api_instance';
 import { QueryToolContext, QueryToolEventsContext } from '../QueryToolComponent';
@@ -21,18 +22,25 @@ import { LayoutDockerContext } from '../../../../../../static/js/helpers/Layout'
 import { GeometryViewer } from './GeometryViewer';
 import Explain from '../../../../../../static/js/Explain';
 import { QuerySources } from './QueryHistory';
-import { getBrowser } from '../../../../../../static/js/utils';
+import DownloadUtils from '../../../../../../static/js/DownloadUtils';
 import CopyData from '../QueryToolDataGrid/CopyData';
 import moment from 'moment';
 import ConfirmSaveContent from '../../../../../../static/js/Dialogs/ConfirmSaveContent';
-import { makeStyles } from '@mui/styles';
 import EmptyPanelMessage from '../../../../../../static/js/components/EmptyPanelMessage';
 import { GraphVisualiser } from './GraphVisualiser';
-import { usePgAdmin } from '../../../../../../static/js/BrowserComponent';
+import { usePgAdmin } from '../../../../../../static/js/PgAdminProvider';
 import pgAdmin from 'sources/pgadmin';
+import { connectServer, connectServerModal } from '../connectServer';
+
+const StyledBox = styled(Box)(({theme}) => ({
+  display: 'flex',
+  height: '100%',
+  flexDirection: 'column',
+  backgroundColor: theme.otherVars.qtDatagridBg,
+}));
 
 export class ResultSetUtils {
-  constructor(api, transId, isQueryTool=true) {
+  constructor(api, queryToolCtx, transId, isQueryTool=true) {
     this.api = api;
     this.transId = transId;
     this.startTime = new Date();
@@ -40,6 +48,9 @@ export class ResultSetUtils {
     this.isQueryTool = isQueryTool;
     this.clientPKLastIndex = 0;
     this.historyQuerySource = null;
+    this.hasQueryCommitted = false;
+    this.queryToolCtx = queryToolCtx;
+    this.setLoaderText = null;
   }
 
   static generateURLReconnectionFlag(baseUrl, transId, shouldReconnect) {
@@ -180,16 +191,21 @@ export class ResultSetUtils {
     }
   }
 
-  async startExecution(query, explainObject, onIncorrectSQL, flags={
-    isQueryTool: true, external: false, reconnect: false, executeCursor: false
+  async startExecution(query, explainObject, macroSQL, onIncorrectSQL, flags={
+    isQueryTool: true, external: false, reconnect: false, executeCursor: false, refreshData: false,
   }) {
     let startTime = new Date();
     this.eventBus.fireEvent(QUERY_TOOL_EVENTS.SET_MESSAGE, '');
-    this.eventBus.fireEvent(QUERY_TOOL_EVENTS.TASK_START, gettext('Waiting for the query to complete...'), startTime);
+    this.eventBus.fireEvent(QUERY_TOOL_EVENTS.TASK_START,
+      flags.refreshData ? gettext('Refetching latest results...') : gettext('Waiting for the query to complete...'),
+      startTime
+    );
     this.setStartTime(startTime);
     this.query = query;
     this.historyQuerySource = flags.isQueryTool ? QuerySources.EXECUTE : QuerySources.VIEW_DATA;
-    if(explainObject) {
+    if(flags.refreshData) {
+      this.historyQuerySource = null;
+    } else if(explainObject) {
       if(explainObject.analyze) {
         this.historyQuerySource = QuerySources.EXPLAIN_ANALYZE;
       } else {
@@ -236,16 +252,36 @@ export class ResultSetUtils {
         }
       }
     } catch(e) {
-      this.eventBus.fireEvent(QUERY_TOOL_EVENTS.EXECUTION_END);
-      this.eventBus.fireEvent(QUERY_TOOL_EVENTS.HANDLE_API_ERROR,
-        e,
-        {
-          connectionLostCallback: ()=>{
-            this.eventBus.fireEvent(QUERY_TOOL_EVENTS.EXECUTION_START, query, explainObject, flags.external, true, flags.executeCursor);
-          },
-          checkTransaction: true,
-        }
-      );
+      if(e?.response?.status == 428){
+        connectServerModal(this.queryToolCtx.modal, e.response?.data?.result, async (passwordData)=>{
+          await connectServer(this.api, this.queryToolCtx.modal, this.queryToolCtx.params.sid, this.queryToolCtx.params.user, passwordData, async ()=>{
+            await this.eventBus.fireEvent(QUERY_TOOL_EVENTS.REINIT_QT_CONNECTION, '', explainObject, macroSQL, flags.executeCursor, true);
+          });
+        }, ()=>{
+          /*This is intentional (SonarQube)*/
+        });
+      }else if (e?.response?.data.info == 'CRYPTKEY_MISSING'){
+        let pgBrowser = window.pgAdmin.Browser;
+        pgBrowser.set_master_password('', async (passwordData)=>{
+          await connectServer(this.api, this.queryToolCtx.modal, this.queryToolCtx.params.sid, this.queryToolCtx.params.user, passwordData, async ()=>{
+            await this.eventBus.fireEvent(QUERY_TOOL_EVENTS.REINIT_QT_CONNECTION, '', explainObject, macroSQL, flags.executeCursor, true);
+          });
+        }, ()=> {
+          /*This is intentional (SonarQube)*/
+        });
+        return;
+      }else {
+        this.eventBus.fireEvent(QUERY_TOOL_EVENTS.EXECUTION_END);
+        this.eventBus.fireEvent(QUERY_TOOL_EVENTS.HANDLE_API_ERROR,
+          e,
+          {
+            connectionLostCallback: ()=>{
+              this.eventBus.fireEvent(QUERY_TOOL_EVENTS.EXECUTION_START, query, {explainObject, external: flags.external, reconnect: true, executeCursor: flags.executeCursor});
+            },
+            checkTransaction: true,
+          }
+        );
+      }
     }
     return false;
   }
@@ -296,7 +332,7 @@ export class ResultSetUtils {
     });
     this.eventBus.fireEvent(QUERY_TOOL_EVENTS.HANDLE_API_ERROR, error, {
       connectionLostCallback: ()=>{
-        this.eventBus.fireEvent(QUERY_TOOL_EVENTS.EXECUTION_START, this.query, explainObject, flags.external, true, flags.executeCursor);
+        this.eventBus.fireEvent(QUERY_TOOL_EVENTS.EXECUTION_START, this.query, {explainObject, external: flags.external, reconnect: true, executeCursor: flags.executeCursor});
       },
       checkTransaction: true,
     });
@@ -335,7 +371,7 @@ export class ResultSetUtils {
       if(this.qtPref?.query_success_notification) {
         pgAdmin.Browser.notifier.success(msg);
       }
-      if(!ResultSetUtils.isQueryStillRunning(httpMessage)) {
+      if(!ResultSetUtils.isQueryStillRunning(httpMessage) && this.historyQuerySource) {
         this.eventBus.fireEvent(QUERY_TOOL_EVENTS.PUSH_HISTORY, {
           status: true,
           start_time: this.startTime,
@@ -353,16 +389,12 @@ export class ResultSetUtils {
     }
   }
 
-  getMoreRows(all=false) {
-    let url = url_for('sqleditor.fetch', {
+  getWindowRows(fromRownum, toRownum) {
+    let url = url_for('sqleditor.fetch_window', {
       'trans_id': this.transId,
+      'from_rownum': fromRownum,
+      'to_rownum': toRownum,
     });
-    if(all) {
-      url = url_for('sqleditor.fetch_all', {
-        'trans_id': this.transId,
-        'fetch_all': 1,
-      });
-    }
     return this.api.get(url);
   }
 
@@ -372,46 +404,87 @@ export class ResultSetUtils {
     );
   }
 
-  saveData(reqData) {
+  saveData(reqData, shouldReconnect) {
+    // Generate the URL with the optional `connect=1` parameter.
+    const url = ResultSetUtils.generateURLReconnectionFlag('sqleditor.save', this.transId, shouldReconnect);
+
     return this.api.post(
-      url_for('sqleditor.save', {
-        'trans_id': this.transId
-      }),
+      url,
       JSON.stringify(reqData)
-    );
+    ).then((response) => {
+      if (response.data?.data?.status) {
+        // Set the commit flag to true if the save was successful
+        this.hasQueryCommitted = true;
+      }
+      return response;
+    })
+      .catch(async (error) => {
+        if (error.response?.status === 428) {
+          // Handle 428: Show password dialog.
+          return new Promise((resolve, reject) => {
+            connectServerModal(
+              this.queryToolCtx.modal,
+              error.response?.data?.result,
+              async (formData) => {
+                try {
+                  await connectServer(
+                    this.api, 
+                    this.queryToolCtx.modal,
+                    this.queryToolCtx.params.sid,
+                    this.queryToolCtx.params.user,
+                    formData,
+                    async () => {
+                      let retryRespData = await this.saveData(reqData);
+                      // Set the commit flag to true if the save was successful
+                      this.hasQueryCommitted = true;
+                      pgAdmin.Browser.notifier.success(gettext('Server Connected.'));
+                      resolve(retryRespData);
+                    }
+                  );
+
+                } catch (retryError) {
+                  reject(retryError);
+                }
+              },
+              () => this.setLoaderText(null)
+            );
+          });
+        } else if (error.response?.status === 503) {
+          // Handle 503: Fire HANDLE_API_ERROR and wait for connectionLostCallback.
+          return new Promise((resolve, reject) => {
+            this.eventBus.fireEvent(QUERY_TOOL_EVENTS.HANDLE_API_ERROR, error, {
+              connectionLostCallback: async () => {
+                try {
+                  // Retry saveData with connect=1
+                  let retryRespData = await this.saveData(reqData, true);
+                  resolve(retryRespData);
+                } catch (retryError) {
+                  reject(retryError);
+                }
+              },
+              checkTransaction: true,
+              cancelCallback: () => this.setLoaderText(null)
+            },
+            );
+          });
+        } else {
+          // Set the commit flag to false if there was an error
+          this.hasQueryCommitted = false;
+          throw error;
+        }
+      });
   }
 
-  async saveResultsToFile(fileName) {
+  async saveResultsToFile(fileName, onProgress) {
     try {
-      let {data: respData} = await this.api.post(
-        url_for('sqleditor.query_tool_download', {
+      await DownloadUtils.downloadFileStream({
+        url: url_for('sqleditor.query_tool_download', {
           'trans_id': this.transId,
         }),
-        {filename: fileName}
-      );
-
-      if(!_.isUndefined(respData.data)) {
-        if(!respData.status) {
-          this.eventBus.fireEvent(QUERY_TOOL_EVENTS.SET_MESSAGE, respData.data.result);
-        }
-      } else {
-        let respBlob = new Blob([respData], {type : 'text/csv'}),
-          urlCreator = window.URL || window.webkitURL,
-          download_url = urlCreator.createObjectURL(respBlob),
-          link = document.createElement('a');
-
-        document.body.appendChild(link);
-
-        if (getBrowser() == 'IE' && window.navigator.msSaveBlob) {
-        // IE10+ : (has Blob, but not a[download] or URL)
-          window.navigator.msSaveBlob(respBlob, fileName);
-        } else {
-          link.setAttribute('href', download_url);
-          link.setAttribute('download', fileName);
-          link.click();
-        }
-        document.body.removeChild(link);
-      }
+        options: {
+          method: 'POST',
+          body: JSON.stringify({filename: fileName, query_commited: this.hasQueryCommitted})
+        }}, fileName, 'text/csv', onProgress);
       this.eventBus.fireEvent(QUERY_TOOL_EVENTS.TRIGGER_SAVE_RESULTS_END);
     } catch (error) {
       this.eventBus.fireEvent(QUERY_TOOL_EVENTS.TRIGGER_SAVE_RESULTS_END);
@@ -602,15 +675,18 @@ export class ResultSetUtils {
       return retVal;
     }
     let copiedRowsObjects = [];
-    try {
-      /* If the raw row objects are available, use to them identify null values */
-      copiedRowsObjects = JSON.parse(localStorage.getItem('copied-rows'));
-    } catch {/* Suppress the error */}
+    if(fromClipboard) {
+      try {
+        /* If the raw row objects are available, use to them identify null values */
+        copiedRowsObjects = JSON.parse(localStorage.getItem('copied-rows'));
+      } catch {/* Suppress the error */}
+    }
     for(const [recIdx, rec] of result?.entries()??[]) {
       // Convert 2darray to dict.
       let rowObj = {};
       for(const col of columns) {
-        let columnVal = rec[col.pos];
+        // if column data is undefined and there is not default value then set it to null.
+        let columnVal = rec[col.pos] ?? (col.has_default_val ? undefined : null);
         /* If the source is clipboard, then it needs some extra handling */
         if(fromClipboard) {
           columnVal = this.processClipboardVal(columnVal, col, copiedRowsObjects[recIdx]?.[col.key], pasteSerials);
@@ -631,7 +707,7 @@ export class ResultSetUtils {
       && data.types[0] && data.types[0].typname === 'json') {
       /* json is sent as text, parse it */
       let planJson = JSON.parse(data.result[0][0]);
-      if (planJson?.[0] && planJson?.[0].hasOwnProperty('Plan') &&
+      if (planJson?.[0]?.hasOwnProperty('Plan') &&
             _.isObject(planJson[0]['Plan'])
       ) {
         return planJson;
@@ -647,6 +723,10 @@ export class ResultSetUtils {
 
     let retMsg, tabMsg;
     retMsg = tabMsg = gettext('Query returned successfully in %s.', this.queryRunTime());
+
+    if (httpMessage.data.data?.server_cursor) {
+      this.eventBus.fireEvent(QUERY_TOOL_EVENTS.SERVER_CURSOR, httpMessage.data.data?.server_cursor);
+    }
     if(this.hasResultsToDisplay(httpMessage.data.data)) {
       let msg1 = gettext('Successfully run. Total query runtime: %s.', this.queryRunTime());
       let msg2 = gettext('%s rows affected.', httpMessage.data.data?.rows_affected);
@@ -680,6 +760,8 @@ export class ResultSetUtils {
       }
       this.eventBus.fireEvent(QUERY_TOOL_EVENTS.SET_MESSAGE, tabMsg, true);
       this.eventBus.fireEvent(QUERY_TOOL_EVENTS.FOCUS_PANEL, PANELS.MESSAGES);
+      /* Clear the query data if the query has no result to display.*/
+      onResultsAvailable(null, [], []);
     }
     return retMsg;
   }
@@ -719,6 +801,11 @@ function dataChangeReducer(state, action) {
       ...dataChange.deleted,
       ...action.add,
     };
+    if(action.all) {
+      dataChange.delete_all = true;
+    } else {
+      dataChange.delete_all = false;
+    }
     break;
   case 'reset':
     dataChange = {
@@ -726,6 +813,7 @@ function dataChangeReducer(state, action) {
       added: {},
       added_index: {},
       deleted: {},
+      delete_all: false,
     };
     break;
   default:
@@ -735,17 +823,8 @@ function dataChangeReducer(state, action) {
   return dataChange;
 }
 
-const useStyles = makeStyles((theme)=>({
-  root: {
-    display: 'flex',
-    height: '100%',
-    flexDirection: 'column',
-    backgroundColor: theme.otherVars.qtDatagridBg,
-  }
-}));
-
 export function ResultSet() {
-  const classes = useStyles();
+
   const containerRef = React.useRef(null);
   const eventBus = useContext(QueryToolEventsContext);
   const queryToolCtx = useContext(QueryToolContext);
@@ -755,12 +834,18 @@ export function ResultSet() {
   const [queryData, setQueryData] = useState(null);
   const [rows, setRows] = useState([]);
   const [columns, setColumns] = useState([]);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const api = getApiInstance();
-  const rsu = React.useRef(new ResultSetUtils(api, queryToolCtx.params.trans_id, queryToolCtx.params.is_query_tool));
+  const rsu = React.useRef(new ResultSetUtils(api, queryToolCtx, queryToolCtx.params.trans_id, queryToolCtx.params.is_query_tool));
   const [dataChangeStore, dispatchDataChange] = React.useReducer(dataChangeReducer, {});
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [selectedColumns, setSelectedColumns] = useState(new Set());
+  // NONE - no select, PAGE - show select all, ALL - select all.
+  const [allRowsSelect, setAllRowsSelect] = useState('NONE');
+  const modalId = MODAL_DIALOGS.QT_CONFIRMATIONS;
+  // We'll use this track if any changes were saved.
+  // It will help to decide whether results refresh is required or not on page change.
+  const pageDataDirty = useRef(false);
+
   const selectedCell = useRef([]);
   const selectedRange = useRef(null);
   const setSelectedCell = (val)=>{
@@ -783,6 +868,8 @@ export function ResultSet() {
 
   rsu.current.setEventBus(eventBus);
   rsu.current.setQtPref(queryToolCtx.preferences?.sqleditor);
+  // To use setLoaderText to the ResultSetUtils.
+  rsu.current.setLoaderText = setLoaderText;
 
   const isDataChanged = ()=>{
     return Boolean(_.size(dataChangeStore.updated) || _.size(dataChangeStore.added) || _.size(dataChangeStore.deleted));
@@ -792,23 +879,29 @@ export function ResultSet() {
     eventBus.fireEvent(QUERY_TOOL_EVENTS.SELECTED_ROWS_COLS_CELL_CHANGED, selectedRows.size, selectedColumns.size, selectedRange.current, selectedCell.current?.length);
   };
 
-  const executionStartCallback = async (query, explainObject, external=false, reconnect=false, executeCursor=false)=>{
+  const resetSelectionAndChanges = ()=>{
+    dispatchDataChange({type: 'reset'});
+    setSelectedRows(new Set());
+    setSelectedColumns(new Set());
+  };
+
+  const executionStartCallback = async (query, {
+    explainObject, macroSQL, external=false, reconnect=false, executeCursor=false, refreshData=false
+  })=>{
     const yesCallback = async ()=>{
       /* Reset */
       eventBus.fireEvent(QUERY_TOOL_EVENTS.HIGHLIGHT_ERROR, null);
-      dispatchDataChange({type: 'reset'});
-      setSelectedRows(new Set());
-      setSelectedColumns(new Set());
+      resetSelectionAndChanges();
       rsu.current.resetClientPKIndex();
       setLoaderText(gettext('Waiting for the query to complete...'));
       setDataOutputQuery(query);
       return await rsu.current.startExecution(
-        query, explainObject,
+        query, explainObject, macroSQL,
         ()=>{
           setColumns([]);
           setRows([]);
         },
-        {isQueryTool: queryToolCtx.params.is_query_tool, external: external, reconnect: reconnect, executeCursor: executeCursor}
+        {isQueryTool: queryToolCtx.params.is_query_tool, external: external, reconnect: reconnect, executeCursor: executeCursor, refreshData: refreshData}
       );
     };
 
@@ -842,11 +935,18 @@ export function ResultSet() {
     };
 
     const executeAndPoll = async ()=>{
-      await yesCallback();
-      pollCallback();
+      await yesCallback().then((res)=>{
+        if(res){
+          pollCallback();
+        } else {
+          eventBus.fireEvent(QUERY_TOOL_EVENTS.EXECUTION_END);
+        }
+      }).catch((err)=>{
+        console.error(err);
+      });
     };
 
-    if(isDataChanged()) {
+    if(isDataChanged() && !refreshData) {
       queryToolCtx.modal.confirm(
         gettext('Unsaved changes'),
         gettext('The data has been modified, but not saved. Are you sure you wish to discard the changes?'),
@@ -888,11 +988,11 @@ export function ResultSet() {
     eventBus.registerListener(QUERY_TOOL_EVENTS.TRIGGER_STOP_EXECUTION, async ()=>{
       try {
         await rsu.current.stopExecution();
+        eventBus.fireEvent(QUERY_TOOL_EVENTS.SET_CONNECTION_STATUS, CONNECTION_STATUS.TRANSACTION_STATUS_IDLE);
+        eventBus.fireEvent(QUERY_TOOL_EVENTS.EXECUTION_END);
       } catch(e) {
-        eventBus.fireEvent(QUERY_TOOL_EVENTS.HANDLE_API_ERROR, e);
+        pgAdmin.Browser.notifier.error(parseApiError(e));
       }
-      eventBus.fireEvent(QUERY_TOOL_EVENTS.SET_CONNECTION_STATUS, CONNECTION_STATUS.TRANSACTION_STATUS_IDLE);
-      eventBus.fireEvent(QUERY_TOOL_EVENTS.EXECUTION_END);
     });
 
     eventBus.registerListener(QUERY_TOOL_EVENTS.EXECUTION_END, ()=>{
@@ -906,7 +1006,9 @@ export function ResultSet() {
         fileName = queryToolCtx.params.node_name + extension;
       }
       setLoaderText(gettext('Downloading results...'));
-      await rsu.current.saveResultsToFile(fileName);
+      await rsu.current.saveResultsToFile(fileName, (p)=>{
+        setLoaderText(gettext('Downloading results(%s)...', p));
+      });
       setLoaderText('');
     });
 
@@ -940,18 +1042,41 @@ export function ResultSet() {
     eventBus.registerListener(QUERY_TOOL_EVENTS.TRIGGER_INCLUDE_EXCLUDE_FILTER, triggerFilter);
 
     eventBus.registerListener(QUERY_TOOL_EVENTS.GOTO_LAST_SCROLL, triggerResetScroll);
+
+    eventBus.registerListener(QUERY_TOOL_EVENTS.ALL_PAGE_ROWS_SELECTED, (selectAll)=>{
+      if(selectAll) {
+        setAllRowsSelect('PAGE');
+      } else {
+        setAllRowsSelect('NONE');
+      }
+      setSelectedColumns(new Set());
+    });
+
+    eventBus.registerListener(QUERY_TOOL_EVENTS.ALL_ROWS_SELECTED, ()=>{
+      setAllRowsSelect('ALL');
+    });
+
+    eventBus.registerListener(QUERY_TOOL_EVENTS.CLEAR_ROWS_SELECTED, ()=>{
+      setSelectedRows(new Set());
+      setAllRowsSelect('NONE');
+    });
   }, []);
 
   useEffect(()=>{
-    eventBus.registerListener(QUERY_TOOL_EVENTS.EXECUTION_START, executionStartCallback);
+    const deregExec = eventBus.registerListener(QUERY_TOOL_EVENTS.EXECUTION_START, executionStartCallback);
     return ()=>{
-      eventBus.deregisterListener(QUERY_TOOL_EVENTS.EXECUTION_START, executionStartCallback);
+      deregExec();
     };
-  }, [dataChangeStore]);
+  }, [dataChangeStore, dataOutputQuery]);
 
   useEffect(()=>{
     fireRowsColsCellChanged();
+    setAllRowsSelect('NONE');
   }, [selectedRows.size, selectedColumns.size]);
+
+  useEffect(()=>{
+    eventBus.fireEvent(QUERY_TOOL_EVENTS.ALL_ROWS_SELECTED_STATUS, allRowsSelect);
+  }, [allRowsSelect]);
 
   useEffect(()=>{
     rsu.current.transId = queryToolCtx.params.trans_id;
@@ -961,45 +1086,59 @@ export function ResultSet() {
     eventBus.fireEvent(QUERY_TOOL_EVENTS.RESET_GRAPH_VISUALISER, columns);
   }, [columns]);
 
-  const fetchMoreRows = async (all=false, callback=undefined)=>{
-    if(queryData.has_more_rows) {
-      let res = [];
-      setIsLoadingMore(true);
-      try {
-        res = await rsu.current.getMoreRows(all);
-        const newRows = rsu.current.processRows(res.data.data.result, columns);
-        setRows((prevRows)=>[...prevRows, ...newRows]);
-        setQueryData((prev)=>({
-          ...prev,
-          has_more_rows: res.data.data.has_more_rows,
-          rows_fetched_to: res.data.data.rows_fetched_to!=0 ? res.data.data.rows_fetched_to : prev.rows_fetched_to,
-        }));
-      } catch (e) {
-        eventBus.fireEvent(QUERY_TOOL_EVENTS.HANDLE_API_ERROR,
-          e,
-          {
-            connectionLostCallback: ()=>{
-              eventBus.fireEvent(QUERY_TOOL_EVENTS.EXECUTION_START, rsu.current.query, null, false, true);
-            },
-            checkTransaction: true,
-          }
-        );
-      } finally {
-        setIsLoadingMore(false);
-      }
+  const fetchWindow = async (fromRownum, toRownum, callback)=>{
+    let res = [];
+    setLoaderText(gettext('Fetching rows...'));
+    try {
+      res = await rsu.current.getWindowRows(fromRownum, toRownum);
+      const newRows = rsu.current.processRows(res.data.data.result, columns);
+      setRows([...newRows]);
+      setQueryData((prev)=>({
+        ...prev,
+        pagination: res.data.data.pagination,
+        rows_fetched_to: res.data.data.rows_fetched_to!=0 ? res.data.data.rows_fetched_to : prev.rows_fetched_to,
+      }));
+    } catch (e) {
+      eventBus.fireEvent(QUERY_TOOL_EVENTS.HANDLE_API_ERROR,
+        e,
+        {
+          connectionLostCallback: ()=>{
+            eventBus.fireEvent(QUERY_TOOL_EVENTS.EXECUTION_START, rsu.current.query, {external: false, reconnect: true});
+          },
+          checkTransaction: true,
+        }
+      );
+    } finally {
+      setLoaderText('');
     }
     callback?.();
   };
-  useEffect(()=>{
-    eventBus.registerListener(QUERY_TOOL_EVENTS.FETCH_MORE_ROWS, fetchMoreRows);
-    return ()=>{
-      eventBus.deregisterListener(QUERY_TOOL_EVENTS.FETCH_MORE_ROWS, fetchMoreRows);
-    };
-  }, [queryData?.has_more_rows, columns]);
 
   useEffect(()=>{
-    eventBus.fireEvent(QUERY_TOOL_EVENTS.ROWS_FETCHED, queryData?.rows_fetched_to, queryData?.rows_affected);
-  }, [queryData?.rows_fetched_to, queryData?.rows_affected]);
+    let deregExecEnd;
+    const deregFetch = eventBus.registerListener(QUERY_TOOL_EVENTS.FETCH_WINDOW, (...args)=>{
+      if(pageDataDirty.current) {
+        deregExecEnd = eventBus.registerListener(QUERY_TOOL_EVENTS.EXECUTION_END, (success)=>{
+          if(!success) return;
+          pageDataDirty.current = false;
+          fetchWindow(...args);
+        }, true);
+        executionStartCallback(rsu.current.query, {refreshData: true});
+      } else {
+        pageDataDirty.current = false;
+        fetchWindow(...args);
+      }
+      resetSelectionAndChanges();
+    });
+    return ()=>{
+      deregFetch();
+      deregExecEnd?.();
+    };
+  }, [columns]);
+
+  useEffect(()=>{
+    eventBus.fireEvent(QUERY_TOOL_EVENTS.TOTAL_ROWS_COUNT, queryData?.rows_affected);
+  }, [queryData?.rows_affected]);
 
   const warnSaveDataClose = ()=>{
     // No changes.
@@ -1019,7 +1158,7 @@ export function ResultSet() {
           eventBus.fireEvent(QUERY_TOOL_EVENTS.WARN_SAVE_TEXT_CLOSE);
         }}
       />
-    ));
+    ), {id: modalId});
   };
   useEffect(()=>{
     let isDirty = _.size(dataChangeStore.updated) || _.size(dataChangeStore.added) || _.size(dataChangeStore.deleted);
@@ -1046,6 +1185,7 @@ export function ResultSet() {
       let {data: respData} = await rsu.current.saveData({
         updated: dataChangeStore.updated,
         deleted: dataChangeStore.deleted,
+        delete_all: dataChangeStore.delete_all,
         added_index: dataChangeStore.added_index,
         added: added,
         columns: columns,
@@ -1065,10 +1205,10 @@ export function ResultSet() {
             'info': gettext('This query was generated by pgAdmin as part of a "Save Data" operation'),
           });
         });
-      } catch (_e) {/* History errors should not bother others */}
+      } catch {/* History errors should not bother others */}
 
       if(!respData.data.status) {
-        eventBus.fireEvent(QUERY_TOOL_EVENTS.SAVE_DATA_DONE, false);
+        pageDataDirty.current = false;
         eventBus.fireEvent(QUERY_TOOL_EVENTS.SET_MESSAGE, respData.data.result);
         pgAdmin.Browser.notifier.error(respData.data.result, 20000);
         // If the transaction is not idle, notify the user that previous queries are not rolled back,
@@ -1081,7 +1221,7 @@ export function ResultSet() {
         return;
       }
 
-      eventBus.fireEvent(QUERY_TOOL_EVENTS.SAVE_DATA_DONE, true);
+      pageDataDirty.current = true;
       if(_.size(dataChangeStore.added)) {
         // Update the rows in a grid after addition
         respData.data.query_results.forEach((qr)=>{
@@ -1113,9 +1253,7 @@ export function ResultSet() {
         });
         setColumns((prev)=>prev);
       }
-      dispatchDataChange({type: 'reset'});
-      setSelectedRows(new Set());
-      setSelectedColumns(new Set());
+      resetSelectionAndChanges();
       eventBus.fireEvent(QUERY_TOOL_EVENTS.SET_CONNECTION_STATUS, respData.data.transaction_status);
       eventBus.fireEvent(QUERY_TOOL_EVENTS.SET_MESSAGE, '');
       pgAdmin.Browser.notifier.success(gettext('Data saved successfully.'));
@@ -1123,7 +1261,7 @@ export function ResultSet() {
         pgAdmin.Browser.notifier.info(gettext('Auto-commit is off. You still need to commit changes to the database.'));
       }
     } catch (error) {
-      eventBus.fireEvent(QUERY_TOOL_EVENTS.SAVE_DATA_DONE, false);
+      pageDataDirty.current = false;
       eventBus.fireEvent(QUERY_TOOL_EVENTS.HANDLE_API_ERROR, error, {
         checkTransaction: true,
       });
@@ -1222,6 +1360,7 @@ export function ResultSet() {
       type: 'deleted',
       add: add,
       remove: remove,
+      all: remove.length > 0 ? false : allRowsSelect == 'ALL',
     });
   };
 
@@ -1237,7 +1376,7 @@ export function ResultSet() {
     return ()=>{
       eventBus.deregisterListener(QUERY_TOOL_EVENTS.TRIGGER_DELETE_ROWS, triggerDeleteRows);
     };
-  }, [selectedRows, queryData, dataChangeStore, rows]);
+  }, [selectedRows, queryData, dataChangeStore, rows, allRowsSelect]);
 
   useEffect(()=>{
     const triggerAddRows = (_rows, fromClipboard, pasteSerials)=>{
@@ -1246,6 +1385,16 @@ export function ResultSet() {
         let selectedRowsSorted = Array.from(selectedRows);
         selectedRowsSorted.sort();
         insPosn = _.findIndex(rows, (r)=>rowKeyGetter(r)==selectedRowsSorted[selectedRowsSorted.length-1])+1;
+      }
+      let byteaCellSelection = columns.filter(o=>o.type=='bytea');
+      if (byteaCellSelection.length>0) {
+        _rows = _rows.map(x=>{
+          byteaCellSelection.forEach(r=>{
+            x[r.pos]=null;
+            return x;
+          });
+          return x;
+        });
       }
       let newRows = rsu.current.processRows(_rows, columns, fromClipboard, pasteSerials);
       setRows((prev)=>[
@@ -1292,20 +1441,6 @@ export function ResultSet() {
     eventBus.registerListener(QUERY_TOOL_EVENTS.TRIGGER_RENDER_GEOMETRIES, renderGeometries);
     return ()=>eventBus.deregisterListener(QUERY_TOOL_EVENTS.TRIGGER_RENDER_GEOMETRIES, renderGeometries);
   }, [rows, columns, selectedRows.size, selectedColumns.size]);
-
-  const handleScroll = (e) => {
-    // Set scroll current position of RestSet.
-    if (!_.isNull(e.currentTarget) && isResettingScroll.current) {
-      lastScrollRef.current = {
-        ref: { ...e },
-        top: e.currentTarget.scrollTop,
-        left: e.currentTarget.scrollLeft
-      };
-    }
-
-    if (isLoadingMore || !rsu.current.isAtBottom(e)) return;
-    eventBus.fireEvent(QUERY_TOOL_EVENTS.FETCH_MORE_ROWS);
-  };
 
   const triggerResetScroll = () => {
     // Reset the scroll position to previously saved location.
@@ -1381,27 +1516,30 @@ export function ResultSet() {
 
   const rowKeyGetter = React.useCallback((row)=>row[rsu.current.clientPK]);
   return (
-    <Box className={classes.root} ref={containerRef} tabIndex="0">
+    <StyledBox ref={containerRef} tabIndex="0">
       <Loader message={loaderText} />
-      <Loader data-label="loader-more-rows" message={isLoadingMore ? gettext('Loading more rows...') : null} style={{top: 'unset', right: 'unset', padding: '0.5rem 1rem'}}/>
       {!queryData &&
         <EmptyPanelMessage text={gettext('No data output. Execute a query to get output.')}/>
       }
       {queryData && <>
-        <ResultSetToolbar containerRef={containerRef} query={dataOutputQuery} canEdit={queryData.can_edit} totalRowCount={queryData?.rows_affected}/>
+        <ResultSetToolbar containerRef={containerRef} query={dataOutputQuery}
+          canEdit={queryData.can_edit} totalRowCount={queryData?.rows_affected}
+          pagination={queryData?.pagination ?? {}} allRowsSelect={allRowsSelect}
+        />
         <Box flexGrow="1" minHeight="0">
           <QueryToolDataGrid
             columns={columns}
             rows={rows}
             totalRowCount={queryData?.rows_affected}
+            startRowNum={queryData?.pagination?.rows_from}
             columnWidthBy={
               queryToolCtx.preferences?.sqleditor?.column_data_auto_resize == 'by_data' ?
                 queryToolCtx.preferences.sqleditor.column_data_max_width :
                 queryToolCtx.preferences?.sqleditor?.column_data_auto_resize
             }
+            maxColumnDataDisplayLength={queryToolCtx.preferences?.sqleditor?.max_column_data_display_length}
             key={rowsResetKey}
             rowKeyGetter={rowKeyGetter}
-            onScroll={handleScroll}
             onRowsChange={onRowsChange}
             dataChangeStore={dataChangeStore}
             selectedRows={selectedRows}
@@ -1410,9 +1548,10 @@ export function ResultSet() {
             onSelectedColumnsChange={setSelectedColumns}
             onSelectedCellChange={setSelectedCell}
             onSelectedRangeChange={setSelectedRange}
+            stripedRows={queryToolCtx.preferences?.sqleditor?.striped_rows}
           />
         </Box>
       </>}
-    </Box>
+    </StyledBox>
   );
 }

@@ -2,7 +2,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2024, The pgAdmin Development Team
+# Copyright (C) 2013 - 2025, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 ##########################################################################
@@ -81,9 +81,11 @@ class ServerManager(object):
         self.db_info = dict()
         self.server_types = None
         self.db_res = server.db_res
+        self.db_res_type = server.db_res_type
         self.name = server.name
         self.passexec = \
-            PasswordExec(server.passexec_cmd, server.passexec_expiration) \
+            PasswordExec(server.passexec_cmd, server.host, server.port,
+                         server.username, server.passexec_expiration) \
             if server.passexec_cmd else None
         self.service = server.service
 
@@ -115,6 +117,7 @@ class ServerManager(object):
         self.connection_params = server.connection_params
         self.create_connection_string(self.db, self.user)
         self.prepare_threshold = server.prepare_threshold
+        self.post_connection_sql = server.post_connection_sql
 
         for con in self.connections:
             self.connections[con]._release()
@@ -243,7 +246,7 @@ WHERE db.oid = {0}""".format(did))
                             ))
 
         if not get_crypt_key()[0] and (
-                config.SERVER_MODE or config.DISABLED_LOCAL_PASSWORD_STORAGE):
+                config.SERVER_MODE or not config.USE_OS_SECRET_STORAGE):
             # the reason its not connected might be missing key
             raise CryptKeyMissing()
 
@@ -537,16 +540,10 @@ WHERE db.oid = {0}""".format(did))
 
     def export_password_env(self, env):
         if self.password:
-            if config.DISABLED_LOCAL_PASSWORD_STORAGE:
-                crypt_key_present, crypt_key = get_crypt_key()
-                if not crypt_key_present:
-                    return False, crypt_key
-                password = decrypt(self.password, crypt_key).decode()
-            elif hasattr(self.password, 'decode'):
-                password = self.password.decode('utf-8')
-            else:
-                password = self.password
-
+            crypt_key_present, crypt_key = get_crypt_key()
+            if not crypt_key_present:
+                return False, crypt_key
+            password = decrypt(self.password, crypt_key).decode()
             os.environ[str(env)] = password
         elif self.passexec:
             password = self.passexec.get()
@@ -565,18 +562,15 @@ WHERE db.oid = {0}""".format(did))
             return False, gettext("Unauthorized request.")
 
         if tunnel_password is not None and tunnel_password != '':
-            if config.DISABLED_LOCAL_PASSWORD_STORAGE:
-                crypt_key_present, crypt_key = get_crypt_key()
-                if not crypt_key_present:
-                    raise CryptKeyMissing()
+            crypt_key_present, crypt_key = get_crypt_key()
+            if not crypt_key_present:
+                raise CryptKeyMissing()
 
             try:
-                if config.DISABLED_LOCAL_PASSWORD_STORAGE:
-                    tunnel_password = decrypt(tunnel_password, crypt_key)
-                    # password is in bytes, for python3 we need it in string
-                    if isinstance(tunnel_password, bytes):
-                        tunnel_password = tunnel_password.decode()
-
+                tunnel_password = decrypt(tunnel_password, crypt_key)
+                # password is in bytes, for python3 we need it in string
+                if isinstance(tunnel_password, bytes):
+                    tunnel_password = tunnel_password.decode()
             except Exception as e:
                 current_app.logger.exception(e)
                 return False, gettext("Failed to decrypt the SSH tunnel "
@@ -680,8 +674,9 @@ WHERE db.oid = {0}""".format(did))
                 with_complete_path = False
                 orig_value = value
                 # Getting complete file path if the key is one of the below.
-                if key in ['passfile', 'sslcert', 'sslkey', 'sslrootcert',
-                           'sslcrl', 'sslcrldir']:
+                if key in ['passfile', 'sslcert', 'sslkey','sslcrl',
+                           'sslcrldir'] or \
+                        (key == 'sslrootcert' and value != 'system'):
                     with_complete_path = True
                     value = get_complete_file_path(value)
 

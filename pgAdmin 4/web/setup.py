@@ -2,7 +2,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2024, The pgAdmin Development Team
+# Copyright (C) 2013 - 2025, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 ##########################################################################
@@ -37,11 +37,12 @@ if 'SERVER_MODE' in globals():
 else:
     builtins.SERVER_MODE = None
 
-from pgadmin.model import db, Version, User, \
+from pgadmin.model import db, Version, User, Role, \
     SCHEMA_VERSION as CURRENT_SCHEMA_VERSION
 from pgadmin import create_app
 from pgadmin.utils import clear_database_servers, dump_database_servers, \
     load_database_servers, _handle_error
+from pgadmin.utils.session import cleanup_session_files
 from pgadmin.setup import db_upgrade, create_app_data_directory
 from typing import Optional, List
 from typing_extensions import Annotated
@@ -54,6 +55,8 @@ from flask_babel import gettext
 
 
 app = typer.Typer(pretty_exceptions_show_locals=False)
+USER_NOT_FOUND_STR = "User not found"
+SOMETHING_WENT_WRONG = 'Something went wrong. '
 
 
 def update_sqlite_path(f):
@@ -145,13 +148,27 @@ class AuthType(str, Enum):
     internal = INTERNAL
 
 
+class ManageRoles:
+    @staticmethod
+    def get_role(role: str):
+        app = create_app(config.APP_NAME + '-cli')
+        usr = None
+        with app.test_request_context():
+            usr = Role.query.filter_by(name=role).first()
+
+            if not usr:
+                return None
+            return usr.id
+
+
 class ManageUsers:
 
     @app.command()
     @update_sqlite_path
     def add_user(email: str, password: str,
-                 role: Annotated[Optional[bool], typer.Option(
-                     "--admin/--nonadmin")] = False,
+                 admin: Annotated[Optional[bool],
+                                  typer.Option("--admin")] = False,
+                 role: Optional[str] = None,
                  active: Annotated[Optional[bool],
                                    typer.Option("--active/--inactive")] = True,
                  console: Optional[bool] = True,
@@ -162,7 +179,7 @@ class ManageUsers:
 
         data = {
             'email': email,
-            'role': 1 if role else 2,
+            'role': 'Administrator' if admin else role,
             'active': active,
             'auth_source': INTERNAL,
             'newPassword': password,
@@ -175,9 +192,9 @@ class ManageUsers:
     def add_external_user(username: str,
                           auth_source: AuthExtTypes = AuthExtTypes.oauth2,
                           email: Optional[str] = None,
-                          role: Annotated[Optional[bool],
-                                          typer.Option(
-                                              "--admin/--nonadmin")] = False,
+                          admin: Annotated[Optional[bool],
+                                           typer.Option("--admin")] = False,
+                          role: Optional[str] = None,
                           active: Annotated[Optional[bool],
                                             typer.Option(
                                                 "--active/--inactive")] = True,
@@ -191,7 +208,7 @@ class ManageUsers:
         data = {
             'username': username,
             'email': email,
-            'role': 1 if role else 2,
+            'role': 'Administrator' if admin else role,
             'active': active,
             'auth_source': auth_source
         }
@@ -216,21 +233,21 @@ class ManageUsers:
                 uid = ManageUsers.get_user(username=username,
                                            auth_source=auth_source)
                 if not uid:
-                    print("User not found")
+                    print(USER_NOT_FOUND_STR)
                 else:
                     status, msg = delete_user(uid)
                     if status:
                         print('User deleted successfully.')
                     else:
-                        print('Something went wrong. ' + str(msg))
+                        print(SOMETHING_WENT_WRONG + str(msg))
 
     @app.command()
     @update_sqlite_path
     def update_user(email: str,
                     password: Optional[str] = None,
-                    role: Annotated[Optional[bool],
-                                    typer.Option("--admin/--nonadmin"
-                                                 )] = None,
+                    admin: Annotated[Optional[bool], typer.Option(
+                        "--admin")] = False,
+                    role: Optional[str] = None,
                     active: Annotated[Optional[bool],
                                       typer.Option("--active/--inactive"
                                                    )] = None,
@@ -251,16 +268,25 @@ class ManageUsers:
             data['confirmPassword'] = password
 
         if role is not None:
-            data['role'] = 1 if role else 2
+            data['role'] = role
+        if admin:
+            data['role'] = 'Administrator'
         if active is not None:
             data['active'] = active
 
         app = create_app(config.APP_NAME + '-cli')
         with app.test_request_context():
+            rid = ManageRoles.get_role(data['role'])
+            if rid is None:
+                print("Role '{0}' does not exists.".format(data['role']))
+                exit()
+
+            data['role'] = rid
+
             uid = ManageUsers.get_user(username=email,
                                        auth_source=INTERNAL)
             if not uid:
-                print("User not found")
+                print(USER_NOT_FOUND_STR)
             else:
                 status, msg = user_management_update_user(uid, data)
                 if status:
@@ -269,7 +295,7 @@ class ManageUsers:
                                                           console=False)
                     ManageUsers.display_user(_user[0], console, json)
                 else:
-                    print('Something went wrong. ' + str(msg))
+                    print(SOMETHING_WENT_WRONG + str(msg))
 
     @app.command()
     @update_sqlite_path
@@ -305,7 +331,7 @@ class ManageUsers:
                          'username': u.username,
                          'email': u.email,
                          'active': u.active,
-                         'role': u.roles[0].id,
+                         'role': u.roles[0].name,
                          'auth_source': u.auth_source,
                          'locked': u.locked
                          }
@@ -320,9 +346,9 @@ class ManageUsers:
     def update_external_user(username: str,
                              auth_source: AuthExtTypes = AuthExtTypes.oauth2,
                              email: Optional[str] = None,
-                             role: Annotated[Optional[bool],
-                                             typer.Option("--admin/--nonadmin"
-                                                          )] = None,
+                             admin: Annotated[Optional[bool], typer.Option(
+                                 "--admin")] = False,
+                             role: Optional[str] = None,
                              active: Annotated[
                                  Optional[bool],
                                  typer.Option("--active/--inactive")] = None,
@@ -337,16 +363,25 @@ class ManageUsers:
         if email:
             data['email'] = email
         if role is not None:
-            data['role'] = 1 if role else 2
+            data['role'] = role
+        if admin:
+            data['role'] = 'Administrator'
         if active is not None:
             data['active'] = active
 
         app = create_app(config.APP_NAME + '-cli')
         with app.test_request_context():
+            rid = ManageRoles.get_role(data['role'])
+            if rid is None:
+                print("Role '{0}' does not exists.".format(data['role']))
+                exit()
+
+            data['role'] = rid
+
             uid = ManageUsers.get_user(username=username,
                                        auth_source=auth_source)
             if not uid:
-                print("User not found")
+                print(USER_NOT_FOUND_STR)
             else:
                 status, msg = user_management_update_user(uid, data)
                 if status:
@@ -357,13 +392,21 @@ class ManageUsers:
                     )
                     ManageUsers.display_user(_user[0], console, json)
                 else:
-                    print('Something went wrong. ' + str(msg))
+                    print(SOMETHING_WENT_WRONG + str(msg))
 
     def create_user(data, console, json):
         app = create_app(config.APP_NAME + '-cli')
         with app.test_request_context():
             username = data['username'] if 'username' in data else \
                 data['email']
+
+            rid = ManageRoles.get_role(data['role'])
+            if rid is None:
+                print("Role '{0}' does not exists.".format(data['role']))
+                exit()
+
+            data['role'] = rid
+
             uid = ManageUsers.get_user(username=username,
                                        auth_source=data['auth_source'])
             if uid:
@@ -376,9 +419,12 @@ class ManageUsers:
 
             status, msg = create_user(data)
             if status:
-                ManageUsers.display_user(data, console, json)
+                _user = ManageUsers.get_users_from_db(
+                    username=data['email'],
+                    auth_source=data['auth_source'],
+                    console=console)
             else:
-                print('Something went wrong. ' + str(msg))
+                print(SOMETHING_WENT_WRONG + str(msg))
 
     def get_user(username=None, auth_source=INTERNAL):
         app = create_app(config.APP_NAME + '-cli')
@@ -409,10 +455,7 @@ class ManageUsers:
                     if 'email' in _data:
                         table.add_row("Email", _data['email'])
                     table.add_row("auth_source", _data['auth_source'])
-                    table.add_row("role",
-                                  "Admin" if _data['role'] and
-                                  _data['role'] != 2 else
-                                  "Non-admin")
+                    table.add_row("role", _data['role'])
                     table.add_row("active",
                                   'True' if _data['active'] else 'False')
                     console.print(table)
@@ -494,6 +537,8 @@ class ManagePreferences:
                   sqlite_path: Optional[str] = None,
                   ):
         """Set User preferences."""
+        if not pref_options:
+            pref_options = []
 
         if input_file:
             from urllib.parse import unquote
@@ -524,7 +569,7 @@ class ManagePreferences:
         table = Table(title="Updated Pref Details", box=box.ASCII)
         table.add_column("Preference", style="green")
         if not user_id:
-            print("User not found.")
+            print(USER_NOT_FOUND_STR)
             return
 
         prefs = ManagePreferences.fetch_prefs(True)
@@ -545,9 +590,9 @@ class ManagePreferences:
                 if f in prefs:
                     ids = prefs[f].split(":")
                     _row = {
-                        'mid': ids[0],
-                        'category_id': ids[1],
-                        'id': ids[2],
+                        'mid': int(ids[0]),
+                        'category_id': int(ids[1]),
+                        'id': int(ids[2]),
                         'name': final_opt[2],
                         'user_id': user_id,
                         'value': val}
@@ -630,6 +675,16 @@ def setup_db(app: Annotated[str, typer.Argument(
         run_migration_for_others()
     else:
         run_migration_for_sqlite()
+
+
+class ManageSessions:
+
+    @app.command()
+    def cleanup_session_files():
+        """Delete expired session files."""
+        app = create_app(config.APP_NAME + '-cli')
+        with app.app_context():
+            cleanup_session_files()
 
 
 def main():

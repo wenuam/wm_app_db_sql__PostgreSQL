@@ -2,7 +2,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2024, The pgAdmin Development Team
+# Copyright (C) 2013 - 2025, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 ##########################################################################
@@ -19,7 +19,8 @@ from pgadmin.tools.schema_diff.node_registry import SchemaDiffRegistry
 
 
 class SchemaDiffViewCompare(SchemaDiffObjectCompare):
-    view_keys_to_ignore = ['oid', 'schema', 'xmin', 'oid-2', 'setting']
+    view_keys_to_ignore = ['oid', 'schema', 'xmin', 'oid-2', 'setting',
+                           'indrelid']
 
     trigger_keys_to_ignore = ['xmin', 'tgrelid', 'tgfoid', 'tfunction',
                               'tgqual', 'tgconstraint', 'nspname']

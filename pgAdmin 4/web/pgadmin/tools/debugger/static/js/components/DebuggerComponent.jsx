@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -30,6 +30,7 @@ import { Results } from './Results';
 import { LocalVariablesAndParams } from './LocalVariablesAndParams';
 import DebuggerArgumentComponent from './DebuggerArgumentComponent';
 import usePreferences from '../../../../../preferences/static/js/store';
+import { ApplicationStateProvider } from '../../../../../settings/static/ApplicationStateProvider';
 
 export const DebuggerContext = React.createContext();
 export const DebuggerEventsContext = React.createContext();
@@ -66,21 +67,34 @@ export default function DebuggerComponent({ pgAdmin, selectedNodeInfo, panelId, 
     eventBus.current.fireEvent(DEBUGGER_EVENTS.GET_TOOL_BAR_BUTTON_STATUS, { disabled: false });
   };
 
+  const getExecuteQueryUrl = (transId, queryType) => {
+    return url_for('debugger.execute_query', {
+      'trans_id': transId,
+      'query_type': queryType,
+    });
+  };
+
+  const isSuccess = (httpStatus) => {
+    return httpStatus.data.data.status === 'Success';
+  };
+
+  const isBusy = (httpStatus) => {
+    return httpStatus.data.data.status === 'Busy';
+  };
+
   // Function to get the breakpoint information from the server
   const getBreakpointInformation = (transId, callBackFunc) => {
     let result = '';
 
     // Make ajax call to listen the database message
-    let baseUrl = url_for('debugger.execute_query', {
-      'trans_id': transId,
-      'query_type': 'get_breakpoints',
-    });
     api({
-      url: baseUrl,
+      url: getExecuteQueryUrl(transId, 'get_breakpoints'),
       method: 'GET',
     })
       .then(function (res) {
-        if (res.data.data.status === 'Success') {
+        if (isBusy(res)) {
+          getBreakpointInformation(transId, callBackFunc);
+        } else if (isSuccess(res)) {
           result = res.data.data.result;
           if (callBackFunc) {
             callBackFunc(result);
@@ -147,7 +161,7 @@ export default function DebuggerComponent({ pgAdmin, selectedNodeInfo, panelId, 
           }
         });
       }
-    } catch (e) {
+    } catch {
       alert(xhr);
       pgAdmin.Browser.notifier.alert(
         gettext('Debugger Error'),
@@ -189,11 +203,11 @@ export default function DebuggerComponent({ pgAdmin, selectedNodeInfo, panelId, 
       method: 'GET',
     })
       .then(function (res) {
-        if (res.data.data.status === 'Success') {
+        if (isSuccess(res)) {
           enableToolbarButtons();
           // If status is Success then find the port number to attach the executer.
           startExecution(transId, res.data.data.result);
-        } else if (res.data.data.status === 'Busy') {
+        } else if (isBusy(res)) {
           // If status is Busy then poll the result by recursive call to the poll function
           messages(transId);
         } else if (res.data.data.status === 'NotConnected') {
@@ -224,7 +238,9 @@ export default function DebuggerComponent({ pgAdmin, selectedNodeInfo, panelId, 
       method: 'GET',
     })
       .then(function (res) {
-        if (res.data.data.status === 'Success') {
+        if (isBusy(res)) {
+          startExecution(transId, port_num);
+        } else if (isSuccess(res)) {
           // If status is Success then find the port number to attach the executer.
           executeQuery(transId);
         } else if (res.data.data.status === 'NotConnected') {
@@ -244,17 +260,12 @@ export default function DebuggerComponent({ pgAdmin, selectedNodeInfo, panelId, 
 
   const executeQuery = (transId) => {
     // Make ajax call to listen the database message
-    let baseUrl = url_for(
-      'debugger.execute_query', {
-        'trans_id': transId,
-        'query_type': 'wait_for_breakpoint',
-      });
     api({
-      url: baseUrl,
+      url: getExecuteQueryUrl(transId, 'wait_for_breakpoint'),
       method: 'GET',
     })
       .then(function (res) {
-        if (res.data.data.status === 'Success') {
+        if (isSuccess(res)) {
           // set the return code to the code editor text area
           if (
             res.data.data.result[0].src != null &&
@@ -388,24 +399,26 @@ export default function DebuggerComponent({ pgAdmin, selectedNodeInfo, panelId, 
         })
         .catch(raiseClearBrekpointError);
     };
-    // Make ajax call to listen the database message
-    let baseUrl = url_for('debugger.execute_query', {
-      'trans_id': params.transId,
-      'query_type': 'get_breakpoints',
-    });
-    api({
-      url: baseUrl,
-      method: 'GET',
-    })
-      .then(function (res) {
-        if (res.data.data.status === 'Success') {
-          let result = res.data.data.result;
-          clearBreakpoint(result);
-        } else if (res.data.data.status === 'NotConnected') {
-          raiseFetchingBreakpointError();
-        }
+
+    let get_breakpoint = () => {
+      // Make ajax call to listen the database message
+      api({
+        url: getExecuteQueryUrl(params.transId, 'get_breakpoints'),
+        method: 'GET',
       })
-      .catch(raiseFetchingBreakpointError);
+        .then(function (res) {
+          if (isBusy(res)) {
+            get_breakpoint();
+          } else if (isSuccess(res)) {
+            let result = res.data.data.result;
+            clearBreakpoint(result);
+          } else if (res.data.data.status === 'NotConnected') {
+            raiseFetchingBreakpointError();
+          }
+        })
+        .catch(raiseFetchingBreakpointError);
+    };
+    get_breakpoint();
 
   };
 
@@ -419,13 +432,8 @@ export default function DebuggerComponent({ pgAdmin, selectedNodeInfo, panelId, 
   const stopDebugging = () => {
     disableToolbarButtons();
     // Make ajax call to listen the database message
-    let baseUrl = url_for(
-      'debugger.execute_query', {
-        'trans_id': params.transId,
-        'query_type': 'abort_target',
-      });
     api({
-      url: baseUrl,
+      url: getExecuteQueryUrl(params.transId, 'abort_target'),
       method: 'GET',
     })
       .then(function (res) {
@@ -627,7 +635,7 @@ export default function DebuggerComponent({ pgAdmin, selectedNodeInfo, panelId, 
           method: 'GET',
         })
           .then(function (res) {
-            if (res.data.data.status === 'Success') {
+            if (isSuccess(res)) {
               if (res.data.data.result == undefined) {
                 /*
                 "result" is undefined only in case of EDB procedure.
@@ -655,7 +663,7 @@ export default function DebuggerComponent({ pgAdmin, selectedNodeInfo, panelId, 
               } else {
                 updateResultAndMessages(res);
               }
-            } else if (res.data.data.status === 'Busy') {
+            } else if (isBusy(res)) {
               // If status is Busy then poll the result by recursive call to
               // the poll function
               pollEndExecutionResult(transId);
@@ -692,16 +700,14 @@ export default function DebuggerComponent({ pgAdmin, selectedNodeInfo, panelId, 
       restart(params.transId);
     } else {
       // Make ajax call to listen the database message
-      let baseUrl = url_for('debugger.execute_query', {
-        'trans_id': params.transId,
-        'query_type': 'continue',
-      });
       api({
-        url: baseUrl,
+        url: getExecuteQueryUrl(params.transId, 'continue'),
         method: 'GET',
       })
         .then(function (res) {
-          if (res.data.data.status) {
+          if (isBusy(res)) {
+            continueDebugger();
+          } else if (res.data.data.status) {
             pollResult(params.transId);
           } else {
             pgAdmin.Browser.notifier.alert(
@@ -723,12 +729,8 @@ export default function DebuggerComponent({ pgAdmin, selectedNodeInfo, panelId, 
     disableToolbarButtons();
 
     // Make ajax call to listen the database message
-    let baseUrl = url_for('debugger.execute_query', {
-      'trans_id': params.transId,
-      'query_type': 'step_over',
-    });
     api({
-      url: baseUrl,
+      url: getExecuteQueryUrl(params.transId, 'step_over'),
       method: 'GET',
     })
       .then(function (res) {
@@ -775,22 +777,21 @@ export default function DebuggerComponent({ pgAdmin, selectedNodeInfo, panelId, 
   // Get the local variable information of the functions and update the grid
   const getLocalVariables = (transId) => {
     // Make ajax call to listen the database message
-    let baseUrl = url_for(
-      'debugger.execute_query', {
-        'trans_id': transId,
-        'query_type': 'get_variables',
-      });
     api({
-      url: baseUrl,
+      url: getExecuteQueryUrl(transId, 'get_variables'),
       method: 'GET',
     })
       .then(function (res) {
-        if (res.data.data.status === 'Success') {
+        if (isBusy(res)) {
+          getLocalVariables(transId);
+        }
+        else if (isSuccess(res)) {
           // Call function to update local variables
           let variablesResult = res.data.data.result.filter((lvar) => {
             return lvar.varclass == 'L';
           });
           eventBus.current.fireEvent(DEBUGGER_EVENTS.SET_LOCAL_VARIABLES, variablesResult);
+          enableToolbarButtons();
 
           let parametersResult = res.data.data.result.filter((lvar) => {
             return lvar.varclass == 'A';
@@ -822,17 +823,14 @@ export default function DebuggerComponent({ pgAdmin, selectedNodeInfo, panelId, 
 
   const getStackInformation = (transId) => {
     // Make ajax call to listen the database message
-    let baseUrl = url_for(
-      'debugger.execute_query', {
-        'trans_id': transId,
-        'query_type': 'get_stack_info',
-      });
     api({
-      url: baseUrl,
+      url: getExecuteQueryUrl(transId, 'get_stack_info'),
       method: 'GET',
     })
       .then(function (res) {
-        if (res.data.data.status === 'Success') {
+        if (isBusy(res)) {
+          getStackInformation(transId);
+        } else if (isSuccess(res)) {
           // Call function to update stack information
           eventBus.current.fireEvent(DEBUGGER_EVENTS.SET_STACK, res.data.data.result);
           // Call function to create and update stack information
@@ -867,6 +865,8 @@ export default function DebuggerComponent({ pgAdmin, selectedNodeInfo, panelId, 
 
   const updateInfo = (res, transId) => {
     if (!params.directDebugger.debug_type && !params.directDebugger.first_time_indirect_debug) {
+      // Enable all the buttons as we got the results
+      enableToolbarButtons();
       setLoaderText('');
       editor.current.setActiveLine(-1);
       clearAllBreakpoint(transId);
@@ -940,16 +940,14 @@ export default function DebuggerComponent({ pgAdmin, selectedNodeInfo, panelId, 
           },
         })
           .then(function (res) {
-            if (res.data.data.status === 'Success') {
+            if (isSuccess(res)) {
               // If no result then poll again to wait for results.
               if (res.data.data.result == null || res.data.data.result.length == 0) {
                 pollResult(transId);
               } else {
                 updateInfo(res, transId);
-                // Enable all the buttons as we got the results
-                enableToolbarButtons();
               }
-            } else if (res.data.data.status === 'Busy') {
+            } else if (isBusy(res)) {
               params.directDebugger.polling_timeout_idle = true;
               checkDebuggerStatus(transId);
             } else if (res.data.data.status === 'NotConnected') {
@@ -967,16 +965,14 @@ export default function DebuggerComponent({ pgAdmin, selectedNodeInfo, panelId, 
   const stepInto = () => {
     disableToolbarButtons();
     // Make ajax call to listen the database message
-    let baseUrl = url_for('debugger.execute_query', {
-      'trans_id': params.transId,
-      'query_type': 'step_into',
-    });
     api({
-      url: baseUrl,
+      url: getExecuteQueryUrl(params.transId, 'step_into'),
       method: 'GET',
     })
       .then(function (res) {
-        if (res.data.data.status) {
+        if(isBusy(res)) {
+          stepInto();
+        } else if (res.data.data.status) {
           pollResult(params.transId);
         } else {
           pgAdmin.Browser.notifier.alert(
@@ -1005,7 +1001,9 @@ export default function DebuggerComponent({ pgAdmin, selectedNodeInfo, panelId, 
       data: data,
     })
       .then(function (res) {
-        if (res.data.data.status) {
+        if(isBusy(res)) {
+          onChangesLocalVarParameters(data);
+        } else if (res.data.data.status) {
           // Get the updated variables value
           getLocalVariables(params.transId);
           // Show the message to the user that deposit value is success or failure
@@ -1134,22 +1132,24 @@ export default function DebuggerComponent({ pgAdmin, selectedNodeInfo, panelId, 
   };
 
   return (
-    <DebuggerContext.Provider value={DebuggerContextValue}>
-      <DebuggerEventsContext.Provider value={eventBus.current}>
-        <Loader message={loaderText} />
-        <Box width="100%" height="100%" display="flex" flexDirection="column" flexGrow="1" tabIndex="0" ref={containerRef}>
-          <ToolBar
-            containerRef={containerRef}
-          />
-          <Layout
-            getLayoutInstance={(obj) => docker.current = obj}
-            defaultLayout={defaultLayout}
-            layoutId="Debugger/Layout"
-            savedLayout={savedLayout}
-          />
-        </Box>
-      </DebuggerEventsContext.Provider>
-    </DebuggerContext.Provider>
+    <ApplicationStateProvider>
+      <DebuggerContext.Provider value={DebuggerContextValue}>
+        <DebuggerEventsContext.Provider value={eventBus.current}>
+          <Loader message={loaderText} />
+          <Box width="100%" height="100%" display="flex" flexDirection="column" flexGrow="1" tabIndex="0" ref={containerRef}>
+            <ToolBar
+              containerRef={containerRef}
+            />
+            <Layout
+              getLayoutInstance={(obj) => docker.current = obj}
+              defaultLayout={defaultLayout}
+              layoutId="Debugger/Layout"
+              savedLayout={savedLayout}
+            />
+          </Box>
+        </DebuggerEventsContext.Provider>
+      </DebuggerContext.Provider>
+    </ApplicationStateProvider>
   );
 }
 

@@ -1,4 +1,12 @@
-import { makeStyles } from '@mui/styles';
+/////////////////////////////////////////////////////////////
+//
+// pgAdmin 4 - PostgreSQL Tools
+//
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
+// This software is released under the PostgreSQL Licence
+//
+//////////////////////////////////////////////////////////////
+
 import React, { useRef } from 'react';
 import CheckIcon from '@mui/icons-material/Check';
 import PropTypes from 'prop-types';
@@ -6,58 +14,15 @@ import PropTypes from 'prop-types';
 import {
   MenuItem,
   ControlledMenu,
-  applyStatics,
   Menu,
   SubMenu,
 } from '@szhsin/react-menu';
 export {MenuDivider as PgMenuDivider} from '@szhsin/react-menu';
 import { shortcutToString } from './ShortcutTitle';
-import clsx from 'clsx';
 import CustomPropTypes from '../custom_prop_types';
-
-const useStyles = makeStyles((theme)=>({
-  menu: {
-    '& .szh-menu': {
-      padding: '4px 0px',
-      zIndex: 1005,
-      backgroundColor: theme.palette.background.default,
-      color: theme.palette.text.primary,
-      border: `1px solid ${theme.otherVars.borderColor}`
-    },
-    '& .szh-menu__divider': {
-      margin: 0,
-      background: theme.otherVars.borderColor,
-    },
-    '& .szh-menu__item': {
-      display: 'flex',
-      padding: '3px 12px',
-      '&:after': {
-        right: '0.75rem',
-      },
-      '&.szh-menu__item--active, &.szh-menu__item--hover': {
-        backgroundColor: theme.palette.primary.main,
-        color: theme.palette.primary.contrastText,
-      },
-      '&.szh-menu__item--disabled':{
-        color: theme.palette.text.muted,
-      }
-    }
-  },
-  checkIcon: {
-    width: '1.3rem',
-  },
-  hideCheck: {
-    visibility: 'hidden',
-  },
-  shortcut: {
-    marginLeft: 'auto',
-    fontSize: '0.8em',
-    paddingLeft: '12px',
-  }
-}));
+import { Box } from '@mui/material';
 
 export function PgMenu({open, className='', label, menuButton=null, ...props}) {
-  const classes = useStyles();
   const state = open ? 'open' : 'closed';
   props.anchorRef?.current?.setAttribute('data-state', state);
 
@@ -65,7 +30,7 @@ export function PgMenu({open, className='', label, menuButton=null, ...props}) {
     return <Menu
       {...props}
       menuButton={menuButton}
-      className={clsx(classes.menu, className)}
+      className={className}
       aria-label={label || 'Menu'}
       onContextMenu={(e)=>e.preventDefault()}
       viewScroll='close'
@@ -75,7 +40,7 @@ export function PgMenu({open, className='', label, menuButton=null, ...props}) {
     <ControlledMenu
       state={state}
       {...props}
-      className={clsx(classes.menu, className)}
+      className={className}
       aria-label={label || 'Menu'}
       data-state={state}
       onContextMenu={(e)=>e.preventDefault()}
@@ -92,14 +57,18 @@ PgMenu.propTypes = {
   menuButton: PropTypes.element,
 };
 
-export const PgSubMenu = applyStatics(SubMenu)(({label, ...props})=>{
+export const PgSubMenu = (({label, ...props})=>{
   return (
     <SubMenu label={label}  itemProps={{'data-label': label}} {...props} />
   );
 });
 
-export const PgMenuItem = applyStatics(MenuItem)(({hasCheck=false, checked=false, accesskey, shortcut, children, closeOnCheck=false, ...props})=>{
-  const classes = useStyles();
+PgSubMenu.propTypes = {
+  label: PropTypes.string
+};
+
+export const PgMenuItem = (({hasCheck=false, checked=false, accesskey, shortcut, children, closeOnCheck=false, ...props})=>{
+
   let onClick = props.onClick;
   if(hasCheck) {
     onClick = (e)=>{
@@ -111,11 +80,27 @@ export const PgMenuItem = applyStatics(MenuItem)(({hasCheck=false, checked=false
 
   const dataLabel = typeof(children) == 'string' ? children : props.datalabel;
   return <MenuItem {...props} onClick={onClick} data-label={dataLabel} data-checked={checked}>
-    {hasCheck && <CheckIcon className={classes.checkIcon} style={checked ? {} : {visibility: 'hidden'}} data-label="CheckIcon"/>}
+    {hasCheck && <CheckIcon  style={checked ? {} : {visibility: 'hidden', width: '1.3rem'}} data-label="CheckIcon"/>}
     {children}
-    <div className={classes.shortcut}>
-      {keyVal ? `(${keyVal})` : ''}
-    </div>
+    <Box
+      sx={{
+        marginLeft: 'auto',
+        paddingLeft: '12px',
+        display: 'flex',
+        gap: '1px',
+        color: 'text.muted',
+        '.szh-menu__item--hover &': {
+          color: 'primary.contrastText',
+        },
+      }}
+    >
+      {Array.isArray(keyVal)
+        ? keyVal.map((key, idx) => (
+          <Box key={idx} component="div">{key}</Box>
+        ))
+        : <Box component="div"> {keyVal ? `${keyVal}` : ''}</Box>
+      }
+    </Box>
   </MenuItem>;
 });
 
@@ -127,7 +112,7 @@ PgMenuItem.propTypes = {
   children: CustomPropTypes.children,
   closeOnCheck: PropTypes.bool,
   onClick: PropTypes.func,
-  dataLabel: PropTypes.string,
+  datalabel: PropTypes.string,
 };
 
 export function usePgMenuGroup() {
@@ -135,8 +120,9 @@ export function usePgMenuGroup() {
   const prevMenuOpenIdRef = useRef(null);
 
   const toggleMenu = React.useCallback((e)=>{
+    const name = e.currentTarget?.getAttribute?.('name') || e.currentTarget?.name;
     setOpenMenuName(()=>{
-      return prevMenuOpenIdRef.current == e.currentTarget?.name ? null : e.currentTarget?.name;
+      return prevMenuOpenIdRef.current == name ? null : name;
     });
     prevMenuOpenIdRef.current = null;
   }, []);

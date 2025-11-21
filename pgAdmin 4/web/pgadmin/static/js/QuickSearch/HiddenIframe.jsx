@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -17,6 +17,7 @@ export default function HiddenIframe({id, srcURL, onLoad}) {
     <iframe
       id={id}
       src={srcURL}
+      title=" "
       onLoad={onLoad}
       width={'20'}
       height={'20'}

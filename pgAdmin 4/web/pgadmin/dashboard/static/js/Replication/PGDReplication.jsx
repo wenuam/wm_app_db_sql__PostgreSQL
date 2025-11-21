@@ -2,12 +2,12 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
 
-import { Box, Grid } from '@mui/material';
+import { Box, Grid, useTheme } from '@mui/material';
 import React, { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 
 import gettext from 'sources/gettext';
@@ -16,7 +16,7 @@ import getApiInstance, { parseApiError } from '../../../../static/js/api_instanc
 import SectionContainer from '../components/SectionContainer';
 import RefreshButton from '../components/RefreshButtons';
 import { getExpandCell, getSwitchCell } from '../../../../static/js/components/PgReactTableStyled';
-import { usePgAdmin } from '../../../../static/js/BrowserComponent';
+import { usePgAdmin } from '../../../../static/js/PgAdminProvider';
 import url_for from 'sources/url_for';
 import PropTypes from 'prop-types';
 import PGDOutgoingSchema from './schema_ui/pgd_outgoing.ui';
@@ -273,6 +273,7 @@ const chartsDefault = {
 export default function PGDReplication({preferences, treeNodeInfo, pageVisible, enablePoll=true, ...props}) {
   const api = getApiInstance();
   const refreshOn = useRef(null);
+  const theme = useTheme();
   const prevPreferences = usePrevious(preferences);
   const [pollDelay, setPollDelay] = useState(5000);
 
@@ -399,20 +400,20 @@ export default function PGDReplication({preferences, treeNodeInfo, pageVisible, 
       });
   }, enablePoll ? pollDelay : -1);
 
-  const replicationLagTimeData = useMemo(()=>transformData(replicationLagTime, preferences['pgd_replication_lag_refresh'], preferences.theme), [replicationLagTime, preferences.theme]);
-  const replicationLagBytesData = useMemo(()=>transformData(replicationLagBytes, preferences['pgd_replication_lag_refresh'], preferences.theme), [replicationLagBytes, preferences.theme]);
+  const replicationLagTimeData = useMemo(()=>transformData(replicationLagTime, preferences['pgd_replication_lag_refresh'], theme.name), [replicationLagTime, theme.name]);
+  const replicationLagBytesData = useMemo(()=>transformData(replicationLagBytes, preferences['pgd_replication_lag_refresh'], theme.name), [replicationLagBytes, theme.name]);
 
   return (
     <Box height="100%" display="flex" flexDirection="column">
       <Grid container spacing={0.5}>
-        <Grid item md={6}>
+        <Grid size={{ md: 6 }}>
           <ChartContainer id='sessions-graph' title={gettext('Replication lag (Time)')}
             datasets={replicationLagTimeData.datasets} errorMsg={errorMsg} isTest={props.isTest}>
             <StreamingChart data={replicationLagTimeData} dataPointSize={DATA_POINT_SIZE} xRange={X_AXIS_LENGTH} options={options}
               valueFormatter={(v)=>toPrettySize(v, 's')} />
           </ChartContainer>
         </Grid>
-        <Grid item md={6}>
+        <Grid size={{ md: 6 }}>
           <ChartContainer id='tps-graph' title={gettext('Replication lag (Size)')} datasets={replicationLagBytesData.datasets} errorMsg={errorMsg} isTest={props.isTest}>
             <StreamingChart data={replicationLagBytesData} dataPointSize={DATA_POINT_SIZE} xRange={X_AXIS_LENGTH} options={options}
               valueFormatter={toPrettySize} />

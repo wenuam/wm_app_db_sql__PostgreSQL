@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -55,33 +55,29 @@ class GoogleCredSchema extends BaseUISchema{
         disabled: (state)=>{
           return !state.client_secret_file;
         },
-        deferredDepChange: (state, source)=>{
-          return new Promise((resolve, reject)=>{
-            /* button clicked */
-            if(source == 'auth_btn') {
-              obj.fieldOptions.authenticateGoogle(state.client_secret_file)
-                .then((apiRes)=>{
-                  resolve(()=>{
-                    if(apiRes){
-                      obj.fieldOptions.verification_ack()
-                        .then(()=>{
-                          resolve();
-                        })
-                        .catch((err)=>{
-                          reject(err);
-                        });
-                    }
-                  });
-                })
-                .catch((err)=>{
-                  reject(err);
-                });
-            }
-          });
-        }
-      }
-    ];}
+        onClick: () => {
+          const schemaState = obj.state;
+          if (!schemaState) return;
 
+          const state = schemaState.data;
+
+          setTimeout(() => {
+            obj.fieldOptions.authenticateGoogle(state.client_secret_file)
+              .then((apiRes) => {
+                if(apiRes) {
+                  obj.fieldOptions.verification_ack();
+                }
+              }).catch((err) => {
+                console.error(
+                  err instanceof Error ?
+                    err : Error(gettext('Something went wrong'))
+                );
+              });
+          }, 0);
+        },
+      },
+    ];
+  }
 }
 
 class GoogleProjectDetailsSchema extends BaseUISchema {
@@ -508,7 +504,7 @@ class GoogleClusterSchema extends BaseUISchema {
   }
 
   validate(data, setErr) {
-    if ( !isEmptyString(data.name) && (!/^(?=[a-z])[a-z0-9\-]*$/.test(data.name) || data.name.length > 97)) {
+    if ( !isEmptyString(data.name) && (!/^(?=[a-z])[a-z0-9-]*$/.test(data.name) || data.name.length > 97)) {
       setErr('name',gettext('Name must only contain lowercase letters, numbers, and hyphens.Should start with a letter and must be 97 characters or less'));
       return true;
     }

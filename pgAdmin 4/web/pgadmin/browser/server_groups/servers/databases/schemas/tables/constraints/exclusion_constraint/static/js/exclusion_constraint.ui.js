@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -10,8 +10,8 @@ import gettext from 'sources/gettext';
 import BaseUISchema from 'sources/SchemaView/base_schema.ui';
 import _ from 'lodash';
 import { isEmptyString } from 'sources/validators';
-import { SCHEMA_STATE_ACTIONS } from '../../../../../../../../../../static/js/SchemaView';
-import DataGridViewWithHeaderForm from '../../../../../../../../../../static/js/helpers/DataGridViewWithHeaderForm';
+import { SCHEMA_STATE_ACTIONS } from 'sources/SchemaView';
+import { DataGridFormHeader } from 'sources/SchemaView/DataGridView';
 import { getNodeAjaxOptions, getNodeListByName } from '../../../../../../../../../static/js/node_ajax';
 import TableSchema from '../../../../static/js/table.ui';
 import pgAdmin from 'sources/pgadmin';
@@ -49,6 +49,7 @@ class ExclusionColHeaderSchema extends BaseUISchema {
       is_exp: undefined,
       column: undefined,
       expression: undefined,
+      columns_updated_at: 0,
     });
 
     this.columns = columns;
@@ -56,6 +57,8 @@ class ExclusionColHeaderSchema extends BaseUISchema {
 
   changeColumnOptions(columns) {
     this.columns = columns;
+    if (this.state)
+      this.state.data = {...this.state.data, columns_updated_at: Date.now()};
   }
 
   addDisabled(state) {
@@ -68,7 +71,6 @@ class ExclusionColHeaderSchema extends BaseUISchema {
     return this.exColumnSchema.getNewData({
       is_exp: data.is_exp,
       column: data.is_exp ? data.expression : data.column,
-      column_cid: data.is_exp ? null : column?.cid,
       col_type: data.is_exp ? null : column?.datatype,
     });
   }
@@ -77,10 +79,14 @@ class ExclusionColHeaderSchema extends BaseUISchema {
     return [{
       id: 'is_exp', label: gettext('Is expression'), type:'switch', editable: false,
     },{
-      id: 'column', label: gettext('Column'), type: 'select', editable: false,
-      options: this.columns, deps: ['is_exp'],
-      optionsReloadBasis: this.columns?.map ? _.join(this.columns.map((c)=>c.label), ',') : null,
-      optionsLoaded: (res)=>this.columnOptions=res,
+      id: 'column', label: gettext('Column'), editable: false,
+      options: this.columns, deps: ['is_exp', 'columns_updated_at'],
+      type: () => ({
+        type: 'select',
+        optionsReloadBasis: this.columns?.map ?
+          _.join(this.columns.map((c)=>c.label), ',') : null,
+        optionsLoaded: (res)=>this.columnOptions=res,
+      }),
       disabled: (state)=>state.is_exp,
     },{
       id: 'expression', label: gettext('Expression'), editable: false, deps: ['is_exp'],
@@ -206,6 +212,7 @@ export default class ExclusionConstraintSchema extends BaseUISchema {
       condeferred: undefined,
       columns: [],
       include: [],
+      columns_updated_at: 0,
     });
 
     this.nodeInfo = nodeInfo;
@@ -234,6 +241,8 @@ export default class ExclusionConstraintSchema extends BaseUISchema {
   changeColumnOptions(columns) {
     this.exHeaderSchema.changeColumnOptions(columns);
     this.fieldOptions.columns = columns;
+    if (this.state)
+      this.state.data = {...this.state.data, columns_updated_at: Date.now()};
   }
 
   isReadonly(state) {
@@ -343,10 +352,12 @@ export default class ExclusionConstraintSchema extends BaseUISchema {
       group: gettext('Columns'), type: 'collection',
       mode: ['create', 'edit', 'properties'],
       editable: false, schema: this.exColumnSchema,
-      headerSchema: this.exHeaderSchema, headerVisible: (state)=>obj.isNew(state),
-      CustomControl: DataGridViewWithHeaderForm,
+      headerSchema: this.exHeaderSchema,
+      headerFormVisible: (state)=>obj.isNew(state),
+      GridHeader: DataGridFormHeader,
       uniqueCol: ['column'],
-      canAdd: false, canDelete: function(state) {
+      canAdd: (state)=>obj.isNew(state),
+      canDelete: function(state) {
         // We can't update columns of existing
         return obj.isNew(state);
       },
@@ -379,13 +390,13 @@ export default class ExclusionConstraintSchema extends BaseUISchema {
         if(obj.inTable && source[0] == 'columns') {
           if(actionObj.type == SCHEMA_STATE_ACTIONS.DELETE_ROW) {
             let column = _.get(actionObj.oldState, actionObj.path.concat(actionObj.value));
-            currColumns = _.filter(currColumns, (cc)=>cc.column_cid != column.cid);
+            currColumns = _.filter(currColumns, (cc)=>cc.column != column.name);
           } else if(actionObj.type == SCHEMA_STATE_ACTIONS.SET_VALUE) {
-            let tabColPath = _.slice(actionObj.path, 0, -1);
-            let column = _.get(topState, tabColPath);
-            let idx = _.findIndex(currColumns, (cc)=>cc.column_cid == column.cid);
+            let tabColPath =_.slice(actionObj.path, 0, -1);
+            let column = _.get(actionObj.oldState, tabColPath);
+            let idx = _.findIndex(currColumns, (cc)=>cc.column == column.name);
             if(idx > -1) {
-              currColumns[idx].column = column.name;
+              currColumns[idx].column = _.get(topState, tabColPath).name;
             }
           }
         }
@@ -405,7 +416,7 @@ export default class ExclusionConstraintSchema extends BaseUISchema {
       editable: false,
       canDelete: true, canAdd: true,
       mode: ['properties', 'create', 'edit'], min_version: 110000,
-      deps: ['index'],
+      deps: ['index', 'columns_updated_at'],
       readonly: function() {
         if(!obj.isNew()) {
           return true;
@@ -422,6 +433,9 @@ export default class ExclusionConstraintSchema extends BaseUISchema {
           return {include: []};
         }
       }
+    }, {
+      // Don't include this in the data.
+      id: 'columns_updated_at', exclude: true, type: 'text', visible: false,
     }];
   }
 

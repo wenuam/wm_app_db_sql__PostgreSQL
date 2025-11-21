@@ -3,7 +3,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -61,7 +61,9 @@ export default class FileManagerModule {
     if(!title) {
       if(params.dialog_type == 'create_file') {
         title = gettext('Save File');
-      } else if(params.dialog_type == 'select_file') {
+      } else if(params.dialog_type == 'open_file'){
+        title = gettext('Open File');
+      }else if(params.dialog_type == 'select_file') {
         title = gettext('Select File');
       } else {
         title = gettext('Storage Manager');
@@ -85,32 +87,37 @@ export default class FileManagerModule {
     });
   }
 
-  showNative(params, onOK, onCancel) {
-    // https://docs.nwjs.io/en/latest/References/Changes%20to%20DOM/
-    let fileEle = document.createElement('input');
-    let accept = params.supported_types?.map((v)=>(v=='*' ? '' : `.${v}`))?.join(',');
-    fileEle.setAttribute('type', 'file');
-    fileEle.setAttribute('accept', accept);
-    fileEle.onchange = (e)=>{
-      if(e.target.value) {
-        onOK?.(e.target.value);
-      } else {
-        onCancel?.();
-      }
-    };
+  async showNative(params, onOK, onCancel) {
+    let res;
+    let options = {};
+
+    options['filters'] = params.supported_types?.map((v)=>(
+      v=='*' ? {name: 'All Files', extensions: ['*']} :
+        {name: `${v.toUpperCase()} File .${v}`, extensions:[v]}
+    ));
+
     if(params.dialog_type == 'create_file') {
-      fileEle.setAttribute('nwsaveas', '');
-    } else if(params.dialog_type == 'select_folder') {
-      fileEle.setAttribute('nwdirectory', '');
+      res = await window.electronUI.showSaveDialog(options);
+    } else {
+      options['properties'] = ['openFile'];
+      if(params.dialog_type == 'select_folder') {
+        options['properties'] = ['openDirectory'];
+      }
+      res = await window.electronUI.showOpenDialog(options);
     }
-    fileEle.dispatchEvent(new MouseEvent('click'));
+
+    if(res.canceled) {
+      onCancel?.();
+    } else {
+      onOK?.(res.filePath ? res.filePath : res.filePaths[0]);
+    }
   }
 
-  show(params, onOK, onCancel, modalObj) {
+  async show(params, onOK, onCancel, modalObj) {
     let {name: browser} = getBrowser();
-    if(browser == 'Nwjs') {
+    if(browser == 'Electron') {
       try {
-        this.showNative(params, onOK, onCancel);
+        await this.showNative(params, onOK, onCancel);
       } catch {
         // Fall back to internal
         this.showInternal(params, onOK, onCancel, modalObj);

@@ -3,7 +3,7 @@
  * trigger.h
  *	  Declarations for trigger handling.
  *
- * Portions Copyright (c) 1996-2023, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2024, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  * src/include/commands/trigger.h
@@ -206,6 +206,15 @@ extern void ExecBSDeleteTriggers(EState *estate,
 extern void ExecASDeleteTriggers(EState *estate,
 								 ResultRelInfo *relinfo,
 								 TransitionCaptureState *transition_capture);
+extern bool ExecBRDeleteTriggersNew(EState *estate,
+									EPQState *epqstate,
+									ResultRelInfo *relinfo,
+									ItemPointer tupleid,
+									HeapTuple fdw_trigtuple,
+									TupleTableSlot **epqslot,
+									TM_Result *tmresult,
+									TM_FailureData *tmfd,
+									bool is_merge_delete);
 extern bool ExecBRDeleteTriggers(EState *estate,
 								 EPQState *epqstate,
 								 ResultRelInfo *relinfo,
@@ -228,6 +237,15 @@ extern void ExecBSUpdateTriggers(EState *estate,
 extern void ExecASUpdateTriggers(EState *estate,
 								 ResultRelInfo *relinfo,
 								 TransitionCaptureState *transition_capture);
+extern bool ExecBRUpdateTriggersNew(EState *estate,
+									EPQState *epqstate,
+									ResultRelInfo *relinfo,
+									ItemPointer tupleid,
+									HeapTuple fdw_trigtuple,
+									TupleTableSlot *newslot,
+									TM_Result *tmresult,
+									TM_FailureData *tmfd,
+									bool is_merge_update);
 extern bool ExecBRUpdateTriggers(EState *estate,
 								 EPQState *epqstate,
 								 ResultRelInfo *relinfo,

@@ -4,7 +4,7 @@
  *	  POSTGRES table access method definitions.
  *
  *
- * Portions Copyright (c) 1996-2023, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2024, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  * src/include/access/tableam.h
@@ -21,6 +21,7 @@
 #include "access/sdir.h"
 #include "access/xact.h"
 #include "executor/tuptable.h"
+#include "storage/read_stream.h"
 #include "utils/rel.h"
 #include "utils/snapshot.h"
 
@@ -61,8 +62,15 @@ typedef enum ScanOptions
 	SO_ALLOW_PAGEMODE = 1 << 8,
 
 	/* unregister snapshot at scan end? */
-	SO_TEMP_SNAPSHOT = 1 << 9
-} ScanOptions;
+	SO_TEMP_SNAPSHOT = 1 << 9,
+
+	/*
+	 * At the discretion of the table AM, bitmap table scans may be able to
+	 * skip fetching a block from the table if none of the table data is
+	 * needed. If table data may be needed, set SO_NEED_TUPLES.
+	 */
+	SO_NEED_TUPLES = 1 << 10,
+}			ScanOptions;
 
 /*
  * Result codes for table_{update,delete,lock_tuple}, and for visibility
@@ -99,7 +107,7 @@ typedef enum TM_Result
 	TM_BeingModified,
 
 	/* lock couldn't be acquired, action skipped. Only used by lock_tuple */
-	TM_WouldBlock
+	TM_WouldBlock,
 } TM_Result;
 
 /*
@@ -115,7 +123,7 @@ typedef enum TU_UpdateIndexes
 	TU_All,
 
 	/* Only summarized columns were updated, TID is unchanged */
-	TU_Summarizing
+	TU_Summarizing,
 } TU_UpdateIndexes;
 
 /*
@@ -129,7 +137,8 @@ typedef enum TU_UpdateIndexes
  *
  * xmax is the outdating transaction's XID.  If the caller wants to visit the
  * replacement tuple, it must check that this matches before believing the
- * replacement is really a match.
+ * replacement is really a match.  This is InvalidTransactionId if the target
+ * was !LP_NORMAL (expected only for a TID retrieved from syscache).
  *
  * cmax is the outdating command's CID, but only when the failure code is
  * TM_SelfModified (i.e., something in the current transaction outdated the
@@ -665,8 +674,7 @@ typedef struct TableAmRoutine
 	 * isn't one yet.
 	 */
 	bool		(*scan_analyze_next_block) (TableScanDesc scan,
-											BlockNumber blockno,
-											BufferAccessStrategy bstrategy);
+											ReadStream *stream);
 
 	/*
 	 * See table_scan_analyze_next_tuple().
@@ -944,9 +952,12 @@ table_beginscan_strat(Relation rel, Snapshot snapshot,
  */
 static inline TableScanDesc
 table_beginscan_bm(Relation rel, Snapshot snapshot,
-				   int nkeys, struct ScanKeyData *key)
+				   int nkeys, struct ScanKeyData *key, bool need_tuple)
 {
 	uint32		flags = SO_TYPE_BITMAPSCAN | SO_ALLOW_PAGEMODE;
+
+	if (need_tuple)
+		flags |= SO_NEED_TUPLES;
 
 	return rel->rd_tableam->scan_begin(rel, snapshot, nkeys, key, NULL, flags);
 }
@@ -1037,11 +1048,6 @@ table_rescan_set_params(TableScanDesc scan, struct ScanKeyData *key,
 										 allow_strat, allow_sync,
 										 allow_pagemode);
 }
-
-/*
- * Update snapshot used by the scan.
- */
-extern void table_scan_update_snapshot(TableScanDesc scan, Snapshot snapshot);
 
 /*
  * Return next tuple from `scan`, store in slot.
@@ -1706,19 +1712,17 @@ table_relation_vacuum(Relation rel, struct VacuumParams *params,
 }
 
 /*
- * Prepare to analyze block `blockno` of `scan`. The scan needs to have been
- * started with table_beginscan_analyze().  Note that this routine might
- * acquire resources like locks that are held until
+ * Prepare to analyze the next block in the read stream. The scan needs to
+ * have been  started with table_beginscan_analyze().  Note that this routine
+ * might acquire resources like locks that are held until
  * table_scan_analyze_next_tuple() returns false.
  *
  * Returns false if block is unsuitable for sampling, true otherwise.
  */
 static inline bool
-table_scan_analyze_next_block(TableScanDesc scan, BlockNumber blockno,
-							  BufferAccessStrategy bstrategy)
+table_scan_analyze_next_block(TableScanDesc scan, ReadStream *stream)
 {
-	return scan->rs_rd->rd_tableam->scan_analyze_next_block(scan, blockno,
-															bstrategy);
+	return scan->rs_rd->rd_tableam->scan_analyze_next_block(scan, stream);
 }
 
 /*
@@ -2095,6 +2099,12 @@ extern void table_block_relation_estimate_size(Relation rel,
  */
 
 extern const TableAmRoutine *GetTableAmRoutine(Oid amhandler);
+
+/* ----------------------------------------------------------------------------
+ * Functions in heapam_handler.c
+ * ----------------------------------------------------------------------------
+ */
+
 extern const TableAmRoutine *GetHeapamTableAmRoutine(void);
 
 #endif							/* TABLEAM_H */

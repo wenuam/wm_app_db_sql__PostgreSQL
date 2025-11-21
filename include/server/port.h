@@ -3,7 +3,7 @@
  * port.h
  *	  Header for src/port/ compatibility functions.
  *
- * Portions Copyright (c) 1996-2023, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2024, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  * src/include/port.h
@@ -53,6 +53,7 @@ extern char *first_path_var_separator(const char *pathlist);
 extern void join_path_components(char *ret_path,
 								 const char *head, const char *tail);
 extern void canonicalize_path(char *path);
+extern void canonicalize_path_enc(char *path, int encoding);
 extern void make_native_path(char *filename);
 extern void cleanup_path(char *path);
 extern bool path_contains_parent_reference(const char *path);
@@ -137,7 +138,7 @@ extern int	validate_exec(const char *path);
 extern int	find_my_exec(const char *argv0, char *retpath);
 extern int	find_other_exec(const char *argv0, const char *target,
 							const char *versionstr, char *retpath);
-extern char *pipe_read_line(char *cmd, char *line, int maxsize);
+extern char *pipe_read_line(char *cmd);
 
 /* Doesn't belong here, but this is used with find_other_exec(), so... */
 #define PG_BACKEND_VERSIONSTR "postgres (PostgreSQL) " PG_VERSION "\n"
@@ -307,6 +308,33 @@ extern bool rmtree(const char *path, bool rmtopdir);
 #if defined(WIN32) && !defined(__CYGWIN__)
 
 /*
+ * We want the 64-bit variant of lseek().
+ *
+ * For Visual Studio, this must be after <io.h> to avoid messing up its
+ * lseek() and _lseeki64() function declarations.
+ *
+ * For MinGW there is already a macro, so we have to undefine it (depending on
+ * _FILE_OFFSET_BITS, it may point at its own lseek64, but we don't want to
+ * count on that being set).
+ */
+#undef lseek
+#define lseek(a,b,c) _lseeki64((a),(b),(c))
+
+/*
+ * We want the 64-bit variant of chsize().  It sets errno and also returns it,
+ * so convert non-zero result to -1 to match POSIX.
+ *
+ * Prevent MinGW from declaring functions, and undefine its macro before we
+ * define our own.
+ */
+#ifndef _MSC_VER
+#define FTRUNCATE_DEFINED
+#include <unistd.h>
+#undef ftruncate
+#endif
+#define ftruncate(a,b) (_chsize_s((a),(b)) == 0 ? 0 : -1)
+
+/*
  * open() and fopen() replacements to allow deletion of open files and
  * passing of other special options.
  */
@@ -432,12 +460,16 @@ extern size_t strlcpy(char *dst, const char *src, size_t siz);
 extern size_t strnlen(const char *str, size_t maxlen);
 #endif
 
-/* thread.c */
+/* port/user.c */
 #ifndef WIN32
 extern bool pg_get_user_name(uid_t user_id, char *buffer, size_t buflen);
 extern bool pg_get_user_home_dir(uid_t user_id, char *buffer, size_t buflen);
 #endif
 
+/*
+ * Callers should use the qsort() macro defined below instead of calling
+ * pg_qsort() directly.
+ */
 extern void pg_qsort(void *base, size_t nel, size_t elsize,
 					 int (*cmp) (const void *, const void *));
 extern int	pg_qsort_strcmp(const void *a, const void *b);
@@ -484,7 +516,10 @@ extern int	pg_check_dir(const char *dir);
 /* port/pgmkdirp.c */
 extern int	pg_mkdir_p(char *path, int omode);
 
-/* port/pqsignal.c */
+/* port/pqsignal.c (see also interfaces/libpq/legacy-pqsignal.c) */
+#ifdef FRONTEND
+#define pqsignal pqsignal_fe
+#endif
 typedef void (*pqsigfunc) (SIGNAL_ARGS);
 extern pqsigfunc pqsignal(int signo, pqsigfunc func);
 

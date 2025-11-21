@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -87,20 +87,24 @@ define('pgadmin.node.mview', [
           @property {data} - Allow create view option on schema node or
           system view nodes.
          */
-        pgAdmin.Browser.add_menu_category(
-          'refresh_mview', gettext('Refresh View'), 18, '');
+        pgAdmin.Browser.add_menu_category({
+          name: 'refresh_mview', label: gettext('Refresh View'), priority: 18
+        });
+
         pgBrowser.add_menus([{
           name: 'create_mview_on_coll', node: 'coll-mview', module: this,
           applies: ['object', 'context'], callback: 'show_obj_properties',
           category: 'create', priority: 1,
           data: {action: 'create', check: true}, enable: 'canCreate',
           label: gettext('Materialized View...'),
+          shortcut_preference: ['browser', 'sub_menu_create'],
         },{
           name: 'create_mview', node: 'mview', module: this,
           applies: ['object', 'context'], callback: 'show_obj_properties',
           category: 'create', priority: 1,
           data: {action: 'create', check: true}, enable: 'canCreate',
           label: gettext('Materialized View...'),
+          shortcut_preference: ['browser', 'sub_menu_create'],
         },{
           name: 'create_mview', node: 'schema', module: this,
           applies: ['object', 'context'], callback: 'show_obj_properties',
@@ -125,12 +129,6 @@ define('pgadmin.node.mview', [
           data: {concurrent: true, with_data: true}, priority: 3,
           applies: ['object', 'context'], callback: 'refresh_mview',
           label: gettext('With data (concurrently)'),
-        },{
-          name: 'refresh_mview_concurrent_nodata', node: 'mview', module: this,
-          category: 'refresh_mview', enable: 'is_version_supported',
-          data: {concurrent: true, with_data: false}, priority: 4,
-          applies: ['object', 'context'], callback: 'refresh_mview',
-          label: gettext('With no data (concurrently)'),
         }]);
       },
       getSchema: function(treeNodeInfo, itemNodeData) {

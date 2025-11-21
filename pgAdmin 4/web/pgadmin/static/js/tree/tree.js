@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////////////////
@@ -84,6 +84,9 @@ export class Tree {
     this.rootNode = manageTree.tempTree;
     this.Nodes = pgBrowser ? pgBrowser.Nodes : pgAdmin.Browser.Nodes;
 
+    // Flag to suppress added and opened tree event being called during object search operations, 
+    // tree.select of search object clashes with other tree.select.
+    this.suppressEventsForPath = null;
     this.draggableTypes = {};
   }
 
@@ -475,9 +478,9 @@ export class Tree {
     let idx = 0;
     let node_cnt = 0;
     let result = {};
-    if (identifier === undefined) return;
+    if (!identifier) return;
     let item = TreeNode.prototype.isPrototypeOf(identifier) ? identifier : this.findNode(identifier.path);
-    if (item === undefined) return;
+    if (!item) return;
     do {
       const currentNodeData = item.getData();
       if (currentNodeData._type in this.Nodes && this.Nodes[currentNodeData._type].hasId) {

@@ -7,12 +7,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Enabling OAUTH2 Authentication &#8212; pgAdmin 4 8.7 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <title>Enabling OAUTH2 Authentication &#8212; pgAdmin 4 9.6 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/style.css?v=d36593c3" />
     
-    <script src="_static/documentation_options.js?v=70b0b77f"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/documentation_options.js?v=a51d793f"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     
     <script src="_static/sidebar.js"></script>
@@ -22,7 +22,7 @@
     <link rel="next" title="Enabling Webserver Authentication" href="webserver.html" />
     <link rel="prev" title="Enabling Kerberos Authentication" href="kerberos.html" /> 
   </head><body>
-    <div class="related" role="navigation" aria-label="related navigation">
+    <div class="related" role="navigation" aria-label="Related">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="kerberos.html" title="Enabling Kerberos Authentication"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 9.6 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="getting_started.html" accesskey="U">Getting Started</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Enabling OAUTH2 Authentication</a></li> 
       </ul>
@@ -97,7 +97,7 @@ for this parameter. you can modify the value as follows:</p>
 <td><p>Oauth2 base URL endpoint to make requests simple, ex: <em>https://api.github.com/</em></p></td>
 </tr>
 <tr class="row-odd"><td><p>OAUTH2_USERINFO_ENDPOINT</p></td>
-<td><p>User Endpoint, ex: <em>user</em> (for github) and <em>useinfo</em> (for google)</p></td>
+<td><p>User Endpoint, ex: <em>user</em> (for github, or <em>user/emails</em> if the user’s email address is private) and <em>userinfo</em> (for google),</p></td>
 </tr>
 <tr class="row-even"><td><p>OAUTH2_SCOPE</p></td>
 <td><p>Oauth scope, ex: ‘openid email profile’. Note that an ‘email’ claim is required in the resulting profile.</p></td>
@@ -110,7 +110,7 @@ for this parameter. you can modify the value as follows:</p>
 </tr>
 <tr class="row-odd"><td><p>OAUTH2_USERNAME_CLAIM</p></td>
 <td><dl class="simple">
-<dt>The claim which is used for the username. If the value is empty</dt><dd><p>the email is used as username, but if a value is provided, the claim has to exist. Ex: <em>oid</em> (for AzureAD)</p>
+<dt>The claim which is used for the username. If the value is empty</dt><dd><p>the email is used as username, but if a value is provided, the claim has to exist. Ex: <em>oid</em> (for AzureAD), <em>email</em> (for Github)</p>
 </dd>
 </dl>
 </td>
@@ -138,6 +138,12 @@ Useful for checking <a class="reference external" href="https://learn.microsoft.
 </dl>
 </td>
 </tr>
+<tr class="row-odd"><td><p>OAUTH2_CHALLENGE_METHOD</p></td>
+<td><p>Enable PKCE workflow. PKCE method name, only <em>S256</em> is supported</p></td>
+</tr>
+<tr class="row-even"><td><p>OAUTH2_RESPONSE_TYPE</p></td>
+<td><p>Enable PKCE workflow. Mandatory with OAUTH2_CHALLENGE_METHOD, must be set to <em>code</em></p></td>
+</tr>
 </tbody>
 </table>
 <section id="redirect-url">
@@ -159,6 +165,12 @@ it will be used as an encryption key while storing the password. If it is False,
 <p>After configuration, on restart, you can see the login page with the Oauth2 login button(s).</p>
 <img alt="Oauth2 login" class="align-center" src="_images/oauth2_login.png" />
 </section>
+<section id="pkce-workflow">
+<h2>PKCE Workflow<a class="headerlink" href="#pkce-workflow" title="Link to this heading">¶</a></h2>
+<p>Ref: <a class="reference external" href="https://oauth.net/2/pkce">https://oauth.net/2/pkce</a></p>
+<p>To enable PKCE workflow, set the configuration parameters OAUTH2_CHALLENGE_METHOD to <em>S256</em> and OAUTH2_RESPONSE_TYPE to <em>code</em>.
+Both parameters are mandatory to enable PKCE workflow.</p>
+</section>
 </section>
 
 
@@ -166,7 +178,7 @@ it will be used as an encryption key while storing the password. If it is False,
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
   <div>
     <h3><a href="index.html">Table of Contents</a></h3>
@@ -175,6 +187,7 @@ it will be used as an encryption key while storing the password. If it is False,
 <li><a class="reference internal" href="#redirect-url">Redirect URL</a></li>
 <li><a class="reference internal" href="#master-password">Master Password</a></li>
 <li><a class="reference internal" href="#login-page">Login Page</a></li>
+<li><a class="reference internal" href="#pkce-workflow">PKCE Workflow</a></li>
 </ul>
 </li>
 </ul>
@@ -186,7 +199,7 @@ it will be used as an encryption key while storing the password. If it is False,
 <li class="toctree-l2"><a class="reference internal" href="deployment.html">Deployment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="login.html">Login Page</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mfa.html">Enabling two-factor authentication (2FA)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user_management.html">User Management Dialog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_management.html">User Management</a></li>
 <li class="toctree-l2"><a class="reference internal" href="change_ownership.html">Change Ownership Dialog</a></li>
 <li class="toctree-l2"><a class="reference internal" href="change_user_password.html">Change User Password Dialog</a></li>
 <li class="toctree-l2"><a class="reference internal" href="restore_locked_user.html">Lock/Restore Account</a></li>
@@ -199,8 +212,8 @@ it will be used as an encryption key while storing the password. If it is False,
 <li class="toctree-l2"><a class="reference internal" href="toolbar.html">Toolbar</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tabbed_browser.html">Tabbed Browser</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tree_control.html">Tree Control</a></li>
-<li class="toctree-l2"><a class="reference internal" href="preferences.html">Preferences Dialog</a></li>
-<li class="toctree-l2"><a class="reference internal" href="keyboard_shortcuts.html">Keyboard Shortcuts:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="preferences.html">Preferences</a></li>
+<li class="toctree-l2"><a class="reference internal" href="keyboard_shortcuts.html">Keyboard Shortcuts</a></li>
 <li class="toctree-l2"><a class="reference internal" href="search_objects.html">Search objects</a></li>
 </ul>
 </li>
@@ -237,7 +250,7 @@ it will be used as an encryption key while storing the password. If it is False,
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
+    <div class="related" role="navigation" aria-label="Related">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -249,7 +262,7 @@ it will be used as an encryption key while storing the password. If it is False,
         <li class="right" >
           <a href="kerberos.html" title="Enabling Kerberos Authentication"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 8.7 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 9.6 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="getting_started.html" >Getting Started</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Enabling OAUTH2 Authentication</a></li> 
       </ul>
@@ -257,10 +270,10 @@ it will be used as an encryption key while storing the password. If it is False,
     <div class="footer" role="contentinfo">
         <div class="related" role="navigation" aria-label="related navigation">
           <ul>
-              <li class="left" style="margin-left: 10px">&#169; Copyright (C) 2013 - 2024, The pgAdmin Development Team.</li>
-            <li class="right" style="margin-right: 10px"><a href="genindex.html" title="General Index" accesskey="I">index</a></li>
-            <li class="right" ><a href="webserver.html" title="Enabling Webserver Authentication" accesskey="N">next</a> |</li>
-            <li class="right" ><a href="kerberos.html" title="Enabling Kerberos Authentication" accesskey="P">previous</a> |</li>
+              <li class="left" style="margin-left: 10px">&#169; Copyright (C) 2013 - 2025, The pgAdmin Development Team.</li>
+            <li class="right" style="margin-right: 10px"><a href="genindex.html" title="General Index">index</a></li>
+            <li class="right" ><a href="webserver.html" title="Enabling Webserver Authentication">next</a> |</li>
+            <li class="right" ><a href="kerberos.html" title="Enabling Kerberos Authentication">previous</a> |</li>
           </ul>
         </div>
     </div>

@@ -1,17 +1,21 @@
 """
-    flask_security.recoverable
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+flask_security.recoverable
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    Flask-Security recoverable module
+Flask-Security recoverable module
 
-    :copyright: (c) 2012 by Matt Wright.
-    :copyright: (c) 2019-2023 by J. Christopher Wagner (jwag).
-    :license: MIT, see LICENSE for more details.
+:copyright: (c) 2012 by Matt Wright.
+:copyright: (c) 2019-2025 by J. Christopher Wagner (jwag).
+:license: MIT, see LICENSE for more details.
 """
 
 from flask import current_app
 from .proxies import _security, _datastore
-from .signals import password_reset, reset_password_instructions_sent
+from .signals import (
+    password_reset,
+    reset_password_instructions_sent,
+    username_recovery_email_sent,
+)
 from .utils import (
     config_value,
     get_token_status,
@@ -23,13 +27,17 @@ from .utils import (
 )
 
 
+def generate_reset_link(user):
+    token = generate_reset_password_token(user)
+    return url_for_security("reset_password", token=token, _external=True), token
+
+
 def send_reset_password_instructions(user):
     """Sends the reset password instructions email for the specified user.
 
     :param user: The user to send the instructions to
     """
-    token = generate_reset_password_token(user)
-    reset_link = url_for_security("reset_password", token=token, _external=True)
+    reset_link, token = generate_reset_link(user)
 
     if config_value("SEND_PASSWORD_RESET_EMAIL"):
         send_mail(
@@ -114,3 +122,22 @@ def update_password(user, password):
         _async_wrapper=current_app.ensure_sync,
         user=user,
     )
+
+
+def send_username_recovery_email(user):
+    """Sends the username recovery email for the specified user.
+    :param user: The user requesting username recovery
+    """
+    if config_value("USERNAME_RECOVERY"):
+        send_mail(
+            config_value("EMAIL_SUBJECT_USERNAME_RECOVERY"),
+            user.email,
+            "username_recovery",
+            user=user,
+            username=user.username,
+        )
+        username_recovery_email_sent.send(
+            current_app._get_current_object(),
+            _async_wrapper=current_app.ensure_sync,
+            user=user,
+        )

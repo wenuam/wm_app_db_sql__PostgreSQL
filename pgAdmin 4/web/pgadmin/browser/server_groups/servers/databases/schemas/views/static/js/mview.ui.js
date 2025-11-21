@@ -2,15 +2,17 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
 
+import _ from 'lodash';
 import gettext from 'sources/gettext';
 import BaseUISchema from 'sources/SchemaView/base_schema.ui';
 import SecLabelSchema from '../../../../../static/js/sec_label.ui';
 import { isEmptyString } from 'sources/validators';
+import { getPrivilegesForTableAndLikeObjects } from '../../../tables/static/js/table.ui';
 
 
 export default class MViewSchema extends BaseUISchema {
@@ -118,7 +120,7 @@ export default class MViewSchema extends BaseUISchema {
       },
       {
         id: 'datacl', label: gettext('Privileges'), type: 'collection',
-        schema: this.getPrivilegeRoleSchema(['a', 'r', 'w', 'd', 'D', 'x', 't']),
+        schema: this.getPrivilegeRoleSchema(getPrivilegesForTableAndLikeObjects(this.getServerVersion())),
         uniqueCol : ['grantee'],
         editable: false,
         group: gettext('Security'), mode: ['edit', 'create'],
@@ -154,7 +156,10 @@ export default class MViewSchema extends BaseUISchema {
 
       if (state.definition) {
         obj.warningText = null;
-        if (obj.origData.oid !== undefined && state.definition !== obj.origData.definition) {
+        if (
+          !_.isUndefined(obj.origData.oid) &&
+          state.definition !== obj.origData.definition
+        ) {
           obj.warningText = gettext(
             'Updating the definition will drop and re-create the materialized view. It may result in loss of information about its dependent objects.'
           ) + '<br><br><b>' + gettext('Do you want to continue?') + '</b>';

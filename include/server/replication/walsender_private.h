@@ -3,7 +3,7 @@
  * walsender_private.h
  *	  Private definitions from replication/walsender.c.
  *
- * Portions Copyright (c) 2010-2023, PostgreSQL Global Development Group
+ * Portions Copyright (c) 2010-2024, PostgreSQL Global Development Group
  *
  * src/include/replication/walsender_private.h
  *
@@ -28,7 +28,7 @@ typedef enum WalSndState
 	WALSNDSTATE_BACKUP,
 	WALSNDSTATE_CATCHUP,
 	WALSNDSTATE_STREAMING,
-	WALSNDSTATE_STOPPING
+	WALSNDSTATE_STOPPING,
 } WalSndState;
 
 /*
@@ -103,18 +103,40 @@ typedef struct
 	XLogRecPtr	lsn[NUM_SYNC_REP_WAIT_MODE];
 
 	/*
-	 * Are any sync standbys defined?  Waiting backends can't reload the
-	 * config file safely, so checkpointer updates this value as needed.
-	 * Protected by SyncRepLock.
+	 * Status of data related to the synchronous standbys.  Waiting backends
+	 * can't reload the config file safely, so checkpointer updates this value
+	 * as needed. Protected by SyncRepLock.
 	 */
-	bool		sync_standbys_defined;
+	bits8		sync_standbys_status;
 
 	/* used as a registry of physical / logical walsenders to wake */
 	ConditionVariable wal_flush_cv;
 	ConditionVariable wal_replay_cv;
 
+	/*
+	 * Used by physical walsenders holding slots specified in
+	 * synchronized_standby_slots to wake up logical walsenders holding
+	 * logical failover slots when a walreceiver confirms the receipt of LSN.
+	 */
+	ConditionVariable wal_confirm_rcv_cv;
+
 	WalSnd		walsnds[FLEXIBLE_ARRAY_MEMBER];
 } WalSndCtlData;
+
+/* Flags for WalSndCtlData->sync_standbys_status */
+
+/*
+ * Is the synchronous standby data initialized from the GUC?  This is set the
+ * first time synchronous_standby_names is processed by the checkpointer.
+ */
+#define SYNC_STANDBY_INIT			(1 << 0)
+
+/*
+ * Is the synchronous standby data defined?  This is set when
+ * synchronous_standby_names has some data, after being processed by the
+ * checkpointer.
+ */
+#define SYNC_STANDBY_DEFINED		(1 << 1)
 
 extern PGDLLIMPORT WalSndCtlData *WalSndCtl;
 

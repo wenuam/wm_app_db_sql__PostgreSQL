@@ -2,7 +2,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2024, The pgAdmin Development Team
+# Copyright (C) 2013 - 2025, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 ##########################################################################
@@ -794,7 +794,7 @@ rolmembership:{
 
     def _set_rolemembership(self, row):
 
-        if 'rolmembers' in row:
+        if 'rolmembers' in row and row['rolmembers'] is not None:
             rolmembers = []
             for role in row['rolmembers']:
                 role = re.search(r'([01])(.+)', role)
@@ -1261,7 +1261,7 @@ SELECT
     name, vartype, min_val::numeric AS min_val, max_val::numeric AS max_val,
     enumvals
 FROM
-    pg_settings
+    pg_show_all_settings()
 WHERE
     context in ('user', 'superuser')
 ) a""")

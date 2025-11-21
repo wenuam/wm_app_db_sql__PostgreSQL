@@ -2,7 +2,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2024, The pgAdmin Development Team
+# Copyright (C) 2013 - 2025, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 ##########################################################################
@@ -29,6 +29,8 @@ from pgadmin.tools.schema_diff.directory_compare import directory_diff
 from pgadmin.tools.schema_diff.compare import SchemaDiffObjectCompare
 from pgadmin.browser.server_groups.servers.databases.schemas. \
     tables.indexes import utils as index_utils
+from pgadmin.browser.server_groups.servers.databases.schemas.utils \
+    import check_pgstattuple
 
 
 class IndexesModule(CollectionNodeModule):
@@ -998,14 +1000,7 @@ class IndexesView(PGChildNodeView, SchemaDiffObjectCompare):
 
         if idx is not None:
             # Individual index
-
-            # Check if pgstattuple extension is already created?
-            # if created then only add extended stats
-            status, is_pgstattuple = self.conn.execute_scalar("""
-            SELECT (pg_catalog.count(extname) > 0) AS is_pgstattuple
-            FROM pg_catalog.pg_extension
-            WHERE extname='pgstattuple'
-            """)
+            status, is_pgstattuple = check_pgstattuple(self.conn, tid)
             if not status:
                 return internal_server_error(errormsg=is_pgstattuple)
 
@@ -1150,7 +1145,7 @@ class IndexesView(PGChildNodeView, SchemaDiffObjectCompare):
                 difference={}
             )
 
-            required_create_keys = ['columns']
+            required_create_keys = ['columns', 'indconstraint']
 
             create_req = IndexesView._check_for_create_req(
                 required_create_keys,

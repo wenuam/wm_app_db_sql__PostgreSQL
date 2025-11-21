@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -179,6 +179,7 @@ module.exports = [{
             'pure|pgadmin.node.publication',
             'pure|pgadmin.node.subscription',
             'pure|pgadmin.node.tablespace',
+            'pure|pgadmin.node.directory',
             'pure|pgadmin.node.resource_group',
             'pure|pgadmin.node.event_trigger',
             'pure|pgadmin.node.extension',
@@ -353,12 +354,21 @@ module.exports = [{
       new ImageMinimizerPlugin({
         test: /\.(jpe?g|png|gif)$/i,
         minimizer: {
-          implementation: ImageMinimizerPlugin.imageminMinify,
+          implementation: ImageMinimizerPlugin.sharpMinify,
           options: {
-            plugins: [
-              ['mozjpeg', { progressive: true }],
-              ['optipng', { optimizationLevel: 7 }],
-            ],
+            encodeOptions: {
+              jpeg: {
+                quality: 100,
+              },
+              webp: {
+                lossless: true,
+              },
+              avif: {
+                lossless: true,
+              },
+              png: {},
+              gif: {},
+            },
           },
         },
       }),

@@ -1,5 +1,12 @@
-
-"""empty message
+##########################################################################
+#
+# pgAdmin 4 - PostgreSQL Tools
+#
+# Copyright (C) 2013 - 2025, The pgAdmin Development Team
+# This software is released under the PostgreSQL Licence
+#
+##########################################################################
+"""
 
 Revision ID: ac2c2e27dc2d
 Revises: ec0f11f9a4e6
@@ -8,8 +15,8 @@ Create Date: 2024-05-17 19:35:03.700104
 """
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.orm.session import Session
 from pgadmin.model import Preferences
-from pgadmin.model import db
 
 # revision identifiers, used by Alembic.
 revision = 'ac2c2e27dc2d'
@@ -19,10 +26,12 @@ depends_on = None
 
 
 def upgrade():
-    db.session.query(Preferences).filter(
-            Preferences.name == 'execute_query').update({'name': 'execute_script'})
-    db.session.commit()
-    
+    session = Session(bind=op.get_bind())
+
+    session.query(Preferences).filter(
+        Preferences.name == 'execute_query').update({'name': 'execute_script'})
+    session.commit()
+
     meta = sa.MetaData()
     meta.reflect(op.get_bind(), only=('user_macros',))
     user_macros_table = sa.Table('user_macros', meta)
@@ -35,7 +44,7 @@ def upgrade():
     )
     # Fetch the data from the user_macros table
     results = op.get_bind().execute(stmt).fetchall()
-    
+
     # Drop and re-create user macro table.
     op.drop_table('user_macros')
     op.create_table(
@@ -45,8 +54,10 @@ def upgrade():
         sa.Column('uid', sa.Integer(), nullable=False),
         sa.Column('name', sa.String(length=1024), nullable=False),
         sa.Column('sql', sa.String()),
-        sa.ForeignKeyConstraint(['mid'], ['macros.id'], ondelete='CASCADE'),
-        sa.ForeignKeyConstraint(['uid'], ['user.id'], ondelete='CASCADE'),
+        sa.ForeignKeyConstraint(['mid'], ['macros.id'],
+                                ondelete='CASCADE'),
+        sa.ForeignKeyConstraint(['uid'], ['user.id'],
+                                ondelete='CASCADE'),
         sa.PrimaryKeyConstraint('id',))
 
     # Reflect the new table structure
@@ -61,6 +72,7 @@ def upgrade():
             for row in results
         ]
     )
+
 
 def downgrade():
     # pgAdmin only upgrades, downgrade not implemented.

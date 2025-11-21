@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2023, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -11,9 +11,15 @@ export default function cmOverride(theme) {
   const editor = theme.otherVars.editor;
   return {
     '.cm-editor': {
+      // CSS variables for jsoneditor's CodeMirror
+      '--jse-font-family-mono': theme.typography.fontFamilySourceCode,
+      '--jse-panel-background': editor.guttersBg,
+      '--jse-panel-color-readonly': editor.guttersFg,
+      '--jse-panel-border': 'none',
       height: '100%',
       color: editor.fg,
       backgroundColor: editor.bg,
+      letterSpacing: '0px',
 
       '&.cm-focused': {
         outline: 'none',
@@ -52,11 +58,12 @@ export default function cmOverride(theme) {
             fontWeight: 600
           },
           '& .tok-string': {color: editor.string},
-          '& .tok-variable': {color: editor.variable },
+          '& .tok-variableName': {color: editor.variable },
           '& .tok-comment': {color: editor.comment},
           '& .tok-operator': { color: editor.operator },
           '& .tok-punctuation': {color: editor.punctuation},
           '& .tok-typeName': {color: editor.type},
+          '& .tok-name': {color: editor.name},
         },
 
         '& .cm-selectionLayer': {
@@ -77,9 +84,16 @@ export default function cmOverride(theme) {
         color: editor.guttersFg,
         borderRight: 'none',
 
+        '& .cm-lineNumbers': {
+          padding: '0px 4px',
+        },
+
         '& .cm-foldGutter': {
           padding: '0px',
           color: editor.fg,
+          '& .cm-gutterElement': {
+            width: '18px',
+          }
         },
 
         '& .cm-breakpoint-gutter': {

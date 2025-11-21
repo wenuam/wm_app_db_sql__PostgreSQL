@@ -2,7 +2,7 @@
  * llvmjit.h
  *	  LLVM JIT provider.
  *
- * Copyright (c) 2016-2023, PostgreSQL Global Development Group
+ * Copyright (c) 2016-2024, PostgreSQL Global Development Group
  *
  * src/include/jit/llvmjit.h
  *
@@ -17,7 +17,12 @@
  */
 #ifdef USE_LLVM
 
+#include "jit/llvmjit_backport.h"
+
 #include <llvm-c/Types.h>
+#ifdef USE_LLVM_BACKPORT_SECTION_MEMORY_MANAGER
+#include <llvm-c/OrcEE.h>
+#endif
 
 
 /*
@@ -38,6 +43,9 @@ extern "C"
 typedef struct LLVMJitContext
 {
 	JitContext	base;
+
+	/* used to ensure cleanup of context */
+	ResourceOwner resowner;
 
 	/* number of modules created */
 	size_t		module_generation;
@@ -61,9 +69,6 @@ typedef struct LLVMJitContext
 	/* list of handles for code emitted via Orc */
 	List	   *handles;
 } LLVMJitContext;
-
-/* llvm module containing information about types */
-extern PGDLLIMPORT LLVMModuleRef llvm_types_module;
 
 /* type and struct definitions */
 extern PGDLLIMPORT LLVMTypeRef TypeParamBool;
@@ -133,24 +138,10 @@ extern LLVMValueRef slot_compile_deform(struct LLVMJitContext *context, TupleDes
  * Error handling related functions.
  ****************************************************************************
  */
-#if defined(HAVE_DECL_LLVMGETHOSTCPUNAME) && !HAVE_DECL_LLVMGETHOSTCPUNAME
-/** Get the host CPU as a string. The result needs to be disposed with
-  LLVMDisposeMessage. */
-extern char *LLVMGetHostCPUName(void);
-#endif
-
-#if defined(HAVE_DECL_LLVMGETHOSTCPUFEATURES) && !HAVE_DECL_LLVMGETHOSTCPUFEATURES
-/** Get the host CPU features as a string. The result needs to be disposed
-  with LLVMDisposeMessage. */
-extern char *LLVMGetHostCPUFeatures(void);
-#endif
-
-extern unsigned LLVMGetAttributeCountAtIndexPG(LLVMValueRef F, uint32 Idx);
 extern LLVMTypeRef LLVMGetFunctionReturnType(LLVMValueRef r);
 extern LLVMTypeRef LLVMGetFunctionType(LLVMValueRef r);
-
-#if LLVM_MAJOR_VERSION < 8
-extern LLVMTypeRef LLVMGlobalGetValueType(LLVMValueRef g);
+#ifdef USE_LLVM_BACKPORT_SECTION_MEMORY_MANAGER
+extern LLVMOrcObjectLayerRef LLVMOrcCreateRTDyldObjectLinkingLayerWithSafeSectionMemoryManager(LLVMOrcExecutionSessionRef ES);
 #endif
 
 #ifdef __cplusplus

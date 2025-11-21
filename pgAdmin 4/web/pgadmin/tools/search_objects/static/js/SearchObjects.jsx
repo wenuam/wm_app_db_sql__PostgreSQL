@@ -2,12 +2,12 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
 import { Box } from '@mui/material';
-import { makeStyles } from '@mui/styles';
+import { styled } from '@mui/material/styles';
 import React, { useState, useMemo, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import HelpIcon from '@mui/icons-material/HelpRounded';
@@ -16,82 +16,90 @@ import pgAdmin from 'sources/pgadmin';
 import gettext from 'sources/gettext';
 import url_for from 'sources/url_for';
 import Loader from 'sources/components/Loader';
-import clsx from 'clsx';
 import getApiInstance, { parseApiError } from '../../../../static/js/api_instance';
 import { PrimaryButton, PgIconButton } from '../../../../static/js/components/Buttons';
-import { useModalStyles } from '../../../../static/js/helpers/ModalProvider';
 import { FormFooterMessage, InputSelect, InputText, MESSAGE_TYPE } from '../../../../static/js/components/FormComponents';
 import PgReactDataGrid from '../../../../static/js/components/PgReactDataGrid';
 
-const pgBrowser = pgAdmin.Browser;
-
-const useStyles = makeStyles((theme)=>({
-  grid: {
-    fontSize: '13px',
-    '& .rdg-header-row': {
-      '& .rdg-cell': {
-        padding: '0px 4px',
-      }
-    },
-    '& .rdg-cell': {
-      padding: '0px 4px',
-      '&[aria-colindex="1"]': {
-        padding: '0px 4px',
-        '&.rdg-editor-container': {
-          padding: '0px',
-        },
-      }
-    }
-  },
-  toolbar: {
+const StyledBox = styled(Box)(({theme}) => ({
+  display:'flex',
+  flexGrow: '1',
+  flexDirection:'column',
+  position:'relative',
+  overflow:'hidden',
+  height: '100%',
+  '& .SearchObjects-toolbar': {
     padding: '4px',
     display: 'flex',
     ...theme.mixins.panelBorder?.bottom,
+    '& .SearchObjects-inputSearch': {
+      lineHeight: 1,
+    },
+    '& .SearchObjects-Btnmargin': {
+      marginLeft: '0.25rem',
+    },
   },
-  inputSearch: {
-    lineHeight: 1,
-  },
-  footer1: {
+  '& .SearchObjects-footer1': {
     justifyContent: 'space-between',
     padding: '4px 8px',
     display: 'flex',
     alignItems: 'center',
     borderTop: `1px solid ${theme.otherVars.inputBorderColor}`,
   },
-  footer: {
+  '& .SearchObjects-footer': {
     borderTop: `1px solid ${theme.otherVars.inputBorderColor} !important`,
     padding: '0.5rem',
     display: 'flex',
     width: '100%',
     background: theme.otherVars.headerBg,
   },
-  gridCell: {
-    display: 'inline-block',
-    height: '1.3rem',
-    width: '1.3rem',
+  '& .SearchObjects-grid': {
+    fontSize: '13px !important',
+    '& .rdg-header-row': {
+      '& .rdg-cell': {
+        padding: '0px 4px !important',
+      }
+    },
+    '& .rdg-cell': {
+      padding: '0px 4px',
+      '&[aria-colindex="1"]': {
+        padding: '0px 4px  !important',
+        '&.rdg-editor-container': {
+          padding: '0px',
+        },
+      },
+      '& .SearchObjects-textWrap': {
+        textOverflow: 'ellipsis',
+        overflow: 'hidden'
+      },
+      '& .SearchObjects-cellMuted': {
+        color: theme.otherVars.textMuted + ' !important',
+        cursor: 'default !important',
+      },
+      '& .SearchObjects-gridCell': {
+        display: 'inline-block',
+        height: '1.3rem',
+        width: '1.3rem',
+        '& .SearchObjects-funcArgs': {
+          cursor: 'pointer',
+        },
+
+      },
+    }
   },
-  funcArgs: {
-    cursor: 'pointer',
-  },
-  cellMuted: {
-    color: `${theme.otherVars.textMuted} !important`,
-    cursor: 'default !important',
-  },
-  textWrap: {
-    textOverflow: 'ellipsis',
-    overflow: 'hidden'
-  }
 }));
 
+const pgBrowser = pgAdmin.Browser;
+
 function ObjectNameFormatter({row}) {
-  const classes = useStyles();
+
   return (
     <div className='rdg-cell-value'>
-      <Box className={row.show_node ? '' : classes.cellMuted}>
-        <span className={clsx(classes.gridCell, row.icon)}></span>
+      <Box className={row.show_node ? '' : 'SearchObjects-cellMuted'}>
+        <span className={['SearchObjects-gridCell', row.icon].join(' ')}></span>
         {row.name}
         {row.other_info != null && row.other_info != '' && (
-          <span tabIndex="-1" className={classes.funcArgs} onClick={()=>{row.showArgs = true;}} onKeyDown={()=>{/* no need */}}> {row?.showArgs ? `(${row.other_info})` : '(...)'}</span>
+          <span tabIndex="-1" className='SearchObjects-funcArgs' onClick={()=>{row.showArgs = true;}} onKeyDown={()=>{/* no need */}}> {row?.showArgs ? `(${row.other_info})` : '(...)'}</span>
         )}
       </Box>
     </div>
@@ -102,7 +110,7 @@ ObjectNameFormatter.propTypes = {
 };
 
 function TypePathFormatter({row, column}) {
-  const classes = useStyles();
+
   let val = '';
 
   if(column.key == 'type') {
@@ -112,7 +120,7 @@ function TypePathFormatter({row, column}) {
   }
 
   return (
-    <Box className={clsx(classes.textWrap, row.show_node ? '' : classes.cellMuted)}>{val}</Box>
+    <Box className={'SearchObjects-textWrap ' + (row.show_node ? '' : 'SearchObjects-cellMuted')}>{val}</Box>
   );
 }
 TypePathFormatter.propTypes = {
@@ -126,17 +134,17 @@ const columns = [
     key: 'name',
     name: gettext('Object name'),
     width: 250,
-    formatter: ObjectNameFormatter,
+    renderCell: ObjectNameFormatter,
   },{
     key: 'type',
     name: gettext('Type'),
-    width: 30,
-    formatter: TypePathFormatter,
+    width: 70,
+    renderCell: TypePathFormatter,
   },{
     key: 'path',
     name: gettext('Object path'),
     enableSorting: false,
-    formatter: TypePathFormatter,
+    renderCell: TypePathFormatter,
   }
 ];
 
@@ -270,8 +278,6 @@ function getComparator(sortColumn) {
   };
 }
 export default function SearchObjects({nodeData}) {
-  const classes = useStyles();
-  const modalClasses = useModalStyles();
   const [type, setType] = React.useState('all');
   const [loaderText, setLoaderText] = useState('');
   const [search, setSearch] = useState('');
@@ -295,7 +301,7 @@ export default function SearchObjects({nodeData}) {
 
     if(!rowData.show_node) {
       setErrorMsg(
-        gettext('%s objects are disabled in the browser. You can enable them in the <a id="prefdlgid" class="pref-dialog-link">preferences dialog</a>.', rowData.type_label));
+        gettext('%s objects are disabled in the browser. You can enable them in the <a id="prefdlgid" class="pref-dialog-link">preferences</a>.', rowData.type_label));
 
       setTimeout(()=> {
         document.getElementById('prefdlgid').addEventListener('click', ()=>{
@@ -307,6 +313,7 @@ export default function SearchObjects({nodeData}) {
 
       return false;
     }
+    tree.suppressEventsForPath = '/browser/' + rowData.id_path.join('/');
     setLoaderText(gettext('Locating...'));
     tree.findNodeWithToggle(rowData.id_path)
       .then((treeItem)=>{
@@ -382,58 +389,54 @@ export default function SearchObjects({nodeData}) {
           })
           .catch((err)=>{
             pgAdmin.Browser.notifier.error(parseApiError(err));
-            reject(err);
+            reject(err instanceof Error ? err : Error(gettext('Something went wrong')));
           });
       } catch (error) {
         pgAdmin.Browser.notifier.error(parseApiError(error));
-        reject(error);
+        reject(error instanceof Error ? error : Error(gettext('Something went wrong')));
       }
     });
   };
 
   return (
-    <Box display="flex" flexDirection="column" height="100%" className={modalClasses.container}>
+    <StyledBox>
+      <Loader message={loaderText} />
+      <Box className='SearchObjects-toolbar'>
+        <InputText type="search" className='SearchObjects-inputSearch' data-label="search" placeholder={gettext('Type at least 3 characters')} value={search} onChange={setSearch} onKeyPress={onEnterPress} autoFocus/>
+        <Box sx={{marginLeft: '4px', width: '50%'}}>
+          <InputSelect value={type} controlProps={{allowClear: false}} options={typeOptions} onChange={(v)=>setType(v)}/>
+        </Box>
+        <PrimaryButton style={{width: '120px'}} data-test="search" className='SearchObjects-Btnmargin' startIcon={<SearchRoundedIcon />}
+          onClick={onSearch} disabled={search.length < 3}>{gettext('Search')}</PrimaryButton>
+      </Box>
       <Box flexGrow="1" display="flex" flexDirection="column" position="relative" overflow="hidden">
-        <Loader message={loaderText} />
-        <Box className={classes.toolbar}>
-          <InputText type="search" className={classes.inputSearch} data-label="search" placeholder={gettext('Type at least 3 characters')} value={search} onChange={setSearch} onKeyPress={onEnterPress}/>
-          <Box style={{marginLeft: '4px', width: '50%'}}>
-            <InputSelect value={type} controlProps={{allowClear: false}} options={typeOptions} onChange={(v)=>setType(v)}/>
-          </Box>
-          <PrimaryButton style={{width: '120px'}} data-test="search" className={modalClasses.margin} startIcon={<SearchRoundedIcon />}
-            onClick={onSearch} disabled={search.length < 3}>{gettext('Search')}</PrimaryButton>
-        </Box>
-        <Box flexGrow="1" display="flex" flexDirection="column" position="relative" overflow="hidden">
-          <PgReactDataGrid
-            id="searchobjects"
-            className={classes.grid}
-            hasSelectColumn={false}
-            columns={columns}
-            rows={sortedItems}
-            defaultColumnOptions={{
-              enableSorting: true,
-              enableResizing: true
-            }}
-            headerRowHeight={28}
-            rowHeight={28}
-            mincolumnWidthBy={25}
-            enableCellSelect={false}
-            sortColumns={sortColumns}
-            onSortColumnsChange={setSortColumns}
-            onItemEnter={onItemEnter}
-          />
-        </Box>
-        <Box className={classes.footer1}>
-          <Box>{footerText}</Box>
-        </Box>
-        <FormFooterMessage type={MESSAGE_TYPE.ERROR} message={errorMsg} closable onClose={()=>setErrorMsg('')}  />
+        <PgReactDataGrid
+          id="searchobjects"
+          className='SearchObjects-grid'
+          hasSelectColumn={false}
+          columns={columns}
+          rows={sortedItems}
+          defaultColumnOptions={{
+            sortable: true,
+            resizable: true
+          }}
+          headerRowHeight={35}
+          rowHeight={28}
+          mincolumnWidthBy={25}
+          enableCellSelect={false}
+          sortColumns={sortColumns}
+          onSortColumnsChange={setSortColumns}
+          onItemEnter={onItemEnter}
+        />
       </Box>
-      <Box className={classes.footer}>
-        <Box>
-          <PgIconButton data-test="dialog-help" onClick={onDialogHelp} icon={<HelpIcon />} title={gettext('Help for this dialog.')} />
-        </Box>
+      <Box className='SearchObjects-footer1'>
+        <Box>{footerText}</Box>
       </Box>
-    </Box>
+      <FormFooterMessage type={MESSAGE_TYPE.ERROR} message={errorMsg} closable onClose={()=>setErrorMsg('')}  />
+      <Box className='SearchObjects-footer'>
+        <PgIconButton data-test="dialog-help" onClick={onDialogHelp} icon={<HelpIcon />} title={gettext('Help for this dialog.')} />
+      </Box>
+    </StyledBox>
   );
 }
 

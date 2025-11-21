@@ -2,14 +2,14 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
 import React, { useState, useEffect, useRef, useReducer, useMemo } from 'react';
+import { styled } from '@mui/material/styles';
 import gettext from 'sources/gettext';
 import PropTypes from 'prop-types';
-import { makeStyles } from '@mui/styles';
 import url_for from 'sources/url_for';
 import {getGCD, getEpoch} from 'sources/utils';
 import ChartContainer from '../components/ChartContainer';
@@ -21,52 +21,29 @@ import axios from 'axios';
 import { BarChart, PieChart } from '../../../../static/js/chartjs';
 import { getStatsUrl, transformData, X_AXIS_LENGTH } from './utility.js';
 import { toPrettySize } from '../../../../static/js/utils';
-import clsx from 'clsx';
-import { commonTableStyles } from '../../../../static/js/Theme';
+import Table from '../../../../static/js/components/Table';
 import SectionContainer from '../components/SectionContainer.jsx';
 
-const useStyles = makeStyles((theme) => ({
-  container: {
-    height: 'auto',
-    padding: '8px',
-    marginBottom: '6px',
-  },
-  driveContainer: {
-    width: '100%',
-  },
-  diskInfoCharts: {
-    marginBottom: '4px',
-  },
-  containerHeaderText: {
-    fontWeight: 'bold',
-    padding: '4px 8px',
-  },
-  tableContainer: {
+
+const Root = styled('div')(({theme}) => ({
+  '& .Storage-tableContainer': {
     background: theme.otherVars.tableBg,
+    padding: '0px',
     border: '1px solid '+theme.otherVars.borderColor,
     borderCollapse: 'collapse',
     borderRadius: '4px',
     overflow: 'auto',
     width: '100%',
-    marginBottom: '4px',
-  },
-  tableWhiteSpace: {
-    '& td, & th': {
-      whiteSpace: 'break-spaces !important',
+    margin: '4px 4px 4px 4px',
+    '& .Storage-containerHeaderText': {
+      fontWeight: 'bold',
+      padding: '4px 8px',
     },
-  },
-  driveContainerHeader: {
-    height: 'auto',
-    padding: '5px 0px 0px 0px',
-    background: theme.otherVars.tableBg,
-    marginBottom: '5px',
-    borderRadius: '4px 4px 0px 0px',
-  },
-  driveContainerBody: {
-    height: 'auto',
-    padding: '0px',
-    background: theme.otherVars.tableBg,
-    borderRadius: '0px 0px 4px 4px',
+    '& .Storage-tableWhiteSpace': {
+      '& td, & th': {
+        whiteSpace: 'break-spaces !important',
+      },
+    },
   },
 }));
 
@@ -122,29 +99,28 @@ const chartsDefault = {
 
 
 const DiskStatsTable = (props) => {
-  const tableClasses = commonTableStyles();
-  const classes = useStyles();
+
   const tableHeader = props.tableHeader;
   const data = props.data;
   return (
-    <table className={clsx(tableClasses.table, classes.tableWhiteSpace)}>
+    <Table classNameRoot='Storage-tableWhiteSpace'>
       <thead>
         <tr>
-          {tableHeader.map((item, index) => (
-            <th key={index}>{item.header}</th>
+          {tableHeader.map((item) => (
+            <th key={item.header}>{item.header}</th>
           ))}
         </tr>
       </thead>
       <tbody>
-        {data.map((item, index) => (
-          <tr key={index}>
+        {data.map((item) => (
+          <tr key={item.file_system_type + item.mount_point}>
             {tableHeader.map((header, id) => (
               <td key={header.accessorKey+'-'+id}>{item[header.accessorKey]}</td>
             ))}
           </tr>
         ))}
       </tbody>
-    </table>
+    </Table>
   );
 };
 
@@ -358,7 +334,7 @@ export default function Storage({preferences, sid, did, pageVisible, enablePoll=
   }, enablePoll ? pollDelay : -1);
 
   return (
-    <>
+    (<Root>
       <div data-testid='graph-poll-delay' style={{display: 'none'}}>{pollDelay}</div>
       {chartDrawnOnce &&
         <StorageWrapper
@@ -373,7 +349,7 @@ export default function Storage({preferences, sid, did, pageVisible, enablePoll=
           isTest={false}
         />
       }
-    </>
+    </Root>)
   );
 }
 
@@ -387,7 +363,7 @@ Storage.propTypes = {
 };
 
 export function StorageWrapper(props) {
-  const classes = useStyles();
+
   const options = useMemo(()=>({
     showDataPoints: props.showDataPoints,
     showTooltip: props.showTooltip,
@@ -414,25 +390,52 @@ export function StorageWrapper(props) {
     },
   };
 
+  function getLabel(item, index) {
+    if (item.mount_point !== '')
+      return item.mount_point;
+
+    return item.drive_letter !== '' ? item.drive_letter : 'disk' + index;
+  }
+
+  function getChartContainerTitle(type) {
+    if (type.endsWith('_bytes_rw'))
+      return gettext('Data transfer');
+    if (type.endsWith('_total_rw'))
+      return gettext('I/O operations count');
+    if (type.endsWith('_time_rw'))
+      return gettext('Time spent in I/O operations');
+
+    return '';
+  }
+
+  function getValue(type, v) {
+    if (type.endsWith('_time_rw'))
+      return toPrettySize(v, 'ms');
+    if (type.endsWith('_total_rw'))
+      return toPrettySize(v, '');
+
+    return toPrettySize(v);
+  }
+
   return (
-    <>
-      <div className={classes.tableContainer}>
-        <div className={classes.containerHeaderText}>{gettext('Disk information')}</div>
+    <Root>
+      <div className='Storage-tableContainer'>
+        <div className='Storage-containerHeaderText'>{gettext('Disk information')}</div>
         <DiskStatsTable tableHeader={props.tableHeader} data={props.diskStats} />
       </div>
       <Grid container spacing={0.5} sx={{marginBottom: '4px'}}>
-        <Grid item md={6} sm={12}>
+        <Grid size={{ md: 6, sm: 12 }}>
           <ChartContainer
             id='t-space-graph'
             title={''}
             datasets={props.diskStats.map((item, index) => ({
               borderColor: colors[(index + 2) % colors.length],
-              label: item.mount_point !== '' ? item.mount_point : item.drive_letter !== '' ? item.drive_letter : 'disk' + index,
+              label: getLabel(item, index),
             }))}
             errorMsg={props.errorMsg}
             isTest={props.isTest}>
             <PieChart data={{
-              labels: props.diskStats.map((item, index) => item.mount_point!=''?item.mount_point:item.drive_letter!=''?item.drive_letter:'disk'+index),
+              labels: props.diskStats.map((item, index) => getLabel(item, index)),
               datasets: [
                 {
                   data: props.diskStats.map((item) => item.total_space_actual?item.total_space_actual:0),
@@ -447,10 +450,10 @@ export function StorageWrapper(props) {
             />
           </ChartContainer>
         </Grid>
-        <Grid item md={6} sm={12}>
+        <Grid size={{ md: 6, sm: 12 }}>
           <ChartContainer id='ua-space-graph' title={''} datasets={[{borderColor: '#FF6384', label: 'Used space'}, {borderColor: '#36a2eb', label: 'Available space'}]}  errorMsg={props.errorMsg} isTest={props.isTest}>
             <BarChart data={{
-              labels: props.diskStats.map((item, index) => item.mount_point!=''?item.mount_point:item.drive_letter!=''?item.drive_letter:'disk'+index),
+              labels: props.diskStats.map((item, index) => getLabel(item, index)),
               datasets: [
                 {
                   label: 'Used space',
@@ -499,11 +502,11 @@ export function StorageWrapper(props) {
         <SectionContainer key={drive} title={drive} style={{minHeight: 'unset', height: 'auto', marginBottom: '0.5px'}}>
           <Grid container spacing={0.5} p={0.5}>
             {Object.keys(props.ioInfo[drive]).map((type, innerKeyIndex) => (
-              <Grid key={`${type}-${innerKeyIndex}`} item md={4} sm={6}>
-                <ChartContainer id={`io-graph-${type}`} title={type.endsWith('_bytes_rw') ? gettext('Data transfer'): type.endsWith('_total_rw') ? gettext('I/O operations count'): type.endsWith('_time_rw') ? gettext('Time spent in I/O operations'):''} datasets={transformData(props.ioInfo[drive][type], props.ioRefreshRate).datasets}  errorMsg={props.errorMsg} isTest={props.isTest}>
+              <Grid key={`${type}-${innerKeyIndex}`} size={{ md: 4, sm: 6 }}>
+                <ChartContainer id={`io-graph-${type}`} title={getChartContainerTitle(type)} datasets={transformData(props.ioInfo[drive][type], props.ioRefreshRate).datasets}  errorMsg={props.errorMsg} isTest={props.isTest}>
                   <StreamingChart data={transformData(props.ioInfo[drive][type], props.ioRefreshRate)} dataPointSize={DATA_POINT_SIZE} xRange={X_AXIS_LENGTH} options={options}
                     valueFormatter={(v)=>{
-                      return type.endsWith('_time_rw') ? toPrettySize(v, 'ms') : type.endsWith('_total_rw') ? toPrettySize(v, ''): toPrettySize(v);
+                      return getValue(type, v);
                     }} />
                 </ChartContainer>
               </Grid>
@@ -511,7 +514,7 @@ export function StorageWrapper(props) {
           </Grid>
         </SectionContainer>
       ))}
-    </>
+    </Root>
   );
 }
 

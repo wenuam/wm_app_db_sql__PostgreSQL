@@ -2,7 +2,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2024, The pgAdmin Development Team
+# Copyright (C) 2013 - 2025, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 ##########################################################################
@@ -219,7 +219,8 @@ class SchemaDiffTableCompare(SchemaDiffObjectCompare):
                              'unique_constraint': ['col_count',
                                                    'condeferrable',
                                                    'condeffered',
-                                                   'columns'],
+                                                   'columns',
+                                                   'indnullsnotdistinct'],
                              'check_constraint': ['consrc'],
                              'exclude_constraint': ['amname',
                                                     'indconstraint',
@@ -227,7 +228,7 @@ class SchemaDiffTableCompare(SchemaDiffObjectCompare):
                              'foreign_key': ['condeferrable', 'condeferred',
                                              'confupdtype', 'confdeltype',
                                              'confmatchtype', 'convalidated',
-                                             'conislocal']
+                                             'conislocal', 'refnsp', 'reftab']
                              }
 
         for constraint in ['primary_key', 'unique_constraint',

@@ -1,3 +1,12 @@
+/////////////////////////////////////////////////////////////
+//
+// pgAdmin 4 - PostgreSQL Tools
+//
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
+// This software is released under the PostgreSQL Licence
+//
+//////////////////////////////////////////////////////////////
+
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {Tree} from './tree';
 import * as pgadminUtils from '../utils';
@@ -8,7 +17,7 @@ import { FileTreeX, TreeModelX } from '../components/PgTree';
 import ContextMenu from '../components/ContextMenu';
 import { generateNodeUrl } from '../../../browser/static/js/node_ajax';
 import { copyToClipboard } from '../clipboard';
-import { usePgAdmin } from '../BrowserComponent';
+import { usePgAdmin } from '../PgAdminProvider';
 
 function postTreeReady(b) {
   const draggableTypes = [
@@ -70,7 +79,7 @@ function postTreeReady(b) {
         dropVal = dropVal + ')';
       } else {
         dropVal = dropVal + '()';
-        curPos.from = curPos.to = dropVal.length + 1;
+        curPos.from = curPos.to = dropVal.length;
       }
 
       return {
@@ -141,7 +150,7 @@ export default function ObjectExplorer() {
     try {
       const _node_path = parentPath + '/' + _data.id;
       return mtree.addNode(parentPath, _node_path, _data);
-    } catch (error) {
+    } catch {
       return null; // or throw error as you see fit
     }
   };
@@ -151,7 +160,7 @@ export default function ObjectExplorer() {
     try {
       await mtree.removeNode(path, _removeOnlyChild);
       return true;
-    } catch (error) {
+    } catch {
       return false; // or throw error as you see fit
     }
   };
@@ -161,7 +170,7 @@ export default function ObjectExplorer() {
     try {
       await mtree.updateNode(path, data);
       return true;
-    } catch (error) {
+    } catch {
       return false; // or throw error as you see fit
     }
   };

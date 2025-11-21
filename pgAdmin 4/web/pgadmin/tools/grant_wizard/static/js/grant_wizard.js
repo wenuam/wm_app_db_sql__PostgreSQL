@@ -2,13 +2,13 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
 import React from 'react';
 import GrantWizard from './GrantWizard';
-import { BROWSER_PANELS } from '../../../../browser/static/js/constants';
+import { AllPermissionTypes, BROWSER_PANELS } from '../../../../browser/static/js/constants';
 
 
 // Grant Wizard
@@ -49,6 +49,7 @@ define([
         data: {
           data_disabled: gettext('Please select any database, schema or schema objects from the object explorer to access Grant Wizard Tool.'),
         },
+        permission: AllPermissionTypes.TOOLS_GRANT_WIZARD,
       }];
 
       // Add supported menus into the menus list
@@ -64,6 +65,7 @@ define([
           enable: supportedNodes.enabled.bind(
             null, pgBrowser.tree, menuUtils.supportedNodes
           ),
+          permission: AllPermissionTypes.TOOLS_GRANT_WIZARD,
         });
       }
       pgBrowser.add_menus(menus);
@@ -83,13 +85,13 @@ define([
 
       const panelTitle = gettext('Grant Wizard');
       const panelId = BROWSER_PANELS.GRANT_WIZARD;
-      pgBrowser.docker.openDialog({
+      pgBrowser.docker.default_workspace.openDialog({
         id: panelId,
         title: panelTitle,
         manualClose: false,
         content: (
           <GrantWizard sid={sid} did={did} nodeInfo={info} nodeData={d}
-            onClose={()=>{pgBrowser.docker.close(panelId);}}
+            onClose={()=>{pgBrowser.docker.default_workspace.close(panelId);}}
           />
         )
       }, pgBrowser.stdW.lg, pgBrowser.stdH.lg);

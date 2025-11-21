@@ -2,45 +2,43 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
 
 import React from 'react';
+import { styled } from '@mui/material/styles';
 import gettext from 'sources/gettext';
 import CachedOutlinedIcon from '@mui/icons-material/CachedOutlined';
 import { PgIconButton } from '../../../../static/js/components/Buttons';
-import { makeStyles } from '@mui/styles';
 import PropTypes from 'prop-types';
 
-const useStyles = makeStyles((theme) => ({
-  refreshButton: {
+const StyledPgIconButton = styled(PgIconButton)(({theme}) => ({
+  '&.RefreshButtons': {
     marginLeft: 'auto',
-    height:  '1.9rem',
-    width:  '2.2rem',
+    height: '1.9rem !important',
+    width: '2.2rem !important',
     ...theme.mixins.panelBorder,
-  },
+  }
 }));
 
-
-export default function RefreshButton({onClick}) {
-  const classes = useStyles();
-
-  return(
-    <PgIconButton
+export default function RefreshButton({onClick, noBorder=true}) {
+  return (
+    <StyledPgIconButton
       size="xs"
-      noBorder
-      className={classes.refreshButton}
+      noBorder={noBorder}
+      className='RefreshButtons'
       icon={<CachedOutlinedIcon />}
       onClick={onClick}
       color="default"
       aria-label="Refresh"
       title={gettext('Refresh')}
-    ></PgIconButton>
+    ></StyledPgIconButton>
   );
 }
 
 RefreshButton.propTypes = {
-  onClick: PropTypes.func
+  onClick: PropTypes.func,
+  noBorder: PropTypes.bool
 };

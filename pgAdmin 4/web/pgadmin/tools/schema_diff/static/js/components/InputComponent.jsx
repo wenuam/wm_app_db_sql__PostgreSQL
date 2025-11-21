@@ -2,44 +2,38 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
 import PropTypes from 'prop-types';
-
-import React, { useContext, useState } from 'react';
-
+import React, { useContext, useState, useEffect } from 'react';
 import { Box, Grid, Typography } from '@mui/material';
-import { makeStyles } from '@mui/styles';
-
 import { InputSelect } from '../../../../../static/js/components/FormComponents';
 import { SchemaDiffEventsContext } from './SchemaDiffComponent';
 import { SCHEMA_DIFF_EVENT } from '../SchemaDiffConstants';
 
-
-const useStyles = makeStyles(() => ({
-  root: {
-    padding: '0rem'
-  },
-  spanLabel: {
-    alignSelf: 'center',
-    marginRight: '4px',
-  },
-  inputLabel: {
-    padding: '0.3rem',
-  },
-}));
-
-export function InputComponent({ label, serverList, databaseList, schemaList, diff_type, selectedSid = null, selectedDid=null, selectedScid=null }) {
-
-  const classes = useStyles();
+export function InputComponent({ label, serverList, databaseList, schemaList, diff_type, selectedSid = null, selectedDid=null, selectedScid=null, onServerSchemaChange }) {
   const [selectedServer, setSelectedServer] = useState(selectedSid);
   const [selectedDatabase, setSelectedDatabase] = useState(selectedDid);
   const [selectedSchema, setSelectedSchema] = useState(selectedScid);
   const eventBus = useContext(SchemaDiffEventsContext);
   const [disableDBSelection, setDisableDBSelection] = useState(selectedSid == null);
   const [disableSchemaSelection, setDisableSchemaSelection] = useState(selectedDid == null);
+
+
+  useEffect(()=>{
+    changeServer(selectedSid);
+  },[selectedSid]);
+
+  useEffect(()=>{
+    changeDatabase(selectedDid);
+  },[selectedDid]);
+
+  useEffect(()=>{
+    changeSchema(selectedScid);
+  },[selectedScid]);
+
   const changeServer = (selectedOption) => {
     setDisableDBSelection(false);
     setSelectedServer(selectedOption);
@@ -50,9 +44,9 @@ export function InputComponent({ label, serverList, databaseList, schemaList, di
       setSelectedSchema(null);
       setDisableSchemaSelection(true);
     }
-
     eventBus.fireEvent(SCHEMA_DIFF_EVENT.TRIGGER_SELECT_SERVER, { selectedOption, diff_type, serverList });
   };
+
 
   const changeDatabase = (selectedDB) => {
     setSelectedDatabase(selectedDB);
@@ -63,24 +57,26 @@ export function InputComponent({ label, serverList, databaseList, schemaList, di
       setDisableSchemaSelection(true);
     }
     eventBus.fireEvent(SCHEMA_DIFF_EVENT.TRIGGER_SELECT_DATABASE, {selectedServer, selectedDB, diff_type, databaseList});
+    onServerSchemaChange();
   };
 
   const changeSchema = (selectedSC) => {
     setSelectedSchema(selectedSC);
     eventBus.fireEvent(SCHEMA_DIFF_EVENT.TRIGGER_SELECT_SCHEMA, { selectedSC, diff_type });
+    onServerSchemaChange();
   };
 
   return (
-    <Box className={classes.root}>
+    <Box sx={{padding: '0rem'}}>
       <Grid
         container
         direction="row"
         alignItems="center"
       >
-        <Grid item lg={2} md={2} sm={2} xs={2} className={classes.inputLabel}>
+        <Grid sx={{padding: '0.3rem'}} size={{ lg: 2, md: 2, sm: 2, xs: 2 }}>
           <Typography id={label}>{label}</Typography>
         </Grid>
-        <Grid item lg={4} md={4} sm={4} xs={4} className={classes.inputLabel}>
+        <Grid sx={{padding: '0.3rem'}} size={{ lg: 4, md: 4, sm: 4, xs: 4 }}>
           <InputSelect
             options={serverList}
             optionsReloadBasis={serverList?.length}
@@ -95,7 +91,7 @@ export function InputComponent({ label, serverList, databaseList, schemaList, di
           ></InputSelect>
         </Grid>
 
-        <Grid item lg={3} md={3} sm={3} xs={3} className={classes.inputLabel}>
+        <Grid sx={{padding: '0.3rem'}} size={{ lg: 3, md: 3, sm: 3, xs: 3 }}>
           <InputSelect
             options={databaseList}
             optionsReloadBasis={databaseList?.map ? _.join(databaseList.map((c)=>c.value), ',') : null}
@@ -111,7 +107,7 @@ export function InputComponent({ label, serverList, databaseList, schemaList, di
           ></InputSelect>
         </Grid>
 
-        <Grid item lg={3} md={3} sm={3} xs={3} className={classes.inputLabel}>
+        <Grid sx={{padding: '0.3rem'}} size={{ lg: 3, md: 3, sm: 3, xs: 3 }}>
           <InputSelect
             options={schemaList}
             optionsReloadBasis={schemaList?.map ? _.join(schemaList.map((c)=>c.value), ',') : null}
@@ -127,7 +123,6 @@ export function InputComponent({ label, serverList, databaseList, schemaList, di
           ></InputSelect>
         </Grid>
       </Grid>
-
     </Box >
   );
 }
@@ -141,4 +136,5 @@ InputComponent.propTypes = {
   selectedSid: PropTypes.number,
   selectedDid: PropTypes.number,
   selectedScid:PropTypes.number,
+  onServerSchemaChange:PropTypes.func
 };

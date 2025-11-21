@@ -2,7 +2,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2024, The pgAdmin Development Team
+# Copyright (C) 2013 - 2025, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 ##########################################################################
@@ -580,7 +580,7 @@ class RuleView(PGChildNodeView, SchemaDiffObjectCompare):
 
         return sql
 
-    @ staticmethod
+    @staticmethod
     def _check_schema_diff(target_schema, res_data):
         """
         Check for schema diff, if yes then replace source schema with target

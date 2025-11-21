@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -67,7 +67,7 @@ export function showServerPassword() {
         }}
       />
     );
-  });
+  }, {id: 'id-connect-server'});
 }
 
 function masterPassCallbacks(masterpass_callback_queue) {
@@ -81,39 +81,20 @@ export function checkMasterPassword(data, masterpass_callback_queue, cancel_call
   const api = getApiInstance();
   api.post(url_for('browser.set_master_password'), data).then((res)=> {
     let isKeyring = res.data.data.keyring_name.length > 0;
+    let error = res.data.data.errmsg;
 
     if(!res.data.data.present) {
-      if (res.data.data.invalid_master_password_hook){
-        if(res.data.data.is_error){
-          pgAdmin.Browser.notifier.error(res.data.data.errmsg);
-        }else{
-          pgAdmin.Browser.notifier.confirm(gettext('Reset Master Password'),
-            gettext('The master password retrieved from the master password hook utility is different from what was previously retrieved.') + '<br>'
-            + gettext('Do you want to reset your master password to match?') + '<br><br>'
-            + gettext('Note that this will close all open database connections and remove all saved passwords.'),
-            function() {
-              let _url = url_for('browser.reset_master_password');
-              api.delete(_url)
-                .then(() => {
-                  pgAdmin.Browser.notifier.info('The master password has been reset.');
-                })
-                .catch((err) => {
-                  pgAdmin.Browser.notifier.error(err.message);
-                });
-              return true;
-            },
-            function() {/* If user clicks No */ return true;}
-          );}
-      }else{
-        showMasterPassword(res.data.data.reset, res.data.data.errmsg, masterpass_callback_queue, cancel_callback, res.data.data.keyring_name);
-      }
-
+      showMasterPassword(res.data.data.reset, res.data.data.errmsg, masterpass_callback_queue, cancel_callback, res.data.data.keyring_name, res.data.data.master_password_hook);
     } else {
       masterPassCallbacks(masterpass_callback_queue);
-
       if(isKeyring) {
-        pgAdmin.Browser.notifier.alert(gettext('Migration successful'),
-          gettext(`Passwords previously saved by pgAdmin have been successfully migrated to ${res.data.data.keyring_name} and removed from the pgAdmin store.`));
+        if(error){
+          pgAdmin.Browser.notifier.alert(gettext('Migration failed'),
+            gettext(`Passwords previously saved can not be re-encrypted using encryption key stored in the ${res.data.data.keyring_name}. due to ${error}`));
+        }else{
+          pgAdmin.Browser.notifier.alert(gettext('Migration successful'),
+            gettext(`Passwords previously saved are re-encrypted using encryption key stored in the ${res.data.data.keyring_name}.`));
+        }
       }
     }
   }).catch(function(error) {
@@ -122,51 +103,81 @@ export function checkMasterPassword(data, masterpass_callback_queue, cancel_call
 }
 
 // This functions is used to show the master password dialog.
-export function showMasterPassword(isPWDPresent, errmsg, masterpass_callback_queue, cancel_callback, keyring_name='') {
+export function showMasterPassword(isPWDPresent, errmsg, masterpass_callback_queue, cancel_callback, keyring_name='', master_password_hook='') {
   const api = getApiInstance();
-  let title =  keyring_name.length > 0 ? gettext('Migrate Saved Passwords') : isPWDPresent ? gettext('Unlock Saved Passwords') : gettext('Set Master Password');
+  let title =  gettext('Set Master Password');
+  if (keyring_name.length > 0)
+    title = gettext('Migrate Saved Passwords');
+  else if (isPWDPresent)
+    title = gettext('Unlock Saved Passwords');
 
-  pgAdmin.Browser.notifier.showModal(title, (onClose)=> {
-    return (
-      <MasterPasswordContent
-        isPWDPresent= {isPWDPresent}
-        data={{'errmsg': errmsg}}
-        keyringName={keyring_name}
-        closeModal={() => {
-          onClose();
-        }}
-        onResetPassowrd={(isKeyRing=false)=>{
-          pgAdmin.Browser.notifier.confirm(gettext('Reset Master Password'),
-            gettext('This will remove all the saved passwords. This will also remove established connections to '
+  if(master_password_hook){
+    if(errmsg){
+      pgAdmin.Browser.notifier.error(errmsg);
+      return true;
+    }else{
+      pgAdmin.Browser.notifier.confirm(gettext('Reset Master Password'),
+        gettext('The master password retrieved from the master password hook utility is different from what was previously retrieved.') + '<br>'
+            + gettext('Do you want to reset your master password to match?') + '<br><br>'
+            + gettext('Note that this will close all open database connections and remove all saved passwords.'),
+        function() {
+          let _url = url_for('browser.reset_master_password');
+          const api = getApiInstance();
+          api.delete(_url)
+            .then(() => {
+              pgAdmin.Browser.notifier.info('The master password has been reset.');
+            })
+            .catch((err) => {
+              pgAdmin.Browser.notifier.error(err.message);
+            });
+          return true;
+        },
+        function() {/* If user clicks No */ return true;}
+      );}
+  }else{
+
+    pgAdmin.Browser.notifier.showModal(title, (onClose)=> {
+      return (
+        <MasterPasswordContent
+          isPWDPresent= {isPWDPresent}
+          data={{'errmsg': errmsg}}
+          keyringName={keyring_name}
+          closeModal={() => {
+            onClose();
+          }}
+          onResetPassowrd={(isKeyRing=false)=>{
+            pgAdmin.Browser.notifier.confirm(gettext('Reset Master Password'),
+              gettext('This will remove all the saved passwords. This will also remove established connections to '
             + 'the server and you may need to reconnect again. Do you wish to continue?'),
-            function() {
-              let _url = url_for('browser.reset_master_password');
+              function() {
+                let _url = url_for('browser.reset_master_password');
 
-              api.delete(_url)
-                .then(() => {
-                  onClose();
-                  if(!isKeyRing) {
-                    showMasterPassword(false, null, masterpass_callback_queue, cancel_callback);
-                  }
-                })
-                .catch((err) => {
-                  pgAdmin.Browser.notifier.error(err.message);
-                });
-              return true;
-            },
-            function() {/* If user clicks No */ return true;}
-          );
-        }}
-        onCancel={()=>{
-          cancel_callback?.();
-        }}
-        onOK={(formData) => {
-          onClose();
-          checkMasterPassword(formData, masterpass_callback_queue, cancel_callback);
-        }}
-      />
-    );
-  });
+                api.delete(_url)
+                  .then(() => {
+                    onClose();
+                    if(!isKeyRing) {
+                      showMasterPassword(false, null, masterpass_callback_queue, cancel_callback);
+                    }
+                  })
+                  .catch((err) => {
+                    pgAdmin.Browser.notifier.error(err.message);
+                  });
+                return true;
+              },
+              function() {/* If user clicks No */ return true;}
+            );
+          }}
+          onCancel={()=>{
+            cancel_callback?.();
+          }}
+          onOK={(formData) => {
+            onClose();
+            checkMasterPassword(formData, masterpass_callback_queue, cancel_callback);
+          }}
+        />
+      );
+    }, {id: 'id-master-password'});
+  }
 }
 
 export function showChangeServerPassword() {
@@ -177,8 +188,8 @@ export function showChangeServerPassword() {
     isPgPassFileUsed = arguments[4];
 
   const panelId = BROWSER_PANELS.SEARCH_OBJECTS;
-  const onClose = ()=>{pgAdmin.Browser.docker.close(panelId);};
-  pgAdmin.Browser.docker.openDialog({
+  const onClose = ()=>{pgAdmin.Browser.docker.default_workspace.close(panelId);};
+  pgAdmin.Browser.docker.default_workspace.openDialog({
     id: panelId,
     title: title,
     content: (
@@ -206,7 +217,7 @@ export function showChangeServerPassword() {
                 onClose();
               })
               .catch((error)=>{
-                reject(error);
+                reject(error instanceof Error ? error : Error(gettext('Something went wrong')));
               });
           });
         }}
@@ -218,56 +229,53 @@ export function showChangeServerPassword() {
 }
 
 export function showChangeUserPassword(url) {
-  const panelId = BROWSER_PANELS.SEARCH_OBJECTS;
-  const onClose = ()=>{pgAdmin.Browser.docker.close(panelId);};
-  pgAdmin.Browser.docker.openDialog({
-    id: panelId,
-    title: gettext('Change pgAdmin User Password'),
-    content: (
-      <ChangePasswordContent
-        getInitData={()=>{
-          const api = getApiInstance();
-          return new Promise((resolve, reject)=>{
-            api.get(url)
-              .then((res)=>{
-                resolve(res.data);
-              })
-              .catch((err)=>{
-                reject(err);
-              });
-          });
-        }}
-        onClose={()=>{
-          onClose();
-        }}
-        onSave={(_isNew, data)=>{
-          const api = getApiInstance();
-          return new Promise((resolve, reject)=>{
-            const formData =  {
-              'password': data.password,
-              'new_password': data.newPassword,
-              'new_password_confirm': data.confirmPassword,
-              'csrf_token': data.csrf_token
-            };
-
-            api({
-              method: 'POST',
-              url: url,
-              data: formData,
-            }).then((res)=>{
-              resolve(res.data.info);
-              onClose();
-              pgAdmin.Browser.notifier.success(res.data.info);
-            }).catch((err)=>{
-              reject(err);
+  const title = gettext('Change pgAdmin User Password');
+  pgAdmin.Browser.notifier.showModal(title, (onClose) => {
+    return <ChangePasswordContent
+      getInitData={()=>{
+        const api = getApiInstance();
+        return new Promise((resolve, reject)=>{
+          api.get(url)
+            .then((res)=>{
+              resolve(res.data);
+            })
+            .catch((err)=>{
+              reject(err instanceof Error ? err : Error(gettext('Something went wrong')));
             });
+        });
+      }}
+      onClose={()=>{
+        onClose();
+      }}
+      onSave={(_isNew, data)=>{
+        const api = getApiInstance();
+        return new Promise((resolve, reject)=>{
+          const formData =  {
+            'password': data.password,
+            'new_password': data.newPassword,
+            'new_password_confirm': data.confirmPassword,
+            'csrf_token': data.csrf_token
+          };
+
+          api({
+            method: 'POST',
+            url: url,
+            data: formData,
+          }).then((res)=>{
+            resolve(res.data.info);
+            onClose();
+            pgAdmin.Browser.notifier.success(res.data.info);
+          }).catch((err)=>{
+            reject(err instanceof Error ? err : Error(gettext('Something went wrong')));
           });
-        }}
-        hasCsrfToken={true}
-        showUser={false}
-      />
-    )
-  }, pgAdmin.Browser.stdW.md, pgAdmin.Browser.stdH.md);
+        });
+      }}
+      hasCsrfToken={true}
+      showUser={false}
+    />;
+  },
+  { isFullScreen: false, isResizeable: true, showFullScreen: false, isFullWidth: true,
+    dialogWidth: pgAdmin.Browser.stdW.md, dialogHeight: pgAdmin.Browser.stdH.md, id: 'id-change-password'});
 }
 
 export function showNamedRestorePoint() {
@@ -277,8 +285,8 @@ export function showNamedRestorePoint() {
     itemNodeData = arguments[3];
 
   const panelId = BROWSER_PANELS.SEARCH_OBJECTS;
-  const onClose = ()=>{pgAdmin.Browser.docker.close(panelId);};
-  pgAdmin.Browser.docker.openDialog({
+  const onClose = ()=>{pgAdmin.Browser.docker.default_workspace.close(panelId);};
+  pgAdmin.Browser.docker.default_workspace.openDialog({
     id: panelId,
     title: title,
     content: (
@@ -332,7 +340,7 @@ export function showChangeOwnership() {
                 resolve(respData.data);
               })
               .catch((err)=>{
-                reject(err);
+                reject(err instanceof Error ? err : Error(gettext('Something went wrong')));
               });
           }
         });
@@ -343,7 +351,7 @@ export function showChangeOwnership() {
     />;
   },
   { isFullScreen: false, isResizeable: true, showFullScreen: true, isFullWidth: true,
-    dialogWidth: pgAdmin.Browser.stdW.md, dialogHeight: pgAdmin.Browser.stdH.md});
+    dialogWidth: pgAdmin.Browser.stdW.md, dialogHeight: pgAdmin.Browser.stdH.md, id: 'id-change-owner' });
 }
 
 export function showUrlDialog() {
@@ -380,6 +388,6 @@ export function showQuickSearch() {
   pgAdmin.Browser.notifier.showModal(gettext('Quick Search'), (closeModal) => {
     return <QuickSearch closeModal={closeModal}/>;
   },
-  { isFullScreen: false, isResizeable: false, showFullScreen: false, isFullWidth: false, showTitle: false}
+  { isFullScreen: false, isResizeable: false, showFullScreen: false, isFullWidth: false, showTitle: false, id: 'id-quick-search'}
   );
 }

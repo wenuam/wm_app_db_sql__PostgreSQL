@@ -2,29 +2,31 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
 import React from 'react';
+import { styled } from '@mui/material/styles';
 import _ from 'lodash';
-import { makeStyles } from '@mui/styles';
 import PropTypes from 'prop-types';
 import CustomPropTypes from '../../../../../../static/js/custom_prop_types';
+import usePreferences from '../../../../../../preferences/static/js/store';
 
-const useStyles = makeStyles((theme)=>({
-  disabledCell: {
+
+const StyledNullAndDefaultFormatter = styled(NullAndDefaultFormatter)(({theme}) => ({
+  '& .Formatters-disabledCell': {
     opacity: theme.palette.action.disabledOpacity,
   }
 }));
 
 function NullAndDefaultFormatter({value, column, children, style}) {
-  const classes = useStyles();
+
   if (_.isUndefined(value) && column.has_default_val) {
-    return <div className={classes.disabledCell} style={style}>[default]</div>;
+    return <div className='Formatters-disabledCell' style={style}>[default]</div>;
   } else if ((_.isUndefined(value) && column.not_null) ||
       (_.isUndefined(value) || _.isNull(value))) {
-    return <div className={classes.disabledCell} style={style}>[null]</div>;
+    return <div className='Formatters-disabledCell' style={style}>[null]</div>;
   }
   return children;
 }
@@ -40,9 +42,14 @@ const FormatterPropTypes = {
   column: PropTypes.object,
 };
 export function TextFormatter({row, column}) {
+  const maxColumnDataDisplayLength = usePreferences().getPreferences('sqleditor', 'max_column_data_display_length').value;
   let value = row[column.key];
   if(!_.isNull(value) && !_.isUndefined(value)) {
     value = value.toString();
+    // If the length of the value is very large then we do not render the entire value and truncate it.
+    if (value.length > maxColumnDataDisplayLength) {
+      value = `${value.substring(0, maxColumnDataDisplayLength).replace(/\n/g,' ')}...`;
+    }
   }
   return (
     <NullAndDefaultFormatter value={value} column={column}>
@@ -64,11 +71,11 @@ NumberFormatter.propTypes = FormatterPropTypes;
 
 export function BinaryFormatter({row, column}) {
   let value = row[column.key];
-  const classes = useStyles();
+
   return (
-    <NullAndDefaultFormatter value={value} column={column}>
-      <span className={classes.disabledCell}>[{value}]</span>
-    </NullAndDefaultFormatter>
+    <StyledNullAndDefaultFormatter value={value} column={column}>
+      <span className='Formatters-disabledCell'>[{value}]</span>
+    </StyledNullAndDefaultFormatter>
   );
 }
 BinaryFormatter.propTypes = FormatterPropTypes;

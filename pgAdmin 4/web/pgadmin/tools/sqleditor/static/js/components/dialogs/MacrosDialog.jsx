@@ -1,12 +1,4 @@
-/////////////////////////////////////////////////////////////
-//
-// pgAdmin 4 - PostgreSQL Tools
-//
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
-// This software is released under the PostgreSQL Licence
-//
-//////////////////////////////////////////////////////////////
-import { makeStyles } from '@mui/styles';
+import { styled } from '@mui/material/styles';
 import React from 'react';
 import SchemaView from '../../../../../../static/js/SchemaView';
 import BaseUISchema from '../../../../../../static/js/SchemaView/base_schema.ui';
@@ -15,6 +7,14 @@ import { QueryToolContext, getRandomName } from '../QueryToolComponent';
 import url_for from 'sources/url_for';
 import _ from 'lodash';
 import PropTypes from 'prop-types';
+import { Box } from '@mui/material';
+
+const StyledBox = styled(Box)(() => ({
+  height: '100%',
+  '& .MacrosDialog-root': {
+    padding: 0 + ' !important',
+  }
+}));
 
 class MacrosCollection extends BaseUISchema {
   constructor(keyOptions) {
@@ -27,7 +27,9 @@ class MacrosCollection extends BaseUISchema {
   }
 
   /* Returns the new data row for the schema based on defaults and input */
-  getNewData(current_macros, data={}) {
+  getNewData(data={}) {
+    const current_macros = this?.top?.sessData.macro;
+
     let newRow = {};
     this.fields.forEach((field)=>{
       newRow[field.id] = this.defaults[field.id];
@@ -36,7 +38,8 @@ class MacrosCollection extends BaseUISchema {
       ...newRow,
       ...data,
     };
-    if (current_macros){
+
+    if (current_macros) {
       // Extract an array of existing names from the 'macro' collection
       const existingNames = current_macros.map(macro => macro.name);
       const newName = getRandomName(existingNames);
@@ -105,13 +108,6 @@ class MacrosSchema extends BaseUISchema {
   }
 }
 
-const useStyles = makeStyles((theme)=>({
-  root: {
-    ...theme.mixins.tabPanel,
-    padding: 0,
-  },
-}));
-
 function getChangedMacros(userMacrosData, changeData) {
   /* For backend, added, removed is changed. Convert all added, removed to changed. */
   let changed = [];
@@ -140,13 +136,13 @@ function getChangedMacros(userMacrosData, changeData) {
 }
 
 export default function MacrosDialog({onClose, onSave}) {
-  const classes = useStyles();
+
   const queryToolCtx = React.useContext(QueryToolContext);
   const [macrosData, setMacrosData] = React.useState([]);
   const [userMacrosData, setUserMacrosData] = React.useState([]);
   const [macrosErr, setMacrosErr] = React.useState(null);
 
-  React.useEffect(async ()=>{
+  const fetchMacrosData = async ()=>{
     try {
       // Fetch user macros data
       let { data: userMacroRespData } = await queryToolCtx.api.get(url_for('sqleditor.get_user_macros'));
@@ -162,6 +158,10 @@ export default function MacrosDialog({onClose, onSave}) {
     } catch (error) {
       setMacrosErr(error);
     }
+  };
+
+  React.useEffect(()=>{
+    fetchMacrosData();
   }, []);
 
   const onSaveClick = (_isNew, changeData)=>{
@@ -176,7 +176,7 @@ export default function MacrosDialog({onClose, onSave}) {
           onSave(respData.filter((m) => Boolean(m.name)));
           onClose();
         } catch (error) {
-          reject(error);
+          reject(error instanceof Error ? error : Error(gettext('Something went wrong')));
         }
       };
       setMacros();
@@ -188,31 +188,38 @@ export default function MacrosDialog({onClose, onSave}) {
     value: m.id,
   }));
 
+  const schema = React.useRef(null);
+
   if(keyOptions.length <= 0) {
     return <></>;
   }
 
+  if (!schema.current)
+    schema.current = new MacrosSchema(keyOptions);
+
   return (
-    <SchemaView
-      formType={'dialog'}
-      getInitData={()=>{
-        if(macrosErr) {
-          return Promise.reject(macrosErr);
-        }
-        return Promise.resolve({macro: userMacrosData.filter((m)=>Boolean(m.name))});
-      }}
-      schema={new MacrosSchema(keyOptions)}
-      viewHelperProps={{
-        mode: 'edit',
-      }}
-      onSave={onSaveClick}
-      onClose={onClose}
-      hasSQL={false}
-      disableSqlHelp={true}
-      disableDialogHelp={true}
-      isTabView={false}
-      formClassName={classes.root}
-    />
+    <StyledBox>
+      <SchemaView
+        formType={'dialog'}
+        getInitData={()=>{
+          if(macrosErr) {
+            return Promise.reject(new Error(macrosErr));
+          }
+          return Promise.resolve({macro: userMacrosData.filter((m)=>Boolean(m.name))});
+        }}
+        schema={schema.current}
+        viewHelperProps={{
+          mode: 'edit',
+        }}
+        onSave={onSaveClick}
+        onClose={onClose}
+        hasSQL={false}
+        disableSqlHelp={true}
+        disableDialogHelp={true}
+        isTabView={false}
+        formClassName='MacrosDialog-root'
+      />
+    </StyledBox>
   );
 }
 

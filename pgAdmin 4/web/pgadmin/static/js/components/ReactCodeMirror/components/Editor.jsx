@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2023, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -10,7 +10,10 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import ReactDOMServer from 'react-dom/server';
 import PropTypes from 'prop-types';
-import { checkTrojanSource } from '../../../utils';
+
+import { useIsMounted } from 'sources/custom_hooks';
+
+import { checkTrojanSource } from 'sources/utils';
 import usePreferences from '../../../../../preferences/static/js/store';
 import KeyboardArrowRightRoundedIcon from '@mui/icons-material/KeyboardArrowRightRounded';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
@@ -36,19 +39,25 @@ import {
   bracketMatching,
   indentUnit,
   foldKeymap,
+  indentService
 } from '@codemirror/language';
-
+import { highlightSelectionMatches } from '@codemirror/search';
 import syntaxHighlighting from '../extensions/highlighting';
 import PgSQL from '../extensions/dialect';
 import { sql } from '@codemirror/lang-sql';
+import { json } from '@codemirror/lang-json';
 import errorMarkerExtn from '../extensions/errorMarker';
 import CustomEditorView from '../CustomEditorView';
 import breakpointGutter, { breakpointEffect } from '../extensions/breakpointGutter';
 import activeLineExtn from '../extensions/activeLineMarker';
 import currentQueryHighlighterExtn from '../extensions/currentQueryHighlighter';
+import { autoCompleteCompartment, eolCompartment, indentNewLine, eol } from '../extensions/extraStates';
+import { OS_EOL } from '../../../../../tools/sqleditor/static/js/components/QueryToolConstants';
+import { useTheme } from '@mui/material';
+import plpgsqlFoldService from '../extensions/plpgsqlFoldService';
 
-const arrowRightHtml = ReactDOMServer.renderToString(<KeyboardArrowRightRoundedIcon style={{fontSize: '1.2em'}} />);
-const arrowDownHtml = ReactDOMServer.renderToString(<ExpandMoreRoundedIcon style={{fontSize: '1.2em'}} />);
+const arrowRightHtml = ReactDOMServer.renderToString(<KeyboardArrowRightRoundedIcon style={{width: '16px', fill: 'currentcolor'}} />);
+const arrowDownHtml = ReactDOMServer.renderToString(<ExpandMoreRoundedIcon style={{width: '16px', fill: 'currentcolor'}} />);
 
 function handleDrop(e, editor) {
   let dropDetails = null;
@@ -63,7 +72,7 @@ function handleDrop(e, editor) {
     if (e.stopPropagation) {
       e.stopPropagation();
     }
-  } catch (error) {
+  } catch {
     /* if parsing fails, it must be the drag internal of codemirror text */
     return false;
   }
@@ -97,7 +106,14 @@ function handlePaste(e) {
 function insertTabWithUnit({ state, dispatch }) {
   if (state.selection.ranges.some(r => !r.empty))
     return indentMore({ state, dispatch });
-  dispatch(state.update(state.replaceSelection(state.facet(indentUnit)), { scrollIntoView: true, userEvent: 'input' }));
+
+  // If indent is space based, then calc the number of spaces required.
+  let indentVal = state.facet(indentUnit);
+  if(indentVal != '\t') {
+    const line = state.doc.lineAt(state.selection.main.head);
+    indentVal =  ' '.repeat(indentVal.length - (state.selection.main.head - line.from) % indentVal.length);
+  }
+  dispatch(state.update(state.replaceSelection(indentVal), { scrollIntoView: true, userEvent: 'input' }));
   return true;
 }
 
@@ -113,20 +129,17 @@ const defaultExtensions = [
   syntaxHighlighting,
   keymap.of([{
     key: 'Tab',
+    run: acceptCompletion,
+  },{
+    key: 'Tab',
     preventDefault: true,
     run: insertTabWithUnit,
     shift: indentLess,
-  },{
-    key: 'Tab',
-    run: acceptCompletion,
   },{
     key: 'Backspace',
     preventDefault: true,
     run: deleteCharBackwardStrict,
   }]),
-  sql({
-    dialect: PgSQL,
-  }),
   PgSQL.language.data.of({
     autocomplete: false,
   }),
@@ -134,22 +147,39 @@ const defaultExtensions = [
     drop: handleDrop,
     paste: handlePaste,
   }),
-  errorMarkerExtn()
+  errorMarkerExtn(),
+  indentService.of((context, pos) => {
+    if(context.state.facet(indentNewLine)) {
+      const previousLine = context.lineAt(pos, -1);
+      let prevText = previousLine.text.replaceAll('\t', ' '.repeat(context.state.tabSize));
+      return prevText.match(/^\s*/)?.[0].length;
+    }
+    return 0;
+  }),
+  autoCompleteCompartment.of([]),
+  EditorView.clipboardOutputFilter.of((text, state)=>{
+    return CustomEditorView.getSelectionFromState(state);
+  }),
 ];
 
 export default function Editor({
-  currEditor, name, value, options, onCursorActivity, onChange, readonly, disabled, autocomplete = false,
-  breakpoint = false, onBreakPointChange, showActiveLine=false,
-  keepHistory = true, cid, helpid, labelledBy, customKeyMap}) {
+  currEditor, name, value, options, onCursorActivity, onChange, readonly,
+  disabled, autocomplete = false, autocompleteOnKeyPress, breakpoint = false, onBreakPointChange,
+  showActiveLine=false, keepHistory = true, cid, helpid, labelledBy,
+  customKeyMap, language='pgsql'
+}) {
+  const checkIsMounted = useIsMounted();
 
   const editorContainerRef = useRef();
   const editor = useRef();
-  const defaultOptions = {
+  const finalOptions = {
     lineNumbers: true,
     foldGutter: true,
+    ...options
   };
 
   const preferencesStore = usePreferences();
+  const theme = useTheme();
   const editable = !disabled;
 
   const shortcuts = useRef(new Compartment());
@@ -157,30 +187,19 @@ export default function Editor({
   const editableConfig = useRef(new Compartment());
 
   useEffect(() => {
-    const finalOptions = { ...defaultOptions, ...options };
+    if (!checkIsMounted()) return;
+    const osEOL = OS_EOL === 'crlf' ? '\r\n' : '\n';
     const finalExtns = [
       ...defaultExtensions,
     ];
     if (finalOptions.lineNumbers) {
       finalExtns.push(lineNumbers());
     }
-    if (finalOptions.foldGutter) {
-      finalExtns.push(foldGutter({
-        markerDOM: (open)=>{
-          let icon = document.createElement('span');
-          if(open) {
-            icon.innerHTML = arrowDownHtml;
-          } else {
-            icon.innerHTML = arrowRightHtml;
-          }
-          return icon;
-        },
-      }));
-    }
     if (editorContainerRef.current) {
       const state = EditorState.create({
         extensions: [
           ...finalExtns,
+          eolCompartment.of([eol.of(osEOL)]),
           shortcuts.current.of([]),
           configurables.current.of([]),
           editableConfig.current.of([
@@ -238,6 +257,7 @@ export default function Editor({
   }, []);
 
   useMemo(() => {
+    if (!checkIsMounted()) return;
     if(editor.current) {
       if(value != editor.current.getValue()) {
         if(!_.isEmpty(value)) {
@@ -249,21 +269,30 @@ export default function Editor({
     }
   }, [value]);
 
-  useEffect(()=>{
-    const keys = keymap.of([customKeyMap??[], defaultKeymap, closeBracketsKeymap, historyKeymap, foldKeymap, completionKeymap].flat());
+  useEffect(() => {
+    if (!checkIsMounted()) return;
+    const keys = keymap.of([
+      // Filtering out the default keymaps so that it uses the custom keymaps.
+      customKeyMap??[], ...completionKeymap.filter(k => k.key != 'Ctrl-Space'),
+      defaultKeymap.filter(k => k.key != 'Mod-/'), closeBracketsKeymap, historyKeymap,
+      foldKeymap
+    ].flat());
     editor.current?.dispatch({
       effects: shortcuts.current.reconfigure(keys)
     });
   }, [customKeyMap]);
 
   useEffect(() => {
+    if (!checkIsMounted()) return;
     let pref = preferencesStore.getPreferencesForModule('sqleditor');
     let newConfigExtn = [];
 
     const fontSize = calcFontSize(pref.sql_font_size);
     newConfigExtn.push(EditorView.theme({
-      '.cm-content': {
+      '& .cm-scroller .cm-content': {
         fontSize: fontSize,
+        fontVariantLigatures: pref.sql_font_ligatures ? 'normal' : 'none',
+        fontFamily: `${pref.sql_font_family}, ${theme.typography.fontFamilySourceCode}`,
       },
       '.cm-gutters': {
         fontSize: fontSize,
@@ -271,6 +300,7 @@ export default function Editor({
     }));
 
     const autoCompOptions = {
+      defaultKeymap: false,
       icons: false,
       addToOptions: [{
         render: (completion) => {
@@ -292,7 +322,7 @@ export default function Editor({
       }],
     };
     if (autocomplete) {
-      if (pref.autocomplete_on_key_press) {
+      if (pref.autocomplete_on_key_press || autocompleteOnKeyPress) {
         newConfigExtn.push(autocompletion({
           ...autoCompOptions,
           activateOnTyping: true,
@@ -310,12 +340,18 @@ export default function Editor({
     );
     if (pref.use_spaces) {
       newConfigExtn.push(
-        indentUnit.of(new Array(pref.tab_size).fill(' ').join('')),
+        indentUnit.of(' '.repeat(pref.tab_size)),
       );
     } else {
       newConfigExtn.push(
         indentUnit.of('\t'),
       );
+    }
+
+    if(pref.indent_new_line) {
+      newConfigExtn.push(indentNewLine.of(true));
+    } else {
+      newConfigExtn.push(indentNewLine.of(false));
     }
 
     if (pref.wrap_code) {
@@ -327,11 +363,44 @@ export default function Editor({
     if (pref.insert_pair_brackets) {
       newConfigExtn.push(closeBrackets());
     }
+
+    if (pref.highlight_selection_matches){
+      newConfigExtn.push(highlightSelectionMatches());
+    }
+
     if (pref.brace_matching) {
       newConfigExtn.push(bracketMatching());
     }
     if (pref.underline_query_cursor){
       newConfigExtn.push(currentQueryHighlighterExtn());
+    }
+
+    if(!pref.plain_editor_mode) {
+      // lang override
+      if(language == 'json') {
+        newConfigExtn.push(json());
+      } else {
+        newConfigExtn.push(sql({dialect: PgSQL}));
+      }
+    }
+
+    if(pref.code_folding && finalOptions.foldGutter) {
+      newConfigExtn.push(foldGutter({
+        markerDOM: (open)=>{
+          let icon = document.createElement('span');
+          if(open) {
+            icon.innerHTML = arrowDownHtml;
+          } else {
+            icon.innerHTML = arrowRightHtml;
+          }
+          return icon;
+        },
+      }));
+    }
+
+    // add fold service conditionally
+    if(!pref.plain_editor_mode && pref.code_folding && language == 'pgsql') {
+      newConfigExtn.push(plpgsqlFoldService);
     }
 
     editor.current.dispatch({
@@ -340,6 +409,7 @@ export default function Editor({
   }, [preferencesStore]);
 
   useMemo(() => {
+    if (!checkIsMounted()) return;
     if (editor.current) {
       if (value != editor.current.getValue()) {
         editor.current.dispatch({
@@ -350,6 +420,7 @@ export default function Editor({
   }, [value]);
 
   useEffect(() => {
+    if (!checkIsMounted()) return;
     editor.current?.dispatch({
       effects: editableConfig.current.reconfigure([
         EditorView.editable.of(editable),
@@ -358,7 +429,7 @@ export default function Editor({
     });
   }, [readonly, disabled, keepHistory]);
 
-  return useMemo(()=>(
+  return useMemo(() => (
     <div style={{ height: '100%' }} ref={editorContainerRef} name={name}></div>
   ), []);
 }
@@ -382,4 +453,5 @@ Editor.propTypes = {
   helpid: PropTypes.string,
   labelledBy: PropTypes.string,
   customKeyMap: PropTypes.array,
+  language: PropTypes.string,
 };

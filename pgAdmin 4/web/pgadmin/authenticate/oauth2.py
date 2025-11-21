@@ -2,7 +2,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2024, The pgAdmin Development Team
+# Copyright (C) 2013 - 2025, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 ##########################################################################
@@ -70,17 +70,20 @@ def init_app(app):
     @pgCSRFProtect.exempt
     def oauth_logout():
         logout_url = None
+        id_token = session['oauth2_token'].get('id_token')
         if 'oauth2_logout_url' in session:
             logout_url = session['oauth2_logout_url']
 
         if not current_user.is_authenticated:
             return redirect(get_safe_post_logout_redirect())
+
+        # Logout the user first to avoid crypt key issue while
+        # cancelling existing query tool transactions
+        logout_user()
         for key in list(session.keys()):
             session.pop(key)
 
-        logout_user()
         if logout_url:
-            id_token = session['oauth2_token'].get('id_token')
             return redirect(logout_url.format(
                 redirect_uri=request.url_root,
                 id_token=id_token))
@@ -106,6 +109,26 @@ class OAuth2Authentication(BaseAuthentication):
             OAuth2Authentication.oauth2_config[
                 oauth2_config['OAUTH2_NAME']] = oauth2_config
 
+            # Build client_kwargs with defaults
+            client_kwargs = {
+                'scope': oauth2_config.get(
+                    'OAUTH2_SCOPE', 'email profile'),
+                'verify': oauth2_config.get(
+                    'OAUTH2_SSL_CERT_VERIFICATION', True)
+            }
+
+            # Override with PKCE parameters if provided
+            if 'OAUTH2_CHALLENGE_METHOD' in oauth2_config and \
+                    'OAUTH2_RESPONSE_TYPE' in oauth2_config:
+                # Merge PKCE kwargs with defaults
+                pkce_kwargs = {
+                    'code_challenge_method': oauth2_config[
+                        'OAUTH2_CHALLENGE_METHOD'],
+                    'response_type': oauth2_config[
+                        'OAUTH2_RESPONSE_TYPE']
+                }
+                client_kwargs.update(pkce_kwargs)
+
             OAuth2Authentication.oauth2_clients[
                 oauth2_config['OAUTH2_NAME']
             ] = OAuth2Authentication.oauth_obj.register(
@@ -115,10 +138,7 @@ class OAuth2Authentication(BaseAuthentication):
                 access_token_url=oauth2_config['OAUTH2_TOKEN_URL'],
                 authorize_url=oauth2_config['OAUTH2_AUTHORIZATION_URL'],
                 api_base_url=oauth2_config['OAUTH2_API_BASE_URL'],
-                client_kwargs={'scope': oauth2_config.get(
-                    'OAUTH2_SCOPE', 'email profile'),
-                    'verify': oauth2_config.get(
-                    'OAUTH2_SSL_CERT_VERIFICATION', True)},
+                client_kwargs=client_kwargs,
                 server_metadata_url=oauth2_config.get(
                     'OAUTH2_SERVER_METADATA_URL', None)
             )
@@ -132,11 +152,36 @@ class OAuth2Authentication(BaseAuthentication):
     def validate(self, form):
         return True, None
 
+    def get_profile_dict(self, profile):
+        """
+        Returns the dictionary from profile
+        whether it's a list or dictionary.
+        Includes additional type checking.
+        """
+        if isinstance(profile, list):
+            return profile[0] if profile else {}
+        elif isinstance(profile, dict):
+            return profile
+        else:
+            return {}
+
     def login(self, form):
         profile = self.get_user_profile()
-        email_key = \
-            [value for value in self.email_keys if value in profile.keys()]
-        email = profile[email_key[0]] if (len(email_key) > 0) else None
+        profile_dict = self.get_profile_dict(profile)
+
+        current_app.logger.debug(f"profile: {profile}")
+        current_app.logger.debug(f"profile_dict: {profile_dict}")
+
+        if not profile_dict:
+            error_msg = "No profile data found."
+            current_app.logger.exception(error_msg)
+            return False, gettext(error_msg)
+
+        email_key = [
+            value for value in self.email_keys
+            if value in profile_dict.keys()
+        ]
+        email = profile_dict[email_key[0]] if (len(email_key) > 0) else None
 
         username = email
         username_claim = None
@@ -146,8 +191,13 @@ class OAuth2Authentication(BaseAuthentication):
                 self.oauth2_current_client
             ]['OAUTH2_USERNAME_CLAIM']
         if username_claim is not None:
+            id_token = session['oauth2_token'].get('userinfo', {})
             if username_claim in profile:
                 username = profile[username_claim]
+                current_app.logger.debug('Found username claim in profile')
+            elif username_claim in id_token:
+                username = id_token[username_claim]
+                current_app.logger.debug('Found username claim in id_token')
             else:
                 error_msg = "The claim '%s' is required to login into " \
                     "pgAdmin. Please update your OAuth2 profile." % (
@@ -163,24 +213,24 @@ class OAuth2Authentication(BaseAuthentication):
                 current_app.logger.exception(error_msg)
                 return False, gettext(error_msg)
 
-        additinal_claims = None
+        additional_claims = None
         if 'OAUTH2_ADDITIONAL_CLAIMS' in self.oauth2_config[
                 self.oauth2_current_client]:
 
-            additinal_claims = self.oauth2_config[
+            additional_claims = self.oauth2_config[
                 self.oauth2_current_client
             ]['OAUTH2_ADDITIONAL_CLAIMS']
 
         # checking oauth provider userinfo response
         valid_profile, reason = self.__is_any_claim_valid(profile,
-                                                          additinal_claims)
+                                                          additional_claims)
         current_app.logger.debug(f"profile claims: {profile}")
         current_app.logger.debug(f"reason: {reason}")
 
         # checking oauth provider idtoken claims
         id_token_claims = session.get('oauth2_token', {}).get('userinfo',{})
         valid_idtoken, reason = self.__is_any_claim_valid(id_token_claims,
-                                                          additinal_claims)
+                                                          additional_claims)
         current_app.logger.debug(f"idtoken claims: {id_token_claims}")
         current_app.logger.debug(f"reason: {reason}")
 
@@ -190,7 +240,7 @@ class OAuth2Authentication(BaseAuthentication):
                 " Please contact your administrator."
             audit_msg = f"The authenticated user {username} is not" \
                 " authorized to access pgAdmin based on OAUTH2 config. " \
-                f"Reason: additional claim required {additinal_claims}, " \
+                f"Reason: additional claim required {additional_claims}, " \
                 f"profile claims {profile}, idtoken cliams {id_token_claims}."
             current_app.logger.warning(audit_msg)
             return False, return_msg
@@ -275,6 +325,6 @@ class OAuth2Authentication(BaseAuthentication):
                 authorized_claims = [authorized_claims]
             if any(item in authorized_claims for item in claim):
                 reason = "Claim match found. Authorized access."
-                return (True, reason)
-        reason = f"No match was found."
-        return (False, reason)
+                return True, reason
+        reason = "No match was found."
+        return False, reason

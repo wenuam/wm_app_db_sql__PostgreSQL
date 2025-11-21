@@ -2,7 +2,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2024, The pgAdmin Development Team
+# Copyright (C) 2013 - 2025, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 ##########################################################################
@@ -17,6 +17,7 @@ import os
 import secrets
 import datetime
 import asyncio
+import copy
 from collections import deque
 import psycopg
 from flask import g, current_app
@@ -30,12 +31,12 @@ from pgadmin.model import User
 from pgadmin.utils.exception import ConnectionLost, CryptKeyMissing
 from pgadmin.utils import get_complete_file_path
 from ..abstract import BaseConnection
-from .cursor import DictCursor, AsyncDictCursor
+from .cursor import DictCursor, AsyncDictCursor, AsyncDictServerCursor
 from .typecast import register_global_typecasters,\
     register_string_typecasters, register_binary_typecasters, \
     register_array_to_string_typecasters, ALL_JSON_TYPES
 from .encoding import get_encoding, configure_driver_encodings
-from pgadmin.utils import csv
+from pgadmin.utils import csv_lib as csv
 from pgadmin.utils.master_password import get_crypt_key
 from io import StringIO
 from pgadmin.utils.locker import ConnectionLocker
@@ -186,6 +187,7 @@ class Connection(BaseConnection):
         self.use_binary_placeholder = use_binary_placeholder
         self.array_to_string = array_to_string
         self.qtLiteral = get_driver(config.PG_DEFAULT_DRIVER).qtLiteral
+        self._autocommit = True
 
         super(Connection, self).__init__()
 
@@ -233,7 +235,10 @@ class Connection(BaseConnection):
             kwargs.pop('password')
             is_update_password = False
         else:
-            encpass = kwargs['password'] if 'password' in kwargs else None
+            if 'encpass' in kwargs:
+                encpass = kwargs['encpass']
+            else:
+                encpass = kwargs['password'] if 'password' in kwargs else None
 
         return password, encpass, is_update_password
 
@@ -268,18 +273,11 @@ class Connection(BaseConnection):
 
         manager = self.manager
 
-        if config.DISABLED_LOCAL_PASSWORD_STORAGE:
-            crypt_key_present, crypt_key = get_crypt_key()
-
-            if not crypt_key_present:
-                raise CryptKeyMissing()
-
-            password, encpass, is_update_password = self._check_user_password(
-                kwargs)
-        else:
-            password = None
-            encpass = kwargs['password'] if 'password' in kwargs else None
-            is_update_password = True
+        crypt_key_present, crypt_key = get_crypt_key()
+        if not crypt_key_present:
+            raise CryptKeyMissing()
+        password, encpass, is_update_password = \
+            self._check_user_password(kwargs)
 
         passfile = kwargs['passfile'] if 'passfile' in kwargs else None
         tunnel_password = kwargs['tunnel_password'] if 'tunnel_password' in \
@@ -305,15 +303,13 @@ class Connection(BaseConnection):
         if self.reconnecting is not False:
             self.password = None
 
-        if config.DISABLED_LOCAL_PASSWORD_STORAGE:
-            is_error, errmsg, password = self._decode_password(encpass,
-                                                               manager,
-                                                               password,
-                                                               crypt_key)
-            if is_error:
-                return False, errmsg
-        else:
-            password = encpass
+        if not crypt_key_present:
+            raise CryptKeyMissing()
+
+        is_error, errmsg, password = self._decode_password(
+            encpass, manager, password, crypt_key)
+        if is_error:
+            return False, errmsg
 
         # If no password credential is found then connect request might
         # come from Query tool, ViewData grid, debugger etc tools.
@@ -364,6 +360,7 @@ class Connection(BaseConnection):
                             prepare_threshold=manager.prepare_threshold
                         )
                     pg_conn = asyncio.run(connectdbserver())
+                    pg_conn.server_cursor_factory = AsyncDictServerCursor
                 else:
                     pg_conn = psycopg.Connection.connect(
                         connection_string,
@@ -524,7 +521,8 @@ class Connection(BaseConnection):
             cur,
             "SET DateStyle=ISO; "
             "SET client_min_messages=notice; "
-            "SELECT set_config('bytea_output','hex',false) FROM pg_settings"
+            "SELECT set_config('bytea_output','hex',false)"
+            " FROM pg_show_all_settings()"
             " WHERE name = 'bytea_output'; "
             "SET client_encoding='{0}';".format(postgres_encoding)
         )
@@ -605,9 +603,11 @@ WHERE db.datname = current_database()""")
 
         self._set_server_type_and_password(kwargs, manager)
 
+        ret_msg = self.execute_post_connection_sql(cur, manager)
+
         manager.update_session()
 
-        return True, None
+        return True, ret_msg
 
     def _set_user_info(self, cur, manager, **kwargs):
         """
@@ -674,6 +674,18 @@ WHERE db.datname = current_database()""")
                     manager.server_cls = st
                     break
 
+    def execute_post_connection_sql(self, cur, manager):
+        # Execute post connection SQL if provided in the server dialog
+        errmsg = None
+        if manager.post_connection_sql and manager.post_connection_sql != '':
+            status = self._execute(cur, manager.post_connection_sql)
+            if status is not None:
+                errmsg = gettext(("Failed to execute the post connection SQL "
+                                  "with below error message:\n{msg}").format(
+                    msg=status))
+                current_app.logger.error(errmsg)
+        return errmsg
+
     def __cursor(self, server_cursor=False, scrollable=False):
 
         if not get_crypt_key()[0] and config.SERVER_MODE:
@@ -695,9 +707,10 @@ WHERE db.datname = current_database()""")
             self.conn_id.encode('utf-8')
         ), None)
 
-        if self.connected() and cur and not cur.closed and \
-                (not server_cursor or (server_cursor and cur.name)):
-            return True, cur
+        if self.connected() and cur and not cur.closed:
+            if not server_cursor or (
+                    server_cursor and type(cur) is AsyncDictServerCursor):
+                return True, cur
 
         if not self.connected():
             errmsg = ""
@@ -723,8 +736,10 @@ WHERE db.datname = current_database()""")
             if server_cursor:
                 # Providing name to cursor will create server side cursor.
                 cursor_name = "CURSOR:{0}".format(self.conn_id)
+                self.conn.server_cursor_factory = AsyncDictServerCursor
                 cur = self.conn.cursor(
-                    name=cursor_name
+                    name=cursor_name,
+                    scrollable=scrollable
                 )
             else:
                 cur = self.conn.cursor(scrollable=scrollable)
@@ -884,7 +899,10 @@ WHERE db.datname = current_database()""")
         def gen(conn_obj, trans_obj, quote='strings', quote_char="'",
                 field_separator=',', replace_nulls_with=None):
 
-            cur.scroll(0, mode='absolute')
+            try:
+                cur.scroll(0, mode='absolute')
+            except Exception as e:
+                print(str(e))
             results = cur.fetchmany(records)
             if not results:
                 yield gettext('The query executed did not return any data.')
@@ -1028,7 +1046,15 @@ WHERE db.datname = current_database()""")
 
         return True, None
 
-    def execute_async(self, query, params=None, formatted_exception_msg=True):
+    def release_async_cursor(self):
+        if self.__async_cursor and not self.__async_cursor.closed:
+            try:
+                self.__async_cursor.close_cursor()
+            except Exception as e:
+                print("EXception==", str(e))
+
+    def execute_async(self, query, params=None, formatted_exception_msg=True,
+                      server_cursor=False):
         """
         This function executes the given query asynchronously and returns
         result.
@@ -1039,10 +1065,11 @@ WHERE db.datname = current_database()""")
             formatted_exception_msg: if True then function return the
             formatted exception message
         """
-
         self.__async_cursor = None
         self.__async_query_error = None
-        status, cur = self.__cursor(scrollable=True)
+
+        status, cur = self.__cursor(scrollable=True,
+                                    server_cursor=server_cursor)
 
         if not status:
             return False, str(cur)
@@ -1310,12 +1337,18 @@ WHERE db.datname = current_database()""")
         rows = []
         self.row_count = cur.rowcount
 
+        # If multiple queries are run, make sure to reach
+        # the last query result
+        while cur.nextset():
+            pass  # This loop is empty
+
         if cur.get_rowcount() > 0:
             rows = cur.fetchall()
 
         return True, {'columns': columns, 'rows': rows}
 
     def async_fetchmany_2darray(self, records=2000,
+                                from_rownum=0, to_rownum=0,
                                 formatted_exception_msg=False):
         """
         User should poll and check if status is ASYNC_OK before calling this
@@ -1349,7 +1382,13 @@ WHERE db.datname = current_database()""")
                 result = []
                 try:
                     if records == -1:
-                        result = cur.fetchall(_tupples=True)
+                        result = cur.fetchwindow(
+                            from_rownum=0, to_rownum=cur.get_rowcount() - 1,
+                            _tupples=True)
+                    elif records is None:
+                        result = cur.fetchwindow(from_rownum=from_rownum,
+                                                 to_rownum=to_rownum,
+                                                 _tupples=True)
                     else:
                         result = cur.fetchmany(records, _tupples=True)
                 except psycopg.ProgrammingError:
@@ -1480,7 +1519,7 @@ Failed to reset the connection to the server due to following error:
         else:
             status = 1
 
-        if not cur:
+        if not cur or cur.closed:
             return False, self.CURSOR_NOT_FOUND
 
         result = None
@@ -1505,13 +1544,13 @@ Failed to reset the connection to the server due to following error:
                         for col in self.column_info:
                             col['pos'] = pos
                             pos += 1
-
+                else:
+                    self.column_info = None
                 self.row_count = cur.get_rowcount()
                 if not no_result and cur.get_rowcount() > 0:
                     result = []
                     try:
                         result = cur.fetchall(_tupples=True)
-
                     except psycopg.ProgrammingError:
                         result = None
                     except psycopg.Error:
@@ -1545,6 +1584,12 @@ Failed to reset the connection to the server due to following error:
         """
 
         return self.row_count
+
+    @property
+    def total_rows(self):
+        if self.__async_cursor is None:
+            return 0
+        return self.__async_cursor.rowcount
 
     def get_column_info(self):
         """
@@ -1580,13 +1625,11 @@ Failed to reset the connection to the server due to following error:
                 user = User.query.filter_by(id=current_user.id).first()
                 if user is None:
                     return False, self.UNAUTHORIZED_REQUEST
-                if config.DISABLED_LOCAL_PASSWORD_STORAGE:
-                    crypt_key_present, crypt_key = get_crypt_key()
-                    if not crypt_key_present:
-                        return False, crypt_key
 
-                    password = decrypt(password, crypt_key)\
-                        .decode()
+                crypt_key_present, crypt_key = get_crypt_key()
+                if not crypt_key_present:
+                    return False, crypt_key
+                password = decrypt(password, crypt_key).decode()
 
             try:
                 with ConnectionLocker(self.manager.kerberos_conn):
@@ -1670,8 +1713,8 @@ Failed to reset the connection to the server due to following error:
         elif hasattr(exception_obj, 'diag') and \
             hasattr(exception_obj.diag, 'message_detail') and\
                 exception_obj.diag.message_detail is not None:
-            errmsg = exception_obj.diag.message_detail + \
-                exception_obj.diag.message_primary
+            errmsg = exception_obj.diag.message_primary + '\n' + \
+                exception_obj.diag.message_detail
         else:
             errmsg = str(exception_obj)
 

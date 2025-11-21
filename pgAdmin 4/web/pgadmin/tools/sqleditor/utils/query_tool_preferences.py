@@ -2,7 +2,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2024, The pgAdmin Development Team
+# Copyright (C) 2013 - 2025, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 ##########################################################################
@@ -14,7 +14,11 @@ from pgadmin.utils.constants import PREF_LABEL_DISPLAY,\
     PREF_LABEL_EDITOR, PREF_LABEL_CSV_TXT, PREF_LABEL_RESULTS_GRID,\
     PREF_LABEL_SQL_FORMATTING, PREF_LABEL_GRAPH_VISUALISER
 from pgadmin.utils import SHORTCUT_FIELDS as shortcut_fields
-from config import ON_DEMAND_RECORD_COUNT
+from config import DATA_RESULT_ROWS_PER_PAGE
+
+UPPER_CASE_STR = gettext('Upper case')
+LOWER_CASE_STR = gettext('Lower case')
+PRESERVE_STR = gettext('Preserve')
 
 
 def register_query_tool_preferences(self):
@@ -76,6 +80,17 @@ def register_query_tool_preferences(self):
                          'Tool tabs.')
     )
 
+    self.server_cursor = self.preference.register(
+        'Options', 'server_cursor',
+        gettext("Use server cursor?"), 'boolean', False,
+        category_label=PREF_LABEL_OPTIONS,
+        help_str=gettext('If set to True, the dataset will be fetched using a'
+                         ' server-side cursor after the query is executed.'
+                         ' This allows controlled data transfer to the client,'
+                         ' enabling examination of large datasets without'
+                         ' loading them entirely into memory.')
+    )
+
     self.show_prompt_save_query_changes = self.preference.register(
         'Options', 'prompt_save_query_changes',
         gettext("Prompt to save unsaved query changes?"), 'boolean', True,
@@ -129,6 +144,16 @@ def register_query_tool_preferences(self):
         )
     )
 
+    self.open_file_in_new_tab = self.preference.register(
+        'Options', 'open_in_new_tab',
+        gettext("Open the file in a new tab?"), 'boolean',
+        False,
+        category_label=PREF_LABEL_OPTIONS,
+        help_str=gettext(
+            'Specifies whether or not to open the file in a new tab.'
+        )
+    )
+
     self.view_edit_promotion_warning = self.preference.register(
         'Options', 'view_edit_promotion_warning',
         gettext("Show View/Edit Data Promotion Warning?"),
@@ -143,7 +168,7 @@ def register_query_tool_preferences(self):
     self.underline_query_cursor = self.preference.register(
         'Options', 'underline_query_cursor',
         gettext("Underline query at cursor?"),
-        'boolean', True,
+        'boolean', False,
         category_label=PREF_LABEL_OPTIONS,
         help_str=gettext(
             'If set to True, query tool will parse and underline '
@@ -163,7 +188,7 @@ def register_query_tool_preferences(self):
         )
     )
 
-    self.sql_font_size = self.preference.register(
+    self.preference.register(
         'Editor', 'plain_editor_mode',
         gettext("Plain text mode?"), 'boolean', False,
         category_label=PREF_LABEL_EDITOR,
@@ -174,7 +199,7 @@ def register_query_tool_preferences(self):
         )
     )
 
-    self.sql_font_size = self.preference.register(
+    self.preference.register(
         'Editor', 'code_folding',
         gettext("Code folding?"), 'boolean', True,
         category_label=PREF_LABEL_EDITOR,
@@ -201,6 +226,16 @@ def register_query_tool_preferences(self):
         help_str=gettext(
             'Specifies whether or not to insert paired brackets in the '
             'editor.'
+        )
+    )
+
+    self.highlight_selection_matches = self.preference.register(
+        'Editor', 'highlight_selection_matches',
+        gettext("Highlight selection matches?"), 'boolean', True,
+        category_label=PREF_LABEL_OPTIONS,
+        help_str=gettext(
+            'Specifies whether or not to highlight matched selected text '
+            'in the editor.'
         )
     )
 
@@ -332,15 +367,31 @@ def register_query_tool_preferences(self):
         ),
     )
 
-    self.on_demand_record_count = self.preference.register(
-        'Results_grid', 'on_demand_record_count',
-        gettext("On demand record count"), 'integer', ON_DEMAND_RECORD_COUNT,
-        min_val=1,
+    self.data_result_rows_per_page = self.preference.register(
+        'Results_grid', 'data_result_rows_per_page',
+        gettext("Data result rows per page"), 'integer',
+        DATA_RESULT_ROWS_PER_PAGE, min_val=10,
         category_label=PREF_LABEL_RESULTS_GRID,
-        help_str=gettext('Specify the number of records to fetch in one batch '
-                         'in query tool when query result set is large. '
-                         'Changing this value will override '
-                         'ON_DEMAND_RECORD_COUNT setting from config file.')
+        help_str=gettext('Specify the number of records to fetch in one batch.'
+                         ' Changing this value will override'
+                         ' DATA_RESULT_ROWS_PER_PAGE setting from config '
+                         ' file.')
+    )
+
+    self.stripped_rows = self.preference.register(
+        'Results_grid', 'striped_rows',
+        gettext("Striped rows?"), 'boolean',
+        True, category_label=PREF_LABEL_RESULTS_GRID,
+        help_str=gettext('If set to true, the result grid will display'
+                         ' rows with alternating background colors.')
+    )
+
+    self.max_column_data_display_length = self.preference.register(
+        'Results_grid', 'max_column_data_display_length',
+        gettext("Max column data display length"), 'integer',
+        200, category_label=PREF_LABEL_RESULTS_GRID,
+        help_str=gettext('Maximum number of characters to be visible in the'
+                         ' data output cell.')
     )
 
     self.sql_font_size = self.preference.register(
@@ -355,6 +406,28 @@ def register_query_tool_preferences(self):
             'default relative font size. For example, to increase the '
             'font size by 20 percent use a value of 1.2, or to reduce '
             'by 20 percent, use a value of 0.8. Minimum 0.1, maximum 10.'
+        )
+    )
+
+    self.sql_font_ligatures = self.preference.register(
+        'Editor', 'sql_font_ligatures',
+        gettext("Font ligatures?"), 'boolean',
+        False, category_label=PREF_LABEL_DISPLAY,
+        help_str=gettext(
+            'If set to true, ligatures will be enabled in SQL text boxes '
+            'and editors provided the configured font family supports them.'
+        )
+    )
+
+    self.sql_font_family = self.preference.register(
+        'Editor', 'sql_font_family',
+        gettext("Font family"), 'text', 'Source Code Pro',
+        category_label=PREF_LABEL_DISPLAY,
+        help_str=gettext(
+            'Specify the font family to be used for all SQL editors. '
+            'The specified font should already be installed on your system. '
+            'If the font is not found, the editor will fall back to the '
+            'default font, Source Code Pro.'
         )
     )
 
@@ -489,7 +562,7 @@ def register_query_tool_preferences(self):
             'control': True,
             'key': {
                 'key_code': 76,
-                'char': 'L'
+                'char': 'l'
             }
         },
         category_label=PREF_LABEL_KEYBOARD_SHORTCUTS,
@@ -499,7 +572,7 @@ def register_query_tool_preferences(self):
     self.preference.register(
         'keyboard_shortcuts',
         'download_results',
-        gettext('Download Results'),
+        gettext('Download results'),
         'keyboardshortcut',
         {
             'alt': False,
@@ -553,7 +626,7 @@ def register_query_tool_preferences(self):
     self.preference.register(
         'keyboard_shortcuts',
         'switch_panel',
-        gettext('Switch Panel'),
+        gettext('Switch panel'),
         'keyboardshortcut',
         {
             'alt': True,
@@ -714,8 +787,8 @@ def register_query_tool_preferences(self):
             'control': False,
             'ctrl_is_meta': False,
             'key': {
-                'key_code': 81,
-                'char': 'q'
+                'key_code': 67,
+                'char': 'c'
             }
         },
         category_label=PREF_LABEL_KEYBOARD_SHORTCUTS,
@@ -811,12 +884,126 @@ def register_query_tool_preferences(self):
         fields=shortcut_fields
     )
 
+    self.preference.register(
+        'keyboard_shortcuts',
+        'find',
+        gettext('Find'),
+        'keyboardshortcut',
+        {
+            'alt': False,
+            'shift': False,
+            'control': True,
+            'ctrl_is_meta': True,
+            'key': {
+                'key_code': 70,
+                'char': 'f'
+            }
+        },
+        category_label=PREF_LABEL_KEYBOARD_SHORTCUTS,
+        fields=shortcut_fields
+    )
+
+    self.preference.register(
+        'keyboard_shortcuts',
+        'replace',
+        gettext('Replace'),
+        'keyboardshortcut',
+        {
+            'alt': True,
+            'shift': False,
+            'control': True,
+            'ctrl_is_meta': True,
+            'key': {
+                'key_code': 70,
+                'char': 'f'
+            }
+        },
+        category_label=PREF_LABEL_KEYBOARD_SHORTCUTS,
+        fields=shortcut_fields
+    )
+
+    self.preference.register(
+        'keyboard_shortcuts',
+        'goto_line_col',
+        gettext('Go to line/column'),
+        'keyboardshortcut',
+        {
+            'alt': False,
+            'shift': False,
+            'control': True,
+            'ctrl_is_meta': True,
+            'key': {
+                'key_code': 76,
+                'char': 'l'
+            }
+        },
+        category_label=PREF_LABEL_KEYBOARD_SHORTCUTS,
+        fields=shortcut_fields
+    )
+
+    self.preference.register(
+        'keyboard_shortcuts',
+        'comment',
+        gettext('Toggle comment'),
+        'keyboardshortcut',
+        {
+            'alt': False,
+            'shift': False,
+            'control': True,
+            'ctrl_is_meta': True,
+            'key': {
+                'key_code': 191,
+                'char': '/'
+            }
+        },
+        category_label=PREF_LABEL_KEYBOARD_SHORTCUTS,
+        fields=shortcut_fields
+    )
+
+    self.preference.register(
+        'keyboard_shortcuts',
+        'format_sql',
+        gettext('Format SQL'),
+        'keyboardshortcut',
+        {
+            'alt': False,
+            'shift': False,
+            'control': True,
+            'ctrl_is_meta': True,
+            'key': {
+                'key_code': 75,
+                'char': 'k'
+            }
+        },
+        category_label=PREF_LABEL_KEYBOARD_SHORTCUTS,
+        fields=shortcut_fields
+    )
+
+    self.preference.register(
+        'keyboard_shortcuts',
+        'auto_complete',
+        gettext('Auto complete'),
+        'keyboardshortcut',
+        {
+            'alt': False,
+            'shift': False,
+            'control': True,
+            'ctrl_is_meta': False,
+            'key': {
+                'key_code': 32,
+                'char': 'Space'
+            }
+        },
+        category_label=PREF_LABEL_KEYBOARD_SHORTCUTS,
+        fields=shortcut_fields
+    )
+
     self.keyword_case = self.preference.register(
         'editor', 'keyword_case',
         gettext("Keyword case"), 'radioModern', 'upper',
-        options=[{'label': gettext('Upper case'), 'value': 'upper'},
-                 {'label': gettext('Lower case'), 'value': 'lower'},
-                 {'label': gettext('Preserve'), 'value': 'preserve'}],
+        options=[{'label': UPPER_CASE_STR, 'value': 'upper'},
+                 {'label': LOWER_CASE_STR, 'value': 'lower'},
+                 {'label': PRESERVE_STR, 'value': 'preserve'}],
         category_label=PREF_LABEL_SQL_FORMATTING,
         help_str=gettext(
             'Convert keywords to upper, lower, or preserve casing.'
@@ -826,9 +1013,9 @@ def register_query_tool_preferences(self):
     self.identifier_case = self.preference.register(
         'editor', 'identifier_case',
         gettext("Identifier case"), 'radioModern', 'upper',
-        options=[{'label': gettext('Upper case'), 'value': 'upper'},
-                 {'label': gettext('Lower case'), 'value': 'lower'},
-                 {'label': gettext('Preserve'), 'value': 'preserve'}],
+        options=[{'label': UPPER_CASE_STR, 'value': 'upper'},
+                 {'label': LOWER_CASE_STR, 'value': 'lower'},
+                 {'label': PRESERVE_STR, 'value': 'preserve'}],
         category_label=PREF_LABEL_SQL_FORMATTING,
         help_str=gettext(
             'Convert identifiers to upper, lower, or preserve casing.'
@@ -838,9 +1025,9 @@ def register_query_tool_preferences(self):
     self.function_case = self.preference.register(
         'editor', 'function_case',
         gettext("Function case"), 'radioModern', 'upper',
-        options=[{'label': gettext('Upper case'), 'value': 'upper'},
-                 {'label': gettext('Lower case'), 'value': 'lower'},
-                 {'label': gettext('Preserve'), 'value': 'preserve'}],
+        options=[{'label': UPPER_CASE_STR, 'value': 'upper'},
+                 {'label': LOWER_CASE_STR, 'value': 'lower'},
+                 {'label': PRESERVE_STR, 'value': 'preserve'}],
         category_label=PREF_LABEL_SQL_FORMATTING,
         help_str=gettext(
             'Convert function names to upper, lower, or preserve casing.'
@@ -850,9 +1037,9 @@ def register_query_tool_preferences(self):
     self.data_type_case = self.preference.register(
         'editor', 'data_type_case',
         gettext("Data type case"), 'radioModern', 'upper',
-        options=[{'label': gettext('Upper case'), 'value': 'upper'},
-                 {'label': gettext('Lower case'), 'value': 'lower'},
-                 {'label': gettext('Preserve'), 'value': 'preserve'}],
+        options=[{'label': UPPER_CASE_STR, 'value': 'upper'},
+                 {'label': LOWER_CASE_STR, 'value': 'lower'},
+                 {'label': PRESERVE_STR, 'value': 'preserve'}],
         category_label=PREF_LABEL_SQL_FORMATTING,
         help_str=gettext(
             'Convert data types to upper, lower, or preserve casing.'
@@ -885,6 +1072,16 @@ def register_query_tool_preferences(self):
         help_str=gettext(
             'Specifies whether or not to insert spaces instead of tabs '
             'when the tab key or auto-indent are used.'
+        )
+    )
+
+    self.preference.register(
+        'Editor', 'indent_new_line',
+        gettext("Auto-indent new line?"), 'boolean', True,
+        category_label=PREF_LABEL_EDITOR,
+        help_str=gettext(
+            'Specifies whether the newly added line using enter key should '
+            'be auto-indented or not'
         )
     )
 

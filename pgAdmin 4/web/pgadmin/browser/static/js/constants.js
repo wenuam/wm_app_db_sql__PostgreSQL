@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -29,6 +29,7 @@ export const BROWSER_PANELS = {
   DEPENDENCIES: 'id-dependencies',
   DEPENDENTS: 'id-dependents',
   PROCESSES: 'id-processes',
+  PREFERENCES: 'id-preferences',
   PROCESS_DETAILS: 'id-process-details',
   EDIT_PROPERTIES: 'id-edit-properties',
   UTILITY_DIALOG: 'id-utility',
@@ -41,8 +42,25 @@ export const BROWSER_PANELS = {
   GRANT_WIZARD: 'id-grant-wizard',
   SEARCH_OBJECTS: 'id-search-objects',
   USER_MANAGEMENT: 'id-user-management',
-  IMPORT_EXPORT_SERVERS: 'id-import-export-servers'
+  IMPORT_EXPORT_SERVERS: 'id-import-export-servers',
+  WELCOME_QUERY_TOOL: 'id-welcome-querytool',
+  WELCOME_PSQL_TOOL: 'id-welcome-psql'
 };
+
+
+export const WORKSPACES = {
+  DEFAULT: 'default_workspace',
+  QUERY_TOOL: 'query_tool_workspace',
+  PSQL_TOOL: 'psql_workspace',
+  SCHEMA_DIFF_TOOL: 'schema_diff_workspace'
+};
+
+export const TOOLS_SUPPORTING_RESTORE = [
+  BROWSER_PANELS.QUERY_TOOL,
+  BROWSER_PANELS.ERD_TOOL,
+  BROWSER_PANELS.SCHEMA_DIFF_TOOL,
+  BROWSER_PANELS.PSQL_TOOL
+];
 
 export const WEEKDAYS = [
     {label: gettext('Sunday'), value: '7'},
@@ -104,3 +122,23 @@ export const WEEKDAYS = [
     {label: gettext('52'), value: '52'}, {label: gettext('53'), value: '53'}, {label: gettext('54'), value: '54'}, {label: gettext('55'), value: '55'},
     {label: gettext('56'), value: '56'}, {label: gettext('57'), value: '57'}, {label: gettext('58'), value: '58'}, {label: gettext('59'), value: '59'},
   ];
+
+export const PGAGENT_MONTHDAYS = [...MONTHDAYS].concat([{label: gettext('Last day'), value: 'Last Day'}]);
+
+export const AllPermissionTypes = {
+  OBJECT_REGISTER_SERVER: 'object_register_server',
+  TOOLS_ERD_TOOL: 'tools_erd_tool',
+  TOOLS_QUERY_TOOL: 'tools_query_tool',
+  TOOLS_DEBUGGER: 'tools_debugger',
+  TOOLS_PSQL_TOOL: 'tools_psql_tool',
+  TOOLS_BACKUP: 'tools_backup',
+  TOOLS_RESTORE: 'tools_restore',
+  TOOLS_IMPORT_EXPORT_DATA: 'tools_import_export_data',
+  TOOLS_IMPORT_EXPORT_SERVERS: 'tools_import_export_servers',
+  TOOLS_SEARCH_OBJECTS: 'tools_search_objects',
+  TOOLS_MAINTENANCE: 'tools_maintenance',
+  TOOLS_SCHEMA_DIFF: 'tools_schema_diff',
+  TOOLS_GRANT_WIZARD: 'tools_grant_wizard',
+  STORAGE_ADD_FOLDER: 'storage_add_folder',
+  STORAGE_REMOVE_FOLDER: 'storage_remove_folder'
+};

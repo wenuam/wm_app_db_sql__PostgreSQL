@@ -2,57 +2,64 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import getApiInstance from 'sources/api_instance';
 import {getHelpUrl, getEPASHelpUrl} from 'pgadmin.help';
 import SchemaView from 'sources/SchemaView';
 import url_for from 'sources/url_for';
 import ErrorBoundary from './helpers/ErrorBoundary';
-import { usePgAdmin } from './BrowserComponent';
+import { usePgAdmin } from './PgAdminProvider';
 import { BROWSER_PANELS } from '../../browser/static/js/constants';
 import { generateNodeUrl } from '../../browser/static/js/node_ajax';
 import usePreferences from '../../preferences/static/js/store';
 import gettext from 'sources/gettext';
 import PropTypes from 'prop-types';
 
-export default function UtilityView() {
+export default function UtilityView({dockerObj}) {
   const pgAdmin = usePgAdmin();
+  const docker = useRef(dockerObj ?? pgAdmin.Browser.docker);
+
+  useEffect(()=>{
+    docker.current = dockerObj ?? pgAdmin.Browser.docker;
+  }, [dockerObj]);
+
   useEffect(()=>{
     pgAdmin.Browser.Events.on('pgadmin:utility:show', (item, panelTitle, dialogProps, width=pgAdmin.Browser.stdW.default, height=pgAdmin.Browser.stdH.md)=>{
-      const treeNodeInfo = pgAdmin.Browser.tree.getTreeNodeHierarchy(item);
+      const treeNodeInfo = pgAdmin.Browser.tree?.getTreeNodeHierarchy(item);
       const panelId = _.uniqueId(BROWSER_PANELS.UTILITY_DIALOG);
-      pgAdmin.Browser.docker.openDialog({
+      const onClose = ()=>docker.current.close(panelId);
+      docker.current.openDialog({
         id: panelId,
         title: panelTitle,
         content: (
           <ErrorBoundary>
             <UtilityViewContent
+              docker={docker.current}
               panelId={panelId}
-              schema={dialogProps.schema}
+              {...dialogProps}
               treeNodeInfo={treeNodeInfo}
               actionType={dialogProps.actionType??'create'}
               formType='dialog'
+              onClose={onClose}
               onSave={dialogProps.onSave ?? ((data)=>{
                 if(data.errormsg) {
                   pgAdmin.Browser.notifier.alert(
                     gettext('Error'),
                     gettext(data.errormsg)
                   );
-                } else {
+                } else if(data.data) {
                   pgAdmin.Browser.BgProcessManager.startProcess(data.data.job_id, data.data.desc);
+                } else if(data.info) {
+                  pgAdmin.Browser.notifier.success(data.info);
                 }
-                pgAdmin.Browser.docker.close(panelId);
+                onClose();
               })}
               extraData={dialogProps.extraData??{}}
-              saveBtnName={dialogProps.saveBtnName}
-              urlBase={dialogProps.urlBase}
-              sqlHelpUrl={dialogProps.sqlHelpUrl}
-              helpUrl={dialogProps.helpUrl}
             />
           </ErrorBoundary>
         )
@@ -62,13 +69,16 @@ export default function UtilityView() {
   return <></>;
 }
 
+UtilityView.propTypes = {
+  dockerObj: PropTypes.object,
+};
+
 /* The entry point for rendering React based view in properties, called in node.js */
-function UtilityViewContent({panelId, schema, treeNodeInfo, actionType, formType,
+function UtilityViewContent({schema, treeNodeInfo, actionType, formType, onClose,
   onSave, extraData, saveBtnName, urlBase, sqlHelpUrl, helpUrl, isTabView=true}) {
 
   const pgAdmin = usePgAdmin();
-  const serverInfo = treeNodeInfo && ('server' in treeNodeInfo) &&
-  pgAdmin.Browser.serverInfo && pgAdmin.Browser.serverInfo[treeNodeInfo.server._id];
+  const serverInfo = treeNodeInfo && ('server' in treeNodeInfo) && pgAdmin.Browser.serverInfo?.[treeNodeInfo.server._id];
   const api = getApiInstance();
   const url = ()=>{
     return urlBase;
@@ -78,25 +88,23 @@ function UtilityViewContent({panelId, schema, treeNodeInfo, actionType, formType
   /* button icons */
   const saveBtnIcon = extraData.save_btn_icon;
 
-  /* Node type & Noen obj*/
+  /* Node type & Node obj*/
   let nodeObj = extraData.nodeType? pgAdmin.Browser.Nodes[extraData.nodeType]: undefined;
   let itemNodeData = extraData?.itemNodeData ? itemNodeData: undefined;
-
-  const onClose = ()=>pgAdmin.Browser.docker.close(panelId);
 
   /* on save button callback, promise required */
   const onSaveClick = (isNew, data)=>new Promise((resolve, reject)=>{
     return api({
       url: url(),
       method: isNew ? 'POST' : 'PUT',
-      data: Object.assign({}, data, extraData),
+      data: {...data, ...extraData},
     }).then((res)=>{
       /* Don't warn the user before closing dialog */
       resolve(res.data);
-      onSave?.(res.data);
+      onSave?.(res.data, data);
       onClose();
     }).catch((err)=>{
-      reject(err);
+      reject(err instanceof Error ? err : Error(gettext('Something went wrong')));
     });
   });
 
@@ -112,7 +120,7 @@ function UtilityViewContent({panelId, schema, treeNodeInfo, actionType, formType
         resolve(res.data.data);
       }).catch((err)=>{
         onError(err);
-        reject(err);
+        reject(err instanceof Error ? err : Error(gettext('Something went wrong')));
       });
     });
   };
@@ -162,7 +170,7 @@ function UtilityViewContent({panelId, schema, treeNodeInfo, actionType, formType
           } else if(err.message){
             console.error('error msg', err.message);
           }
-          reject(err);
+          reject(err instanceof Error ? err : Error(gettext('Something went wrong')));
         });
     }
 
@@ -205,12 +213,12 @@ function UtilityViewContent({panelId, schema, treeNodeInfo, actionType, formType
 }
 
 UtilityViewContent.propTypes = {
-  panelId: PropTypes.string,
   schema: PropTypes.object,
   treeNodeInfo: PropTypes.object,
   actionType: PropTypes.string,
   formType: PropTypes.string,
   onSave: PropTypes.func,
+  onClose: PropTypes.func,
   extraData: PropTypes.object,
   saveBtnName: PropTypes.string,
   urlBase: PropTypes.string,

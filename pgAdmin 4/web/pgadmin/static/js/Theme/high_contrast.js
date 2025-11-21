@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -12,6 +12,7 @@ import { createTheme } from '@mui/material/styles';
 
 export default function(basicSettings) {
   return createTheme(basicSettings, {
+    name: 'high_contrast',
     palette: {
       default: {
         main: '#00000000',
@@ -27,6 +28,7 @@ export default function(basicSettings) {
         main: '#84D6FF',
         light: '#84D6FF',
         contrastText: '#010B15',
+        contrastTextLight: '#010B15',
         hoverMain: '#fff',
         hoverBorderColor: '#fff',
         disabledMain: '#8B9CAD',
@@ -38,12 +40,14 @@ export default function(basicSettings) {
       },
       error: {
         main: '#EE7A55',
-        light: '#EE7A55',
+        light: '#010B15',
         contrastText: '#010B15',
+        hoverMain: '#fff',
+        hoverBorderColor: '#fff',
       },
       warning: {
         main: '#F4D35E',
-        light: '#F4D35E',
+        light: '#010B15',
         contrastText: '#010B15',
       },
       info: {
@@ -54,13 +58,11 @@ export default function(basicSettings) {
         '400': '#2D3A48',
         '600': '#1F2932',
         '800': '#010B15',
+        '900': '#8b9cac'
       },
       text: {
         primary: '#fff',
         muted: '#8b9cac',
-      },
-      checkbox: {
-        disabled: '#6b6b6b'
       },
       background: {
         paper: '#010B15',
@@ -68,6 +70,10 @@ export default function(basicSettings) {
       },
     },
     custom: {
+      checkbox: {
+        borderColor: '#8b9cac',
+        disabled: '#6b6b6b'
+      },
       icon: {
         main: '#010B15',
         contrastText: '#fff',
@@ -82,7 +88,7 @@ export default function(basicSettings) {
     otherVars: {
       colorBrand: '#84D6FF',
       borderColor: '#A6B7C8',
-      inputBorderColor: '#6b6b6b',
+      inputBorderColor: '#8B9CAD',
       inputDisabledBg: '#1F2932',
       errorColor: '#DA6758',
       headerBg: '#010B15',
@@ -103,6 +109,7 @@ export default function(basicSettings) {
       textMuted: '#8b9cad',
       erdCanvasBg: '#010B15',
       erdGridColor: '#1F2932',
+      noteBg: '#010B15',
       scroll: {
         baseColor: '#C9D0D7',
         barBackgroundColor: '#C9D0D733',
@@ -124,10 +131,11 @@ export default function(basicSettings) {
         number: '#45D48A',
         string: '#EAEA43',
         variable: '#7DC9F1',
-        type: '#7DC9F1',
+        type: '#BBBB2A',
         comment: '#FFAD65',
         punctuation: '#d6aaaa',
         operator: '#d6aaaa',
+        name: '#7DC9F1',
         ////
         foldmarker: '#FFFFFF',
         activeline: '#063057',

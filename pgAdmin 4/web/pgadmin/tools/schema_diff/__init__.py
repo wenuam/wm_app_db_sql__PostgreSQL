@@ -2,7 +2,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2024, The pgAdmin Development Team
+# Copyright (C) 2013 - 2025, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 ##########################################################################
@@ -10,12 +10,11 @@
 """A blueprint module implementing the schema_diff frame."""
 import json
 import pickle
-import secrets
 import copy
 
-from flask import Response, session, url_for, request
+from flask import Response, session, request
 from flask import render_template, current_app as app
-from flask_security import current_user
+from flask_security import current_user, permissions_required
 from pgadmin.user_login_check import pga_login_required
 from flask_babel import gettext
 from pgadmin.utils import PgAdminModule
@@ -26,15 +25,17 @@ from pgadmin.tools.schema_diff.node_registry import SchemaDiffRegistry
 from pgadmin.tools.schema_diff.model import SchemaDiffModel
 from config import PG_DEFAULT_DRIVER
 from pgadmin.utils.driver import get_driver
-from pgadmin.utils.constants import PREF_LABEL_DISPLAY, MIMETYPE_APP_JS,\
+from pgadmin.utils.constants import PREF_LABEL_DISPLAY, \
     ERROR_MSG_TRANS_ID_NOT_FOUND
 from sqlalchemy import or_
 from pgadmin.authenticate import socket_login_required
 from pgadmin import socketio
+from pgadmin.tools.user_management.PgAdminPermissions import AllPermissionTypes
 
 MODULE_NAME = 'schema_diff'
 COMPARE_MSG = gettext("Comparing objects...")
 SOCKETIO_NAMESPACE = '/{0}'.format(MODULE_NAME)
+SCH_OBJ_STR = 'Schema Objects'
 
 
 class SchemaDiffModule(PgAdminModule):
@@ -119,9 +120,11 @@ def index():
 
 @blueprint.route(
     '/panel/<int:trans_id>/<path:editor_title>',
-    methods=["GET"],
+    methods=["POST"],
     endpoint='panel'
 )
+@permissions_required(AllPermissionTypes.tools_schema_diff)
+@pga_login_required
 def panel(trans_id, editor_title):
     """
     This method calls index.html to render the schema diff.
@@ -129,6 +132,7 @@ def panel(trans_id, editor_title):
     Args:
         editor_title: Title of the editor
     """
+    params = {}
     # If title has slash(es) in it then replace it
     if request.args and request.args['fslashes'] != '':
         try:
@@ -139,11 +143,18 @@ def panel(trans_id, editor_title):
         except IndexError as e:
             app.logger.exception(e)
 
+    if request.args:
+        params = {k: v for k, v in request.args.items()}
+    if request.form:
+        for key, val in request.form.items():
+            params[key] = val
+
     return render_template(
         "schema_diff/index.html",
         _=gettext,
         trans_id=trans_id,
         editor_title=editor_title,
+        params=json.dumps(params)
     )
 
 
@@ -190,21 +201,17 @@ def update_session_diff_transaction(trans_id, session_obj, diff_model_obj):
 
 
 @blueprint.route(
-    '/initialize',
+    '/initialize/<int:trans_id>',
     methods=["GET"],
     endpoint="initialize"
 )
 @pga_login_required
-def initialize():
+def initialize(trans_id):
     """
     This function will initialize the schema diff and return the list
     of all the server's.
     """
-    trans_id = None
     try:
-        # Create a unique id for the transaction
-        trans_id = str(secrets.choice(range(1, 9999999)))
-
         if 'schemaDiff' not in session:
             schema_diff_data = dict()
         else:
@@ -212,7 +219,7 @@ def initialize():
 
         # Use pickle to store the Schema Diff Model which will be used
         # later by the diff module.
-        schema_diff_data[trans_id] = {
+        schema_diff_data[str(trans_id)] = {
             'diff_model_obj': pickle.dumps(SchemaDiffModel(), -1)
         }
 
@@ -222,8 +229,7 @@ def initialize():
     except Exception as e:
         app.logger.exception(e)
 
-    return make_json_response(
-        data={'schemaDiffTransId': trans_id})
+    return make_json_response()
 
 
 @blueprint.route('/close/<int:trans_id>',
@@ -278,7 +284,8 @@ def servers():
             server_icon_and_background
 
         for server in Server.query.filter(
-                or_(Server.user_id == current_user.id, Server.shared)):
+                or_(Server.user_id == current_user.id, Server.shared),
+                Server.is_adhoc == 0):
 
             shared_server = SharedServer.query.filter_by(
                 name=server.name, user_id=current_user.id,
@@ -607,7 +614,7 @@ def compare_schema(params):
     This function will compare the two schema.
     """
     # Check the pre validation before compare
-    SchemaDiffRegistry.set_schema_diff_compare_mode('Schema Objects')
+    SchemaDiffRegistry.set_schema_diff_compare_mode(SCH_OBJ_STR)
     status, error_msg, diff_model_obj, session_obj = \
         compare_pre_validation(params['trans_id'], params['source_sid'],
                                params['target_sid'])
@@ -640,7 +647,7 @@ def compare_schema(params):
                 target_sid=params['target_sid'],
                 target_did=params['target_did'],
                 target_scid=params['target_scid'],
-                schema_name=gettext('Schema Objects'),
+                schema_name=gettext(SCH_OBJ_STR),
                 diff_model_obj=diff_model_obj,
                 total_percent=total_percent,
                 node_percent=node_percent,
@@ -853,7 +860,7 @@ def compare_schema_objects(**kwargs):
     for node_name, node_view in all_registered_nodes.items():
         view = SchemaDiffRegistry.get_node_view(node_name)
         if hasattr(view, 'compare'):
-            if schema_name == 'Schema Objects':
+            if schema_name == SCH_OBJ_STR:
                 msg = gettext('Comparing {0} '). \
                     format(gettext(view.blueprint.collection_label))
             else:

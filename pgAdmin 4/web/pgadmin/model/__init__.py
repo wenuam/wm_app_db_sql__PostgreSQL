@@ -2,7 +2,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2024, The pgAdmin Development Team
+# Copyright (C) 2013 - 2025, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 ##########################################################################
@@ -33,7 +33,7 @@ import config
 #
 ##########################################################################
 
-SCHEMA_VERSION = 40
+SCHEMA_VERSION = 46
 
 ##########################################################################
 #
@@ -49,6 +49,7 @@ db = SQLAlchemy(
 
 USER_ID = 'user.id'
 SERVER_ID = 'server.id'
+CASCADE_STR = "all, delete-orphan"
 
 # Define models
 roles_users = db.Table(
@@ -56,6 +57,29 @@ roles_users = db.Table(
     db.Column('user_id', db.Integer(), db.ForeignKey(USER_ID)),
     db.Column('role_id', db.Integer(), db.ForeignKey('role.id'))
 )
+
+
+class PgAdminDbArrayString(types.TypeDecorator):
+    cache_ok = True
+    impl = types.String
+
+    def process_bind_param(self, value, dialect):
+        try:
+            if len(value) == 0:
+                return None
+
+            return ",".join(value)
+        except Exception as _:
+            return None
+
+    def process_result_value(self, value, dialect):
+        try:
+            if value == '':
+                return []
+
+            return value.split(',')
+        except Exception as _:
+            return []
 
 
 class PgAdminDbBinaryString(types.TypeDecorator):
@@ -91,6 +115,27 @@ class Role(db.Model, RoleMixin):
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(128), unique=True, nullable=False)
     description = db.Column(db.String(256), nullable=False)
+    # permissions needs to be an array, use custom type to support
+    # both SQLite and PostgreSQL
+    permissions = db.Column(PgAdminDbArrayString())
+
+    def get_permissions(self):
+        from pgadmin.tools.user_management.PgAdminPermissions \
+            import AllPermissionTypes
+        if self.name == 'Administrator':
+            return AllPermissionTypes.list()
+
+        return super().get_permissions()
+
+
+# We override the default UserMixin to change behaviour of has_permission
+# Administrator has all permissions
+class CustomUserMixin(UserMixin):
+    def has_permission(self, permission: str) -> bool:
+        if 'Administrator' in self.roles:
+            return True
+
+        return super().has_permission(permission)
 
 
 class User(db.Model, UserMixin):
@@ -173,10 +218,11 @@ class Server(db.Model):
     discovery_id = db.Column(db.String(128), nullable=True)
     servers = db.relationship(
         'ServerGroup',
-        backref=db.backref('server', cascade="all, delete-orphan"),
+        backref=db.backref('server', cascade=CASCADE_STR),
         lazy='joined'
     )
     db_res = db.Column(db.Text(), nullable=True)
+    db_res_type = db.Column(db.String(32), default='databases')
     passexec_cmd = db.Column(db.Text(), nullable=True)
     passexec_expiration = db.Column(db.Integer(), nullable=True)
     bgcolor = db.Column(db.String(10), nullable=True)
@@ -208,6 +254,20 @@ class Server(db.Model):
     cloud_status = db.Column(db.Integer(), nullable=False, default=0)
     connection_params = db.Column(MutableDict.as_mutable(types.JSON))
     prepare_threshold = db.Column(db.Integer(), nullable=True)
+    tags = db.Column(types.JSON)
+    is_adhoc = db.Column(
+        db.Integer(),
+        db.CheckConstraint('is_adhoc >= 0 AND is_adhoc <= 1'),
+        nullable=False, default=0
+    )
+    post_connection_sql = db.Column(db.String(), nullable=True)
+
+    def clone(self):
+        d = dict(self.__dict__)
+        d.pop("id")  # get rid of id
+        d.pop("_sa_instance_state")  # get rid of SQLAlchemy special attr
+        copy = self.__class__(**d)
+        return copy
 
 
 class ModulePreference(db.Model):
@@ -332,6 +392,16 @@ class QueryHistoryModel(db.Model):
     last_updated_flag = db.Column(db.String(), nullable=False)
 
 
+class ApplicationState(db.Model):
+    """Define the application state SQL table."""
+    __tablename__ = 'application_state'
+    uid = db.Column(db.Integer(), db.ForeignKey(USER_ID), nullable=False,
+                    primary_key=True)
+    id = db.Column(db.Integer(),nullable=False,primary_key=True)
+    connection_info = db.Column(MutableDict.as_mutable(types.JSON))
+    tool_data = db.Column(PgAdminDbBinaryString())
+
+
 class Database(db.Model):
     """
     Define a Database.
@@ -388,7 +458,7 @@ class SharedServer(db.Model):
     discovery_id = db.Column(db.String(128), nullable=True)
     servers = db.relationship(
         'ServerGroup',
-        backref=db.backref('sharedserver', cascade="all, delete-orphan"),
+        backref=db.backref('sharedserver', cascade=CASCADE_STR),
         lazy='joined'
     )
     db_res = db.Column(db.Text(), nullable=True)
@@ -452,5 +522,5 @@ class UserMFA(db.Model):
     options = db.Column(db.Text(), nullable=True)
     user = db.relationship(
         'User',
-        backref=db.backref('user', cascade="all, delete-orphan")
+        backref=db.backref('user', cascade=CASCADE_STR)
     )

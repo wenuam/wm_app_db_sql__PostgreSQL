@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////////////////
@@ -11,10 +11,12 @@ import _ from 'lodash';
 import gettext from 'sources/gettext';
 import { hasTrojanSource } from 'anti-trojan-source';
 import convert from 'convert-units';
+import Papa from 'papaparse';
 import getApiInstance from './api_instance';
 import usePreferences from '../../preferences/static/js/store';
 import pgAdmin from 'sources/pgadmin';
 import { isMac } from './keyboard_shortcuts';
+import { WORKSPACES } from '../../browser/static/js/constants';
 
 export function parseShortcutValue(obj) {
   let shortcut = '';
@@ -23,14 +25,38 @@ export function parseShortcutValue(obj) {
   }
   if (obj.alt) { shortcut += 'alt+'; }
   if (obj.shift) { shortcut += 'shift+'; }
-  if (obj.control) { shortcut += 'ctrl+'; }
+  if (isMac() && obj.ctrl_is_meta) { shortcut += 'meta+'; }
+  else if (obj.control) { shortcut += 'ctrl+'; }
   shortcut += obj?.key.char?.toLowerCase();
+  return shortcut;
+}
+
+export function parseKeyEventValue(e) {
+  let shortcut = '';
+  if(!e) {
+    return null;
+  }
+  if (e.altKey) { shortcut += 'alt+'; }
+  if (e.shiftKey) { shortcut += 'shift+'; }
+  if (isMac() && e.metaKey) { shortcut += 'meta+'; }
+  else if (e.ctrlKey) { shortcut += 'ctrl+'; }
+  shortcut += e.key.toLowerCase();
   return shortcut;
 }
 
 export function isShortcutValue(obj) {
   if(!obj) return false;
   return [obj.alt, obj.control, obj?.key, obj?.key?.char].every((k)=>!_.isUndefined(k));
+}
+
+
+export function getEnterKeyHandler(clickHandler) {
+  return (e)=>{
+    if(e.code === 'Enter'){
+      e.preventDefault();
+      clickHandler(e);
+    }
+  };
 }
 
 // Convert shortcut obj to codemirror key format
@@ -236,85 +262,28 @@ export function sprintf(i_str) {
   }
 }
 
-// Modified ref: http://stackoverflow.com/a/1293163/2343 to suite pgAdmin.
 // This will parse a delimited string into an array of arrays.
 export function CSVToArray(strData, strDelimiter, quoteChar){
-  strDelimiter = strDelimiter || ',';
-  quoteChar = quoteChar || '"';
 
-  // Create a regular expression to parse the CSV values.
-  let objPattern = new RegExp(
-    (
-    // Delimiters.
-      '(\\' + strDelimiter + '|\\r?\\n|\\r|^)' +
-            // Quoted fields.
-            (quoteChar == '"' ? '(?:"([^"]*(?:""[^"]*)*)"|' : '(?:\'([^\']*(?:\'\'[^\']*)*)\'|') +
-            // Standard fields.
-            (quoteChar == '"' ? '([^"\\' + strDelimiter + '\\r\\n]*))': '([^\'\\' + strDelimiter + '\\r\\n]*))')
-    ),
-    'gi'
-  );
+  // Use papaparse to parse the CSV data
+  const parsedResult = Papa.parse(strData, {
+    delimiter: strDelimiter,
+    quoteChar: quoteChar,
+  });
 
-  // Create an array to hold our data. Give the array
-  // a default empty first row.
-  let arrData = [[]];
-
-  // The regex doesn't handle and skips start value if
-  // string starts with delimiter
-  if(strData.startsWith(strDelimiter)) {
-    arrData[ arrData.length - 1 ].push(null);
-  }
-
-  // Create an array to hold our individual pattern
-  // matching groups.
-  let arrMatches = null;
-
-  // Keep looping over the regular expression matches
-  // until we can no longer find a match.
-  while ((arrMatches = objPattern.exec( strData ))){
-    // Get the delimiter that was found.
-    let strMatchedDelimiter = arrMatches[ 1 ];
-
-    // Check to see if the given delimiter has a length
-    // (is not the start of string) and if it matches
-    // field delimiter. If id does not, then we know
-    // that this delimiter is a row delimiter.
-    if (strMatchedDelimiter.length && strMatchedDelimiter !== strDelimiter){
-      // Since we have reached a new row of data,
-      // add an empty row to our data array.
-      arrData.push( [] );
-    }
-
-    let strMatchedValue;
-
-    // Now that we have our delimiter out of the way,
-    // let's check to see which kind of value we
-    // captured (quoted or unquoted).
-    if (arrMatches[ 2 ]){
-      // We found a quoted value. When we capture
-      // this value, unescape any quotes.
-      strMatchedValue = arrMatches[ 2 ].replace(new RegExp( quoteChar+quoteChar, 'g' ), quoteChar);
-    } else {
-      // We found a non-quoted value.
-      strMatchedValue = arrMatches[ 3 ];
-    }
-    // Now that we have our value string, let's add
-    // it to the data array.
-    arrData[ arrData.length - 1 ].push( strMatchedValue );
-  }
   // Return the parsed data.
-  return arrData;
+  return parsedResult.data;
 }
 
 export function hasBinariesConfiguration(pgBrowser, serverInformation) {
   const module = 'paths';
   let preference_name = 'pg_bin_dir';
-  let msg = gettext('Please configure the PostgreSQL Binary Path in the Preferences dialog.');
+  let msg = gettext('Please configure the PostgreSQL Binary Path in the Preferences.');
 
   if ((serverInformation.type && serverInformation.type === 'ppas') ||
     serverInformation.server_type === 'ppas') {
     preference_name = 'ppas_bin_dir';
-    msg = gettext('Please configure the EDB Advanced Server Binary Path in the Preferences dialog.');
+    msg = gettext('Please configure the EDB Advanced Server Binary Path in the Preferences.');
   }
 
   const preference = usePreferences.getState().getPreferences(module, preference_name);
@@ -363,23 +332,26 @@ export function evalFunc(obj, func, ...param) {
 }
 
 export function getBrowser() {
-  let ua=navigator.userAgent,tem,M=ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+  if(navigator.userAgent.indexOf('Electron') >= 0) {
+    return {name: 'Electron', version: /Electron\/([\d.]+\d+)/.exec(navigator.userAgent)[1]};
+  }
+
+  let ua=navigator.userAgent,tem,M=(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i).exec(ua) || [];
   if(/trident/i.test(M[1])) {
     tem=/\brv[ :]+(\d+)/g.exec(ua) || [];
     return {name:'IE', version:(tem[1]||'')};
   }
-  if(ua.startsWith('Nwjs')) {
-    let nwjs = ua.split('-')[0]?.split(':');
-    return {name:nwjs[0], version: nwjs[1]};
+  if(ua.indexOf('Electron') >= 0) {
+    return {name: 'Electron', version: /Electron\/([\d.]+\d+)/.exec(ua)[1]};
   }
 
   if(M[1]==='Chrome') {
-    tem=ua.match(/\bOPR|Edge\/(\d+)/);
+    tem=(/\bOPR|Edge\/(\d+)/).exec(ua);
     if(tem!=null) {return {name:tem[0], version:tem[1]};}
   }
 
   M=M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
-  if((tem=ua.match(/version\/(\d+)/i))!=null) {M.splice(1,1,tem[1]);}
+  if((tem=(/version\/(\d+)/i).exec(ua))!=null) {M.splice(1,1,tem[1]);}
   return {
     name: M[0],
     version: M[1],
@@ -397,25 +369,7 @@ export function checkTrojanSource(content, isPasteEvent) {
   }
 }
 
-export function downloadBlob(blob, fileName) {
-  let urlCreator = window.URL || window.webkitURL,
-    downloadUrl = urlCreator.createObjectURL(blob),
-    link = document.createElement('a');
-
-  document.body.appendChild(link);
-
-  if (getBrowser() == 'IE' && window.navigator.msSaveBlob) {
-  // IE10+ : (has Blob, but not a[download] or URL)
-    window.navigator.msSaveBlob(blob, fileName);
-  } else {
-    link.setAttribute('href', downloadUrl);
-    link.setAttribute('download', fileName);
-    link.click();
-  }
-  document.body.removeChild(link);
-}
-
-export function toPrettySize(rawSize, from='B') {
+export function toPrettySize(rawSize, from='B', decimalFixed=null) {
   try {
     //if the integer need to be converted to K for thousands, M for millions , B for billions only
     if (from == '') {
@@ -423,6 +377,9 @@ export function toPrettySize(rawSize, from='B') {
     }
     let conVal = convert(rawSize).from(from).toBest();
     conVal.val = Math.round(conVal.val * 100) / 100;
+    if(decimalFixed) {
+      conVal.val = conVal.val.toFixed(decimalFixed);
+    }
     return `${conVal.val} ${conVal.unit}`;
   }
   catch {
@@ -578,37 +535,9 @@ export function pgHandleItemError(error, args) {
 
 export function fullHexColor(shortHex) {
   if(shortHex?.length == 4) {
-    return shortHex.replace(RegExp('#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])'), '#$1$1$2$2$3$3').toUpperCase();
+    return shortHex.replace(/#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])/, '#$1$1$2$2$3$3').toUpperCase();
   }
   return shortHex;
-}
-
-export function gettextForTranslation(translations, ...replaceArgs) {
-  const text = replaceArgs[0];
-  let rawTranslation = translations[text] ? translations[text] : text;
-
-  if(arguments.length == 2) {
-    return rawTranslation;
-  }
-
-  try {
-    return rawTranslation.split('%s')
-      .map(function(w, i) {
-        if(i > 0) {
-          if(i < replaceArgs.length) {
-            return [replaceArgs[i], w].join('');
-          } else {
-            return ['%s', w].join('');
-          }
-        } else {
-          return w;
-        }
-      })
-      .join('');
-  } catch(e) {
-    console.error(e);
-    return rawTranslation;
-  }
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Window/cancelAnimationFrame
@@ -631,19 +560,19 @@ export function requestAnimationAndFocus(ele) {
   });
 }
 
-
-export function scrollbarWidth() {
-  // thanks too https://davidwalsh.name/detect-scrollbar-width
-  const scrollDiv = document.createElement('div');
-  scrollDiv.setAttribute('style', 'width: 100px; height: 100px; overflow: scroll; position:absolute; top:-9999px;');
-  document.body.appendChild(scrollDiv);
-  const scrollbarWidth = scrollDiv.offsetWidth - scrollDiv.clientWidth;
-  document.body.removeChild(scrollDiv);
-  return scrollbarWidth;
+export function measureText(text, font) {
+  if(!measureText.ele) {
+    measureText.ele = document.createElement('div');
+    measureText.ele.style.cssText = `position: absolute; visibility: hidden; white-space: nowrap; font: ${font}`;
+    document.body.appendChild(measureText.ele);
+  }
+  measureText.ele.textContent = text;
+  const dim = measureText.ele.getBoundingClientRect();
+  return {width: dim.width, height: dim.height};
 }
 
 const CHART_THEME_COLORS = {
-  'standard':['#1F77B4', '#FF7F0E', '#2CA02C', '#D62728', '#9467BD', '#8C564B',
+  'light':['#1F77B4', '#FF7F0E', '#2CA02C', '#D62728', '#9467BD', '#8C564B',
     '#E377C2', '#7F7F7F', '#BCBD22', '#17BECF', '#3366CC', '#DC3912', '#FF9900',
     '#109618', '#990099', '#0099C6','#DD4477', '#66AA00', '#B82E2E', '#316395'],
   'dark': ['#4878D0', '#EE854A', '#6ACC64', '#D65F5F', '#956CB4', '#8C613C',
@@ -655,8 +584,134 @@ const CHART_THEME_COLORS = {
     '#52B788']
 };
 
-export function getChartColor(index, theme='standard', colorPalette=CHART_THEME_COLORS) {
+export function getChartColor(index, theme='light', colorPalette=CHART_THEME_COLORS) {
   const palette = colorPalette[theme];
   // loop back if out of index;
   return palette[index % palette.length];
+}
+
+export function getRandomColor() {
+  return '#' + ((1 << 24) * Math.random() | 0).toString(16).padStart(6, '0');
+}
+
+// Using this function instead of 'btoa' directly.
+// https://developer.mozilla.org/en-US/docs/Glossary/Base64#the_unicode_problem
+export function stringToBase64(str) {
+  return btoa(
+    Array.from(
+      new TextEncoder().encode(str),
+      (byte) => String.fromCodePoint(byte),
+    ).join('')
+  );
+}
+
+/************************************
+ *
+ * Memoization of a function.
+ *
+ * NOTE: Please don't use the function, when:
+ * - One of the parameter in the arguments could have a 'circular' dependency.
+ *   NOTE: We use `JSON.stringify(...)` for all the arguments.`You could
+ *         introduce 'Object.prototype.toJSON(...)' function for the object
+ *         with circular dependency, which should return a JSON object without
+ *         it.
+ * - It returns a Promise object (asynchronous functions).
+ *
+ *   Consider to use 'https://github.com/sindresorhus/p-memoize' for an
+ *   asychronous functions.
+ *
+ **/
+export const memoizeFn = fn => new Proxy(fn, {
+  cache: new Map(),
+  apply (target, thisArg, argsList) {
+    let cacheKey = stringToBase64(JSON.stringify(argsList));
+    if(!this.cache.has(cacheKey)) {
+      this.cache.set(cacheKey, target.apply(thisArg, argsList));
+    }
+    return this.cache.get(cacheKey);
+  }
+});
+
+export const memoizeTimeout = (fn, time) => new Proxy(fn, {
+  cache: new Map(),
+  apply (target, thisArg, argsList) {
+    const cacheKey = stringToBase64(JSON.stringify(argsList));
+    const cached = this.cache.get(cacheKey);
+    const timeoutId = setTimeout(() => (this.cache.delete(cacheKey)), time);
+
+    if (cached) {
+      clearInterval(cached.timeoutId);
+      cached.timeoutId = timeoutId;
+
+      return cached.result;
+    }
+
+    const result = target.apply(thisArg, argsList);
+    this.cache.set(cacheKey, {result, timeoutId});
+
+    return result;
+  }
+});
+
+export function getPlatform() {
+  const platform = navigator.userAgent;
+  if (platform.includes('Win')) {
+    return 'Windows';
+  } else if (platform.includes('Mac')) {
+    return 'Mac';
+  } else if (platform.includes('Linux')) {
+    return 'Linux';
+  } else {
+    return 'Unknown';
+  }
+}
+
+export function isDefaultWorkspace() {
+  return pgAdmin.Browser?.docker?.currentWorkspace == WORKSPACES.DEFAULT;
+}
+
+/**
+ * Decimal adjustment of a number.
+ *
+ * @param {String}  type  The type of adjustment.
+ * @param {Number}  value The number.
+ * @param {Integer} exp   The exponent (the 10 logarithm of the adjustment base).
+ * @returns {Number} The adjusted value.
+ */
+function decimalAdjust(type, value, exp) {
+  // If the exp is undefined or zero...
+  if (typeof exp === 'undefined' || +exp === 0) {
+    return Math[type](value);
+  }
+  value = +value;
+  exp = +exp;
+  // If the value is not a number or the exp is not an integer...
+  if (isNaN(value) || exp % 1 !== 0) {
+    return NaN;
+  }
+  // Shift
+  value = value.toString().split('e');
+  value = Math[type](+(value[0] + 'e' + (value[1] ? (+value[1] - exp) : -exp)));
+  // Shift back
+  value = value.toString().split('e');
+  return +(value[0] + 'e' + (value[1] ? (+value[1] + exp) : exp));
+}
+
+// Decimal round
+if (!Math.round10) {
+  Math.round10 = function(value, exp) {
+    return decimalAdjust('round', value, exp);
+  };
+}
+// Decimal floor
+if (!Math.floor10) {
+  Math.floor10 = function(value, exp) {
+    return decimalAdjust('floor', value, exp);
+  };
+}
+// Decimal ceil
+if (!Math.ceil10) {
+  Math.ceil10 = function(value, exp) {
+    return decimalAdjust('ceil', value, exp);
+  };
 }

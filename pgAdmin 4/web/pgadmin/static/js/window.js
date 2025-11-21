@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -11,7 +11,7 @@ let getWindowOpener = (opener) => {
   return opener.opener?.pgAdmin ? getWindowOpener(opener.opener) : opener;
 };
 
-let pgWindow = function() {
+const pgWindow = function() {
   let localPgWindow = null;
   try {
     if(window.opener?.pgAdmin) {
@@ -24,7 +24,7 @@ let pgWindow = function() {
     } else {
       localPgWindow = window;
     }
-  } catch (error) {
+  } catch {
     localPgWindow = window;
   }
   return localPgWindow;

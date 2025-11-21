@@ -2,24 +2,35 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
 
 import React, { useEffect } from 'react';
-import { Box, useTheme } from '@mui/material';
+import { Box, styled, useTheme } from '@mui/material';
 import url_for from 'sources/url_for';
 import PropTypes from 'prop-types';
 
-import { Terminal } from 'xterm';
-import { FitAddon } from 'xterm-addon-fit';
-import { WebLinksAddon } from 'xterm-addon-web-links';
-import { SearchAddon } from 'xterm-addon-search';
+import { Terminal } from '@xterm/xterm';
+import { FitAddon } from '@xterm/addon-fit';
+import { WebLinksAddon } from '@xterm/addon-web-links';
+import { SearchAddon } from '@xterm/addon-search';
 import { io } from 'socketio';
 import { copyToClipboard } from '../../../../../static/js/clipboard';
 import 'pgadmin.browser.keyboard';
 import gettext from 'sources/gettext';
+import { useApplicationState } from '../../../../../settings/static/ApplicationStateProvider';
+import { LAYOUT_EVENTS } from '../../../../../static/js/helpers/Layout';
+
+const Root = styled(Box)(()=>({
+  width: '100%',
+  height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  flexGrow: '1',
+  tabIndex: '0',
+}));
 
 function psql_socket_io(socket, is_enable, sid, db, server_type, fitAddon, term, role){
   // Listen all the socket events emit from server.
@@ -101,23 +112,26 @@ function psql_terminal_io(term, socket, platform, pgAdmin) {
   });
 
   term.onKey(function (ev) {
-    socket.emit('socket_input', {'input': ev.key, 'key_name': ev.domEvent.code});
+    let key = ev.key;
+    /*
+      Using the Option/Alt key to type special characters (such as '\', '[', etc.) often does not register
+      the correct character in ev.key when using xterm.js. This is due to limitations in how browsers and
+      xterm.js handle modifier keys across platforms.
+      To address this, if the Alt/Option key is pressed and the key is a single character,
+      we use ev.domEvent.key, which more reliably represents the actual character intended by the user.
+    */
+    if (ev.domEvent.altKey && ev.domEvent.key.length === 1){
+      key = ev.domEvent.key;
+    }
+    socket.emit('socket_input', {'input': key, 'key_name': ev.domEvent.code});
   });
 }
 
 function psql_Addon(term) {
   const fitAddon = new FitAddon();
   term.loadAddon(fitAddon);
-
-  const webLinksAddon = new WebLinksAddon();
-  term.loadAddon(webLinksAddon);
-
-  const searchAddon = new SearchAddon();
-  term.loadAddon(searchAddon);
-
-  fitAddon.fit();
-  term.resize(15, 50);
-  fitAddon.fit();
+  term.loadAddon(new WebLinksAddon());
+  term.loadAddon(new SearchAddon());
   return fitAddon;
 }
 
@@ -129,75 +143,96 @@ function psql_socket() {
   });
 }
 
-export default function  PsqlComponent({ params, pgAdmin }) {
+export default function  PsqlComponent({ params, pgAdmin, panelId, panelDocker }) {
   const theme = useTheme();
   const termRef = React.useRef(null);
   const containerRef = React.useRef(null);
+  const {saveToolData, isSaveToolDataEnabled} = useApplicationState();
 
-  const initializePsqlTool = (params)=>{
+  const setTheme = ()=>{
+    if(termRef.current) {
+      termRef.current.options.theme = {
+        background: theme.palette.background.default,
+        foreground: theme.palette.text.primary,
+        cursor: theme.palette.text.primary,
+        cursorAccent: theme.palette.text.primary,
+        selectionBackground: `${theme.otherVars.editor.selectionBg}`,
+      };
+    }
+  };
+
+  useEffect(()=>{
+    // Initialize terminal
     const term = new Terminal({
       cursorBlink: true,
       scrollback: 5000,
     });
+    termRef.current = term;
+    setTheme();
+
     /* Addon for fitAddon, webLinkAddon, SearchAddon */
     const fitAddon = psql_Addon(term);
-  
+
+    /*  Open terminal */
     term.open(containerRef.current);
 
     /*  Socket */
     const socket = psql_socket();
-  
     psql_socket_io(socket, params.is_enable, params.sid, params.db, params.server_type, fitAddon, term, params.role);
-    
     psql_terminal_io(term, socket, params.platform, pgAdmin);
-  
-    /*  Set terminal size */
-    setTimeout(function(){
-      socket.emit('resize', {'cols': term.cols, 'rows': term.rows});
-    }, 1000);
-    return [term, socket];
-  };
 
-  useEffect(()=>{
-    const [term, socket] = initializePsqlTool(params);
-    termRef.current = term;  
+    const setTerminalSize = ()=>{
+      // Set terminal size
+      fitAddon.fit();
+      setTimeout(function(){
+        socket.emit('resize', {'cols': term.cols, 'rows': term.rows});
+      }, 1000);
 
-    termRef.current?.setOption('theme',  {
-      background: '#ff0000'});
+      // Focus on terminal
+      termRef.current.focus();
+    };
+
+    setTerminalSize();
+
+    // Save tool data if enabled
+    if(isSaveToolDataEnabled('psql')){
+      saveToolData('psql', params,  params.trans_id, null);
+    }
+
+    const deregFocus = panelDocker.eventBus.registerListener(LAYOUT_EVENTS.ACTIVE, _.debounce((currentTabId)=>{
+      if(panelId == currentTabId) {
+        setTerminalSize();
+      }
+    }, 100));
 
     return () => {
+      deregFocus();
       term.dispose();
       socket.disconnect();
     };
-
   }, []);
 
   useEffect(()=>{
-    let psqlTheme = {
-      background: theme.palette.background.default,
-      foreground: theme.palette.text.primary,
-      cursor: theme.palette.text.primary,
-      cursorAccent: theme.palette.text.primary,
-      selection: theme.palette.primary.main
-    };
-    termRef.current?.setOption('theme', psqlTheme );
+    setTheme();
   },[theme]);
 
-
   return (
-    <Box width="100%" height="100%" display="flex" flexDirection="column" flexGrow="1" tabIndex="0" ref={containerRef}>
-    </Box>
+    <Root ref={containerRef}>
+    </Root>
   );
 }
 
 PsqlComponent.propTypes = {
   params:PropTypes.shape({
-    is_enable: PropTypes.Boolean,
+    is_enable: PropTypes.bool,
     sid: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
     db: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
     server_type: PropTypes.string,
     role: PropTypes.string,
-    platform: PropTypes.string
+    platform: PropTypes.string,
+    trans_id: PropTypes.number
   }),
   pgAdmin: PropTypes.object.isRequired,
+  panelId: PropTypes.string,
+  panelDocker: PropTypes.object,
 };

@@ -2,7 +2,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2024, The pgAdmin Development Team
+# Copyright (C) 2013 - 2025, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 ##########################################################################
@@ -27,11 +27,9 @@ from pgadmin.utils.constants import KERBEROS, MessageType
 from pgadmin.utils import PgAdminModule
 from pgadmin.utils.ajax import make_json_response, internal_server_error
 
-
 from pgadmin.authenticate.internal import BaseAuthentication
 from pgadmin.authenticate import get_auth_sources
 from pgadmin.utils.csrf import pgCSRFProtect
-
 
 try:
     import gssapi

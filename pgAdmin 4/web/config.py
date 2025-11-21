@@ -4,7 +4,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2024, The pgAdmin Development Team
+# Copyright (C) 2013 - 2025, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 # config.py - Core application configuration settings
@@ -46,7 +46,8 @@ HELP_PATH = '../../../docs/en_US/_build/html/'
 # Languages we support in the UI
 LANGUAGES = {
     'en': 'English',
-    'zh': 'Chinese (Simplified)',
+    'zh_Hans_CN': 'Chinese (Simplified)',
+    'zh_Hant_TW': 'Chinese (Traditional)',
     'cs': 'Czech',
     'fr': 'French',
     'de': 'German',
@@ -58,6 +59,7 @@ LANGUAGES = {
     'pt_BR': 'Portuguese (Brazilian)',
     'ru': 'Russian',
     'es': 'Spanish',
+    'sv': 'Swedish'
 }
 
 # DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING!
@@ -363,6 +365,9 @@ SESSION_DB_PATH = os.path.join(DATA_DIR, 'sessions')
 
 SESSION_COOKIE_NAME = 'pga4_session'
 
+# Session digest method
+SESSION_DIGEST_METHOD = 'hashlib.sha1'
+
 ##########################################################################
 # Mail server settings
 ##########################################################################
@@ -400,7 +405,9 @@ SECURITY_EMAIL_SUBJECT_PASSWORD_CHANGE_NOTICE = \
 CHECK_EMAIL_DELIVERABILITY = False
 SECURITY_EMAIL_VALIDATOR_ARGS = \
     {"check_deliverability": CHECK_EMAIL_DELIVERABILITY}
-
+ALLOW_SPECIAL_EMAIL_DOMAINS = []
+# Disables global deliverable check while email validation
+GLOBALLY_DELIVERABLE = True
 ##########################################################################
 # Upgrade checks
 ##########################################################################
@@ -456,17 +463,19 @@ STORAGE_DIR = os.path.join(DATA_DIR, 'storage')
 ##########################################################################
 DEFAULT_BINARY_PATHS = {
     "pg": "",
-    "pg-12": "",
     "pg-13": "",
     "pg-14": "",
     "pg-15": "",
     "pg-16": "",
+    "pg-17": "",
+    "pg-18": "",
     "ppas": "",
-    "ppas-12": "",
     "ppas-13": "",
     "ppas-14": "",
     "ppas-15": "",
-    "ppas-16": ""
+    "ppas-16": "",
+    "ppas-17": "",
+    "ppas-18": ""
 }
 
 ##########################################################################
@@ -476,17 +485,19 @@ DEFAULT_BINARY_PATHS = {
 
 FIXED_BINARY_PATHS = {
     "pg": "",
-    "pg-12": "",
     "pg-13": "",
     "pg-14": "",
     "pg-15": "",
     "pg-16": "",
+    "pg-17": "",
+    "pg-18": "",
     "ppas": "",
-    "ppas-12": "",
     "ppas-13": "",
     "ppas-14": "",
     "ppas-15": "",
-    "ppas-16": ""
+    "ppas-16": "",
+    "ppas-17": "",
+    "ppas-18": ""
 }
 
 ##########################################################################
@@ -508,10 +519,10 @@ THREADED_MODE = True
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 ##########################################################################
-# Number of records to fetch in one batch in query tool when query result
-# set is large.
+# Number of records to fetch in one page in query tool when query result
+# set is large and is divided in multiple pages
 ##########################################################################
-ON_DEMAND_RECORD_COUNT = 1000
+DATA_RESULT_ROWS_PER_PAGE = 1000
 
 ##########################################################################
 # Allow users to display Gravatar image for their username in Server mode
@@ -579,7 +590,16 @@ ALLOW_SAVE_TUNNEL_PASSWORD = False
 # Applicable for desktop mode only
 ##########################################################################
 MASTER_PASSWORD_REQUIRED = True
+##########################################################################
 
+##########################################################################
+# Allow to save master password which is used to encrypt/decrypt saved
+# passwords in the os level secret like Keychain, password store etc.
+# Disabling this will require user to enter master password
+# if MASTER_PASSWORD_REQUIRED is set to True. Note: this is applicable only
+# in case of Desktop mode.
+##########################################################################
+USE_OS_SECRET_STORAGE = True
 ##########################################################################
 
 # pgAdmin encrypts the database connection and ssh tunnel password using a
@@ -924,6 +944,17 @@ SERVER_HEARTBEAT_TIMEOUT = 30  # In seconds
 # This setting is applicable only for server mode.
 #############################################################################
 ENABLE_SERVER_PASS_EXEC_CMD = False
+
+#############################################################################
+# Maximum number of Tags allowed on a server node
+##############################################################################
+MAX_SERVER_TAGS_ALLOWED = 5
+
+#############################################################################
+# Number of records to fetch in one batch for server logs.
+##############################################################################
+
+ON_DEMAND_LOG_COUNT = 10000
 
 #############################################################################
 # Patch the default config with custom config and other manipulations

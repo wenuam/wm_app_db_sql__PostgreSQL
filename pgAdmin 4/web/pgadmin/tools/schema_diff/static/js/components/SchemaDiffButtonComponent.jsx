@@ -2,11 +2,12 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
 import _ from 'lodash';
+import { styled } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 
 import React, { useState, useRef, useContext, useEffect } from 'react';
@@ -17,30 +18,29 @@ import { Box } from '@mui/material';
 import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
 import FeaturedPlayListRoundedIcon from '@mui/icons-material/FeaturedPlayListRounded';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import { makeStyles } from '@mui/styles';
 
 import { DefaultButton, PgButtonGroup, PgIconButton, PrimaryButton } from '../../../../../static/js/components/Buttons';
 import { FilterIcon } from '../../../../../static/js/components/ExternalIcon';
 import { PgMenu, PgMenuItem, usePgMenuGroup } from '../../../../../static/js/components/Menu';
 import { FILTER_NAME, MENUS, MENUS_COMPARE_CONSTANT, SCHEMA_DIFF_EVENT, IGNORE_OPTION } from '../SchemaDiffConstants';
 import { SchemaDiffContext, SchemaDiffEventsContext } from './SchemaDiffComponent';
+import withCheckPermission from '../../../../../browser/static/js/withCheckPermission';
+import { AllPermissionTypes } from '../../../../../browser/static/js/constants';
 
 
-const useStyles = makeStyles((theme) => ({
-  emptyIcon: {
-    width: '1.5rem'
+const Root = styled('div')(({theme}) => ({
+  display: 'flex',
+  justifyContent: 'flex-end',
+  '& .SchemaDiffButtons-compareBtn': {
+    display: 'flex',
+    flexGrow: 1,
+    justifyContent: 'flex-start',
+    paddingLeft: '1.5rem',
+    [theme.breakpoints.down('sm')]: {
+      paddingTop: '0.3rem',
+    },
   },
-  diff_btn: {
-    marginRight: '1rem'
-  },
-  noactionBtn: {
-    cursor: 'default',
-    '&:hover': {
-      backgroundColor: 'inherit',
-      cursor: 'default'
-    }
-  },
-  scriptBtn: {
+  '& .SchemaDiffButtons-scriptBtn': {
     display: 'flex',
     justifyContent: 'flex-end',
     paddingRight: '0.3rem',
@@ -49,26 +49,22 @@ const useStyles = makeStyles((theme) => ({
       flexGrow: 1,
     },
   },
-  filterBtn: {
+  '&.SchemaDiffButtons-filterBtn': {
     [theme.breakpoints.down('sm')]: {
       paddingTop: '0.3rem',
       flexGrow: 1,
-    }
-  },
-  compareBtn: {
-    display: 'flex',
-    flexGrow: 1,
-    justifyContent: 'flex-start',
-    paddingLeft: '1.5rem',
-    [theme.breakpoints.down('sm')]: {
-      paddingTop: '0.3rem',
     },
-  }
+    '& .SchemaDiffButtons-noactionBtn': {
+      cursor: 'default',
+      '&:hover': {
+        backgroundColor: 'inherit',
+        cursor: 'default'
+      }
+    },
+  },
 }));
 
-export function SchemaDiffButtonComponent({ sourceData, targetData, selectedRowIds, rows, compareParams, filterParams = [FILTER_NAME.DIFFERENT, FILTER_NAME.SOURCE_ONLY, FILTER_NAME.TARGET_ONLY] }) {
-  const classes = useStyles();
-
+export function SchemaDiffButtonComponent({ sourceData, targetData, selectedRowIds, onServerSchemaChange, rows, compareParams, filterParams = [FILTER_NAME.DIFFERENT, FILTER_NAME.SOURCE_ONLY, FILTER_NAME.TARGET_ONLY] }) {
   const filterRef = useRef(null);
   const compareRef = useRef(null);
 
@@ -84,9 +80,7 @@ export function SchemaDiffButtonComponent({ sourceData, targetData, selectedRowI
   useEffect(() => {
     let isDisableComp = true;
     if (sourceData.sid != null && sourceData.did != null && targetData.sid != null && targetData.did != null) {
-      if ((sourceData.scid != null && targetData.scid == null) || (sourceData.scid == null && targetData.scid != null)) {
-        isDisableComp = true;
-      } else {
+      if (!((sourceData.scid != null && targetData.scid == null) || (sourceData.scid == null && targetData.scid != null))) {
         isDisableComp = false;
       }
     }
@@ -157,15 +151,19 @@ export function SchemaDiffButtonComponent({ sourceData, targetData, selectedRowI
       targetSQL: null,
       SQLdiff: null,
     });
+    onServerSchemaChange();
   };
 
-  const generateScript = () => {
-    eventBus.fireEvent(SCHEMA_DIFF_EVENT.TRIGGER_GENERATE_SCRIPT, { sid: targetData.sid, did: targetData.did, selectedIds: selectedRowIds, rows: rows });
-  };
+  // Check permission and call.
+  const generateScript = withCheckPermission({
+    permission: AllPermissionTypes.TOOLS_QUERY_TOOL
+  }, () => {
+    eventBus.fireEvent(SCHEMA_DIFF_EVENT.TRIGGER_GENERATE_SCRIPT, { sid: targetData.sid, did: targetData.did, selectedIds: selectedRowIds, rows: rows, selectedFilters: selectedFilters });
+  });
 
   return (
-    <>
-      <Box className={classes.compareBtn}>
+    (<Root>
+      <Box className='SchemaDiffButtons-compareBtn'>
         <PgButtonGroup size="small" disabled={isDisableCompare}>
           <PrimaryButton startIcon={<CompareArrowsRoundedIcon />}
             onClick={compareDiff}>{gettext('Compare')}</PrimaryButton>
@@ -173,14 +171,14 @@ export function SchemaDiffButtonComponent({ sourceData, targetData, selectedRowI
             name={MENUS.COMPARE} ref={compareRef} onClick={toggleMenu} ></PgIconButton>
         </PgButtonGroup>
       </Box>
-      <Box className={classes.scriptBtn}>
+      <Box className='SchemaDiffButtons-scriptBtn'>
         <PgButtonGroup size="small" disabled={selectedRowIds?.length <= 0}>
           <DefaultButton startIcon={<FeaturedPlayListRoundedIcon />} onClick={generateScript}>{gettext('Generate Script')}</DefaultButton>
         </PgButtonGroup>
       </Box>
-      <Box className={classes.filterBtn}>
+      <Box className='SchemaDiffButtons-filterBtn'>
         <PgButtonGroup size="small" disabled={isDisableCompare} style={{ paddingRight: '0.3rem' }}>
-          <DefaultButton startIcon={<FilterIcon />} className={classes.noactionBtn}
+          <DefaultButton startIcon={<FilterIcon />} className='SchemaDiffButtons-noactionBtn'
           >{gettext('Filter')}</DefaultButton>
           <PgIconButton title={gettext('Filter')} disabled={isDisableCompare} icon={<KeyboardArrowDownIcon />} splitButton
             name={MENUS.FILTER} ref={filterRef} onClick={toggleMenu} ></PgIconButton>
@@ -218,7 +216,7 @@ export function SchemaDiffButtonComponent({ sourceData, targetData, selectedRowI
         <PgMenuItem hasCheck checked={selectedFilters.includes(FILTER_NAME.TARGET_ONLY)}
           onClick={() => { selectFilterOption(FILTER_NAME.TARGET_ONLY); }}>{FILTER_NAME.TARGET_ONLY}</PgMenuItem>
       </PgMenu>
-    </>
+    </Root>)
   );
 }
 
@@ -226,6 +224,7 @@ SchemaDiffButtonComponent.propTypes = {
   sourceData: PropTypes.object,
   targetData: PropTypes.object,
   selectedRowIds: PropTypes.array,
+  onServerSchemaChange:PropTypes.func,
   rows: PropTypes.array,
   compareParams: PropTypes.object,
   filterParams: PropTypes.array

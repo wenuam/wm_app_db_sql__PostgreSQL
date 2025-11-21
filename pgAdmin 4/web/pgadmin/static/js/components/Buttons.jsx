@@ -2,21 +2,21 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
 
 import { Button, ButtonGroup, Tooltip } from '@mui/material';
-import { makeStyles } from '@mui/styles';
-import React, { forwardRef } from 'react';
-import clsx from 'clsx';
+import React, { forwardRef, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import CustomPropTypes from '../custom_prop_types';
 import ShortcutTitle from './ShortcutTitle';
+import { styled } from '@mui/material/styles';
 
-const useStyles = makeStyles((theme)=>({
-  primaryButton: {
+
+const StyledButton = styled(Button)(({theme, color}) => ({
+  '&.Buttons-primaryButton': {
     border: '1px solid '+theme.palette.primary.main,
     '&.Mui-disabled': {
       color: [theme.palette.primary.contrastText,'!important'],
@@ -26,29 +26,47 @@ const useStyles = makeStyles((theme)=>({
       backgroundColor: theme.palette.primary.hoverMain,
       borderColor: theme.palette.primary.hoverBorderColor,
     },
+    '&.Buttons-noBorderPrimary': {
+      color: theme.palette.primary.contrastText,
+      backgroundColor: theme.palette.primary.main,
+      '&:hover': {
+        color: theme.palette.primary.contrastText,
+        backgroundColor: theme.palette.primary.hoverMain,
+        borderColor: theme.palette.primary.hoverBorderColor,
+      },
+    }
   },
-  defaultButton: {
-    backgroundColor: theme.palette.default.main,
-    color: theme.palette.default.contrastText,
-    border: '1px solid '+theme.palette.default.borderColor,
+  '&.Buttons-defaultButton': {
+    // Use the color prop to determine the background color and text color.
+    backgroundColor: theme.palette[color]?.main ?? theme.palette.default.main,
+    border: '1px solid '+ theme.palette.default.borderColor,
+    color: theme.palette[color]?.contrastText ?? theme.palette.default.contrastText,
     whiteSpace: 'nowrap',
     '&.Mui-disabled': {
       color: [theme.palette.default.disabledContrastText, '!important'],
       borderColor: theme.palette.default.disabledBorderColor
     },
     '&:hover': {
-      backgroundColor: theme.palette.default.hoverMain,
-      color: theme.palette.default.hoverContrastText,
-      borderColor: theme.palette.default.hoverBorderColor,
-    }
-  },
-  iconButton: {
-    minWidth: 0,
-    padding: '2px 4px',
-    '&.MuiButton-sizeSmall, &.MuiButton-outlined.MuiButton-sizeSmall, &.MuiButton-contained.MuiButton-sizeSmall': {
+      backgroundColor: theme.palette[color]?.hoverMain ?? theme.palette.default.hoverMain,
+      color: theme.palette[color]?.contrastText ?? theme.palette.default.hoverContrastText,
+      borderColor: theme.palette[color]?.hoverBorderColor ?? theme.palette.default.hoverBorderColor,
+    },
+    '&.Buttons-noBorder': {
+      border: 0,
+      backgroundColor: 'transparent',
+      color: theme.custom.icon.contrastText,
+      '&:hover': {
+        border: 0,
+        color: theme.custom.icon.contrastText,
+        backgroundColor: 'inherit',
+        filter: 'brightness(85%)',
+      },
+      '&.Mui-disabled': {
+        border: 0,
+      },
     },
   },
-  iconButtonDefault: {
+  '&.Buttons-iconButtonDefault': {
     borderColor: theme.custom.icon.borderColor,
     color: theme.custom.icon.contrastText,
     backgroundColor: theme.custom.icon.main,
@@ -72,7 +90,13 @@ const useStyles = makeStyles((theme)=>({
       borderColor: theme.custom.icon.borderColor,
     }
   },
-  splitButton: {
+  '&.Buttons-iconButton': {
+    minWidth: 0,
+    padding: '2px 4px',
+    '&.MuiButton-sizeSmall, &.MuiButton-outlined.MuiButton-sizeSmall, &.MuiButton-contained.MuiButton-sizeSmall': {
+    },
+  },
+  '&.Buttons-splitButton': {
     '&.MuiButton-sizeSmall, &.MuiButton-outlined.MuiButton-sizeSmall, &.MuiButton-contained.MuiButton-sizeSmall': {
       width: '20px',
       minWidth: 0,
@@ -81,7 +105,7 @@ const useStyles = makeStyles((theme)=>({
       }
     }
   },
-  xsButton: {
+  '&.Buttons-xsButton': {
     padding: '2px 1px',
     height: '24px !important',
     minWidth: '24px',
@@ -92,44 +116,26 @@ const useStyles = makeStyles((theme)=>({
       minWidth: '30px',
     }
   },
-  noBorder: {
-    border: 0,
-    backgroundColor: 'transparent',
-    color: theme.custom.icon.contrastText,
-    '&:hover': {
-      border: 0,
-      color: theme.custom.icon.contrastText,
-      backgroundColor: 'inherit',
-      filter: 'brightness(85%)',
-    },
-    '&.Mui-disabled': {
-      border: 0,
-    },
-  },
-  noBorderPrimary: {
-    color: theme.palette.primary.contrastText,
-    backgroundColor: theme.palette.primary.main,
-    '&:hover': {
-      color: theme.palette.primary.contrastText,
-      backgroundColor: theme.palette.primary.hoverMain,
-      borderColor: theme.palette.primary.hoverBorderColor,
-    },
+  '&.Buttons-dashBoardStopRound':{
+    paddingLeft : '0px',
+    paddingBottom : '5px'
   }
+
 }));
+
 
 /* pgAdmin primary button */
 export const PrimaryButton = forwardRef((props, ref)=>{
   let {children, className, size, noBorder, ...otherProps} = props;
-  const classes = useStyles();
-  let allClassName = [classes.primaryButton, className];
+  let allClassName = ['Buttons-primaryButton', className];
   if(size == 'xs') {
     size = undefined;
-    allClassName.push(classes.xsButton);
+    allClassName.push('Buttons-xsButton');
   }
-  noBorder && allClassName.push(...[classes.noBorder, classes.noBorderPrimary]);
+  noBorder && allClassName.push(...['Buttons-noBorder', 'Buttons-noBorderPrimary']);
   const dataLabel = typeof(children) == 'string' ? children : undefined;
   return (
-    <Button ref={ref} size={size} className={clsx(allClassName)} data-label={dataLabel} {...otherProps} color="primary" variant="contained">{children}</Button>
+    <StyledButton ref={ref} size={size} className={allClassName.join(' ')} data-label={dataLabel} {...otherProps} color="primary" variant="contained">{children}</StyledButton>
   );
 });
 PrimaryButton.displayName = 'PrimaryButton';
@@ -142,17 +148,19 @@ PrimaryButton.propTypes = {
 
 /* pgAdmin default button */
 export const DefaultButton = forwardRef((props, ref)=>{
-  let {children, className, size, noBorder, ...otherProps} = props;
-  const classes = useStyles();
-  let allClassName = [classes.defaultButton, className];
+  let {children, className, size, noBorder, color, ...otherProps} = props;
+  let variant = 'outlined';
+  let allClassName = ['Buttons-defaultButton', className];
   if(size == 'xs') {
     size = undefined;
-    allClassName.push(classes.xsButton);
+    allClassName.push('Buttons-xsButton');
+  } else if(color !== 'default'){
+    variant='contained';
   }
-  noBorder && allClassName.push(classes.noBorder);
+  noBorder && allClassName.push('Buttons-noBorder');
   const dataLabel = typeof(children) == 'string' ? children : undefined;
   return (
-    <Button variant="outlined" ref={ref} size={size} className={clsx(allClassName)} data-label={dataLabel} color="default" {...otherProps}>{children}</Button>
+    <StyledButton variant={variant} ref={ref} size={size} className={allClassName.join(' ')} data-label={dataLabel} {...otherProps} color={color ?? 'default'} >{children}</StyledButton>
   );
 });
 DefaultButton.displayName = 'DefaultButton';
@@ -161,53 +169,77 @@ DefaultButton.propTypes = {
   noBorder: PropTypes.bool,
   children: CustomPropTypes.children,
   className: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+  color: PropTypes.string,
 };
 
 
 /* pgAdmin Icon button, takes Icon component as input */
-export const PgIconButton = forwardRef(({icon, title, shortcut, className, splitButton, style, color, accesskey, ...props}, ref)=>{
-  const classes = useStyles();
-
+export const PgIconButton = forwardRef(({icon, title, shortcut, className, splitButton, style, color, isDropdown, tooltipPlacement, ...props}, ref)=>{
+  const [tooltipOpen, setTooltipOpen] = useState(false);
   let shortcutTitle = null;
-  if(accesskey || shortcut) {
-    shortcutTitle = <ShortcutTitle title={title} accesskey={accesskey} shortcut={shortcut}/>;
+  if(shortcut) {
+    shortcutTitle = <ShortcutTitle title={title} shortcut={shortcut}/>;
   }
 
-  /* Tooltip does not work for disabled items */
+  useEffect(() => {
+    // If the button is disabled changes, we should close the tooltip
+    // as the old button is unmounted.
+    setTooltipOpen(false);
+  }, [props.disabled]);
+
+  const tooltipProps = {
+    title: shortcutTitle || title || '',
+    'aria-label': title || '',
+    open: tooltipOpen,
+    onOpen: () => setTooltipOpen(true),
+    onClose: () => setTooltipOpen(false),
+    enterDelay: isDropdown ? 1500 : undefined,
+    placement: tooltipPlacement,
+  };
+
   if(props.disabled) {
     if(color == 'primary') {
       return (
-        <PrimaryButton ref={ref} style={style}
-          className={clsx(classes.iconButton, (splitButton ? classes.splitButton : ''), className)}
-          accessKey={accesskey} data-label={title || ''} {...props}>
-          {icon}
-        </PrimaryButton>
+        <Tooltip {...tooltipProps}>
+          <span>
+            <PrimaryButton ref={ref} style={style}
+              className={['Buttons-iconButton', (splitButton ? 'Buttons-splitButton' : ''), className].join(' ')}
+              data-label={title || ''} {...props}>
+              {icon}
+            </PrimaryButton>
+          </span>
+        </Tooltip>
       );
     } else {
       return (
-        <DefaultButton ref={ref} style={style}
-          className={clsx(classes.iconButton, classes.iconButtonDefault, (splitButton ? classes.splitButton : ''), className)}
-          accessKey={accesskey} data-label={title || ''} {...props}>
-          {icon}
-        </DefaultButton>
+        <Tooltip {...tooltipProps}>
+          <span>
+            <DefaultButton ref={ref} style={style}
+              className={['Buttons-iconButton', 'Buttons-iconButtonDefault',(splitButton ? 'Buttons-splitButton' : ''), className].join(' ')}
+              data-label={title || ''} {...props}>
+              {icon}
+            </DefaultButton>
+          </span>
+        </Tooltip>
       );
     }
   } else if(color == 'primary') {
     return (
-      <Tooltip title={shortcutTitle || title || ''} aria-label={title || ''}>
+      <Tooltip {...tooltipProps}>
         <PrimaryButton ref={ref} style={style}
-          className={clsx(classes.iconButton, (splitButton ? classes.splitButton : ''), className)}
-          accessKey={accesskey} data-label={title || ''} {...props}>
+          className={['Buttons-iconButton', (splitButton ? 'Buttons-splitButton' : ''), className].join(' ')}
+          data-label={title || ''} {...props}>
           {icon}
         </PrimaryButton>
       </Tooltip>
+
     );
   } else {
     return (
-      <Tooltip title={shortcutTitle || title || ''} aria-label={title || ''}>
+      <Tooltip {...tooltipProps}>
         <DefaultButton ref={ref} style={style}
-          className={clsx(classes.iconButton, classes.iconButtonDefault, (splitButton ? classes.splitButton : ''), className)}
-          accessKey={accesskey} data-label={title || ''} {...props}>
+          className={['Buttons-iconButton', 'Buttons-iconButtonDefault',(splitButton ? 'Buttons-splitButton' : ''), className].join(' ')}
+          data-label={title || ''} {...props}>
           {icon}
         </DefaultButton>
       </Tooltip>
@@ -225,6 +257,8 @@ PgIconButton.propTypes = {
   color: PropTypes.oneOf(['primary', 'default', undefined]),
   disabled: PropTypes.bool,
   splitButton: PropTypes.bool,
+  isDropdown: PropTypes.bool,
+  tooltipPlacement: PropTypes.string,
 };
 
 export const PgButtonGroup = forwardRef(({children, ...props}, ref)=>{

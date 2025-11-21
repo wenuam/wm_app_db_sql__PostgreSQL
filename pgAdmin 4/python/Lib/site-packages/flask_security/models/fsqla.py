@@ -11,6 +11,9 @@ BE AWARE: Once any version of this is shipped no changes can be made - instead
 a new version needs to be created.
 """
 
+# mypy: disable-error-code="assignment"
+# pyright: reportAssignmentType = false, reportIncompatibleVariableOverride=false
+
 from typing import cast
 from sqlalchemy import (
     Boolean,
@@ -56,7 +59,7 @@ class FsModels:
         .. note::
             This should only be used if you are utilizing the fsqla data
             models. With your own models you would need similar but slightly
-            difficult code.
+            different code.
         """
         cls.db = appdb
         cls.user_table_name = user_table_name

@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -13,7 +13,7 @@ module.exports = function(endpoint, substitutions) {
   let rawURL = endpoints[endpoint];
 
   // captures things of the form <path:substitutionName>
-  let substitutionGroupsRegExp = /([<])([^:^>]*:)?([^>]+)([>])/g,
+  let substitutionGroupsRegExp = /(<)([^:^>]*:)?([^>]+)(>)/g,
     interpolated = rawURL;
 
   if (!rawURL)

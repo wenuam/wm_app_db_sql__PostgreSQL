@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -100,7 +100,7 @@ function getRangeSchema(nodeObj, treeNodeInfo, itemNodeData) {
               data = res.data.data;
               resolve(data);
             }).catch((err)=>{
-              reject(err);
+              reject(err instanceof Error ? err : Error(gettext('Something went wrong')));
             });
           } else {
             resolve(data);
@@ -127,7 +127,7 @@ function getRangeSchema(nodeObj, treeNodeInfo, itemNodeData) {
               data = res.data.data;
               resolve(data);
             }).catch((err)=>{
-              reject(err);
+              reject(err instanceof Error ? err : Error(gettext('Something went wrong')));
             });
           } else {
             resolve(data);
@@ -155,7 +155,7 @@ function getRangeSchema(nodeObj, treeNodeInfo, itemNodeData) {
               data = res.data.data;
               resolve(data);
             }).catch((err)=>{
-              reject(err);
+              reject(err instanceof Error ? err : Error(gettext('Something went wrong')));
             });
           } else {
             resolve(data);
@@ -209,7 +209,7 @@ class EnumerationSchema extends BaseUISchema {
     return [
       {
         id: 'label', label: gettext('Label'),
-        type: 'text', cell: 'text', minWidth: 640,
+        type: 'text', cell: 'text', minWidth: 620,
         editable: (state) => {
           return _.isUndefined(obj.isNew) ? true : obj.isNew(state);
         }
@@ -1056,7 +1056,7 @@ class DataTypeSchema extends BaseUISchema {
       }
     },{
       id: 'maxsize',
-      group: gettext('Definition'),
+      group: gettext('Data Type'),
       label: gettext('Size'),
       type: 'int',
       deps: ['typtype'],
@@ -1301,6 +1301,7 @@ export default class TypeSchema extends BaseUISchema {
     },
     {
       id: 'enum', label: gettext('Enumeration type'),
+      editable: true,
       schema: new EnumerationSchema(),
       type: 'collection',
       group: gettext('Definition'), mode: ['edit', 'create'],
@@ -1308,14 +1309,12 @@ export default class TypeSchema extends BaseUISchema {
         return !obj.isInvalidColumnAdded(state);
       },
       canEdit: false,
-      canDeleteRow: function(state) {
-        // We will disable it if it's in 'edit' mode
-        return obj.isNew(state);
-      },
-      canEditRow: false,
+      canDelete: true,
+      canReorder: (state)=>(this.isNew(state)),
+      canDeleteRow: (state)=>(this.isNew(state)),
+      canEditRow: true,
       disabled: () => obj.inCatalog(),
       deps: ['typtype'],
-      uniqueCol : ['label'],
       visible: (state) => isVisible(state, 'e'),
     }, {
       type: 'nested-fieldset',

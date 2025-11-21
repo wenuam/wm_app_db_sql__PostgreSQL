@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -209,7 +209,7 @@ export function showRoleReassign() {
     });
 
   pgAdmin.Browser.Events.trigger('pgadmin:utility:show', item,
-    gettext(gettext(`Reassign/Drop Owned - ${data.label}`), treeNodeInfo.table.label),{
+    gettext(`Reassign/Drop Owned - ${data.label}`),{
       schema, extraData, urlBase, sqlHelpUrl, helpUrl, saveBtnName: gettext('Reassign/Drop'),
     }, pgAdmin.Browser.stdW.md
   );

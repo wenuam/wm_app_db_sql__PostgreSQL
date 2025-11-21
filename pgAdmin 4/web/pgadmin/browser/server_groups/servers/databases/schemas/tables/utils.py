@@ -2,7 +2,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2024, The pgAdmin Development Team
+# Copyright (C) 2013 - 2025, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 ##########################################################################
@@ -21,7 +21,7 @@ from pgadmin.browser.server_groups.servers.databases.schemas\
 from pgadmin.utils.ajax import make_json_response, internal_server_error, \
     gone, make_response as ajax_response
 from pgadmin.browser.server_groups.servers.databases.schemas.utils \
-    import DataTypeReader, parse_rule_definition
+    import DataTypeReader, parse_rule_definition, check_pgstattuple
 from pgadmin.browser.server_groups.servers.utils import parse_priv_from_db, \
     parse_priv_to_db
 from pgadmin.browser.utils import PGChildNodeView
@@ -49,7 +49,6 @@ from pgadmin.utils.preferences import Preferences
 from pgadmin.browser.server_groups.servers.databases.schemas.utils \
     import VacuumSettings
 from pgadmin.tools.schema_diff.node_registry import SchemaDiffRegistry
-from pgadmin.dashboard import locks
 
 
 class BaseTableView(PGChildNodeView, BasePartitionTable, VacuumSettings):
@@ -149,6 +148,8 @@ class BaseTableView(PGChildNodeView, BasePartitionTable, VacuumSettings):
 
             # Supported ACL for table
             self.acl = ['a', 'r', 'w', 'd', 'D', 'x', 't']
+            if ver >= 170000:
+                self.acl = ['a', 'r', 'w', 'd', 'D', 'x', 't', 'm']
 
             # Supported ACL for columns
             self.column_acl = ['a', 'r', 'w', 'x']
@@ -446,14 +447,7 @@ class BaseTableView(PGChildNodeView, BasePartitionTable, VacuumSettings):
             )
         else:
             # For Individual table stats
-
-            # Check if pgstattuple extension is already created?
-            # if created then only add extended stats
-            status, is_pgstattuple = self.conn.execute_scalar("""
-            SELECT (count(extname) > 0) AS is_pgstattuple
-            FROM pg_catalog.pg_extension
-            WHERE extname='pgstattuple'
-            """)
+            status, is_pgstattuple = check_pgstattuple(self.conn, tid)
             if not status:
                 return internal_server_error(errormsg=is_pgstattuple)
 
@@ -709,10 +703,13 @@ class BaseTableView(PGChildNodeView, BasePartitionTable, VacuumSettings):
             data['relacl'] = parse_priv_to_db(data['relacl'], self.acl)
 
         if 'acl' in data:
+            driver = get_driver(PG_DEFAULT_DRIVER)
             data.update({'revoke_all': []})
             for acl in data['acl']:
                 if len(acl['privileges']) > 0 and len(acl['privileges']) < 7:
-                    data['revoke_all'].append(acl['grantee'])
+                    data['revoke_all'].append(
+                        driver.qtIdent(None, acl['grantee'])
+                        if acl['grantee'] != 'PUBLIC' else 'PUBLIC')
 
         # if table is partitions then
         if 'relispartition' in data and data['relispartition']:

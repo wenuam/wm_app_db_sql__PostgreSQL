@@ -2,7 +2,7 @@
 #
 # pgAdmin 4 - PostgreSQL Tools
 #
-# Copyright (C) 2013 - 2024, The pgAdmin Development Team
+# Copyright (C) 2013 - 2025, The pgAdmin Development Team
 # This software is released under the PostgreSQL Licence
 #
 ##########################################################################
@@ -16,6 +16,7 @@ import copy
 
 from flask import render_template, request, current_app
 from flask_babel import gettext
+from flask_security import permissions_required
 from pgadmin.user_login_check import pga_login_required
 from werkzeug.user_agent import UserAgent
 
@@ -34,6 +35,7 @@ from pgadmin.browser.server_groups.servers.databases.extensions.utils \
     import get_extension_details
 from pgadmin.utils.constants import PREF_LABEL_KEYBOARD_SHORTCUTS, \
     SERVER_CONNECTION_CLOSED
+from pgadmin.tools.user_management.PgAdminPermissions import AllPermissionTypes
 from pgadmin.preferences import preferences
 
 MODULE_NAME = 'debugger'
@@ -41,9 +43,11 @@ MODULE_NAME = 'debugger'
 # Constants
 PLDBG_EXTN = 'pldbgapi'
 ASYNC_OK = 1
+BUSY = 3
 DEBUGGER_SQL_PATH = 'debugger/sql'
 DEBUGGER_SQL_V1_PATH = 'debugger/sql/v1'
 DEBUGGER_SQL_V3_PATH = 'debugger/sql/v3'
+SET_SEARCH_PATH = "SET search_path={0};"
 
 
 class DebuggerModule(PgAdminModule):
@@ -262,7 +266,10 @@ def index():
 
 
 def execute_dict_search_path(conn, sql, search_path):
-    sql_search = "SET search_path={0};".format(search_path)
+    if conn.transaction_status() == 1:
+        return True, BUSY
+
+    sql_search = SET_SEARCH_PATH.format(search_path)
     status, res = conn.execute_void(sql_search)
 
     if not status:
@@ -275,7 +282,10 @@ def execute_dict_search_path(conn, sql, search_path):
 
 
 def execute_async_search_path(conn, sql, search_path):
-    sql_search = "SET search_path={0};".format(search_path)
+    if conn.transaction_status() == 1:
+        return True, BUSY
+
+    sql_search = SET_SEARCH_PATH.format(search_path)
     status, res = conn.execute_void(sql_search)
 
     if not status:
@@ -367,6 +377,7 @@ def check_node_type(node_type, fid, trid, conn, ppas_server,
     '/init/<node_type>/<int:sid>/<int:did>/<int:scid>/<int:fid>/<int:trid>',
     methods=['GET'], endpoint='init_for_trigger'
 )
+@permissions_required(AllPermissionTypes.tools_debugger)
 @pga_login_required
 def init_function(node_type, sid, did, scid, fid, trid=None):
     """
@@ -679,7 +690,7 @@ def get_debugger_version(conn, search_path):
     :return:
     """
     debugger_version = 0
-    status, res = conn.execute_void("SET search_path={0};".format(search_path))
+    status, res = conn.execute_void(SET_SEARCH_PATH.format(search_path))
 
     if not status:
         return False, internal_server_error(errormsg=res)
@@ -1004,9 +1015,6 @@ def start_debugger_listener(trans_id):
         did=de_inst.debugger_data['database_id'],
         conn_id=de_inst.debugger_data['conn_id'])
 
-    ver = manager.version
-    server_type = manager.server_type
-
     # find the debugger version and execute the query accordingly
     dbg_version = de_inst.debugger_data['debugger_version']
     if dbg_version <= 2:
@@ -1064,38 +1072,6 @@ def start_debugger_listener(trans_id):
                 if not status:
                     return internal_server_error(errormsg=res)
 
-            if de_inst.function_data['arg_mode']:
-                # In EDBAS 90, if an SPL-function has both an OUT-parameter
-                # and a return value (which is not possible on PostgreSQL
-                # otherwise), the return value is transformed into an extra
-                # OUT-parameter named "_retval_"
-                if de_inst.function_data['args_name']:
-                    arg_name = de_inst.function_data['args_name'].split(",")
-                    if '_retval_' in arg_name:
-                        arg_mode = de_inst.function_data['arg_mode'].split(",")
-                        arg_mode.pop()
-                    else:
-                        arg_mode = de_inst.function_data['arg_mode'].split(",")
-                else:
-                    arg_mode = de_inst.function_data['arg_mode'].split(",")
-            else:
-                arg_mode = ['i'] * len(
-                    de_inst.function_data['args_type'].split(",")
-                )
-
-            if de_inst.function_data['args_type']:
-                if de_inst.function_data['args_name']:
-                    arg_name = de_inst.function_data['args_name'].split(",")
-                    if '_retval_' in arg_name:
-                        arg_type = de_inst.function_data[
-                            'args_type'].split(",")
-                        arg_type.pop()
-                    else:
-                        arg_type = de_inst.function_data[
-                            'args_type'].split(",")
-                else:
-                    arg_type = de_inst.function_data['args_type'].split(",")
-
             debugger_args_values = []
             if de_inst.function_data['args_value']:
                 debugger_args_values = copy.deepcopy(
@@ -1106,29 +1082,16 @@ def start_debugger_listener(trans_id):
                         val_list = arg['value'][1:-1].split(',')
                         arg['value'] = get_debugger_arg_val(val_list)
 
-            # Below are two different template to execute and start executer
-            if manager.server_type != 'pg' and manager.version < 90300:
-                str_query = render_template(
-                    "/".join([DEBUGGER_SQL_PATH, 'execute_edbspl.sql']),
-                    func_name=func_name,
-                    is_func=de_inst.function_data['is_func'],
-                    lan_name=de_inst.function_data['language'],
-                    ret_type=de_inst.function_data['return_type'],
-                    data=debugger_args_values,
-                    arg_type=arg_type,
-                    args_mode=arg_mode,
-                    conn=conn
-                )
-            else:
-                str_query = render_template(
-                    "/".join([DEBUGGER_SQL_PATH, 'execute_plpgsql.sql']),
-                    func_name=func_name,
-                    is_func=de_inst.function_data['is_func'],
-                    ret_type=de_inst.function_data['return_type'],
-                    data=debugger_args_values,
-                    is_ppas_database=de_inst.function_data['is_ppas_database'],
-                    conn=conn
-                )
+            # Template to execute and start executer
+            str_query = render_template(
+                "/".join([DEBUGGER_SQL_PATH, 'execute_plpgsql.sql']),
+                func_name=func_name,
+                is_func=de_inst.function_data['is_func'],
+                ret_type=de_inst.function_data['return_type'],
+                data=debugger_args_values,
+                is_ppas_database=de_inst.function_data['is_ppas_database'],
+                conn=conn
+            )
 
             status, result = execute_async_search_path(
                 conn, str_query, de_inst.debugger_data['search_path'])
@@ -1149,34 +1112,16 @@ def start_debugger_listener(trans_id):
             # other information during debugging
             int_session_id = res['rows'][0]['pldbg_create_listener']
 
-            # In EnterpriseDB versions <= 9.1 the
-            # pldbg_set_global_breakpoint function took five arguments,
-            # the 2nd argument being the package's OID, if any. Starting
-            # with 9.2, the package OID argument is gone, and the function
-            # takes four arguments like the community version has always
-            # done.
-            if server_type == 'ppas' and ver <= 90100:
-                sql = render_template(
-                    "/".join([template_path, 'add_breakpoint_edb.sql']),
-                    session_id=int_session_id,
-                    function_oid=de_inst.debugger_data['function_id']
-                )
+            sql = render_template(
+                "/".join([template_path, 'add_breakpoint_pg.sql']),
+                session_id=int_session_id,
+                function_oid=de_inst.debugger_data['function_id']
+            )
 
-                status, res = execute_dict_search_path(
-                    conn, sql, de_inst.debugger_data['search_path'])
-                if not status:
-                    return internal_server_error(errormsg=res)
-            else:
-                sql = render_template(
-                    "/".join([template_path, 'add_breakpoint_pg.sql']),
-                    session_id=int_session_id,
-                    function_oid=de_inst.debugger_data['function_id']
-                )
-
-                status, res = execute_dict_search_path(
-                    conn, sql, de_inst.debugger_data['search_path'])
-                if not status:
-                    return internal_server_error(errormsg=res)
+            status, res = execute_dict_search_path(
+                conn, sql, de_inst.debugger_data['search_path'])
+            if not status:
+                return internal_server_error(errormsg=res)
 
             # wait for the target
             sql = render_template(
@@ -1279,24 +1224,35 @@ def execute_debugger_query(trans_id, query_type):
         status, result = execute_async_search_path(
             conn, sql, de_inst.debugger_data['search_path'])
 
+        if result == BUSY:
+            return make_json_response(
+                data={'status': 'Busy', 'result': []}
+            )
+
         if result and 'select() failed waiting for target' in result:
             status = True
             result = None
 
         if not status:
             return internal_server_error(errormsg=result)
+
         return make_json_response(
             data={'status': status, 'result': result}
         )
-
     status, result = execute_dict_search_path(
         conn, sql, de_inst.debugger_data['search_path'])
+
     if not status:
         return internal_server_error(errormsg=result)
     if query_type == 'abort_target':
         return make_json_response(
             info=gettext('Debugging aborted successfully.'),
             data={'status': 'Success', 'result': result}
+        )
+
+    if result == BUSY:
+        return make_json_response(
+            data={'status': 'Busy', 'result': []}
         )
 
     return make_json_response(
@@ -1421,6 +1377,11 @@ def start_execution(trans_id, port_num):
     if not status_port:
         return internal_server_error(errormsg=res_port)
 
+    if res_port == BUSY:
+        return make_json_response(
+            data={'status': 'Busy', 'result': []}
+        )
+
     de_inst.debugger_data['restart_debug'] = 0
     de_inst.debugger_data['frame_id'] = 0
     de_inst.debugger_data['exe_conn_id'] = exe_conn_id
@@ -1495,6 +1456,11 @@ def set_clear_breakpoint(trans_id, line_no, set_type):
     if not status:
         return internal_server_error(errormsg=res_stack)
 
+    if res_stack == BUSY:
+        return make_json_response(
+            data={'status': 'Busy', 'result': []}
+        )
+
     # For multilevel function debugging, we need to fetch current selected
     # frame's function oid for setting the breakpoint. For single function
     # the frame id will be 0.
@@ -1515,9 +1481,16 @@ def set_clear_breakpoint(trans_id, line_no, set_type):
 
         status, result = execute_dict_search_path(
             conn, sql, de_inst.debugger_data['search_path'])
-        result = result['rows']
+
         if not status:
             return internal_server_error(errormsg=result)
+
+        if result == BUSY:
+            return make_json_response(
+                data={'status': 'Busy', 'result': []}
+            )
+
+        result = result['rows']
     else:
         status = False
         result = SERVER_CONNECTION_CLOSED
@@ -1601,6 +1574,11 @@ def clear_all_breakpoint(trans_id):
                 conn, sql, de_inst.debugger_data['search_path'])
             if not status:
                 return internal_server_error(errormsg=result)
+
+            if result == BUSY:
+                return make_json_response(
+                    data={'status': 'Busy', 'result': []}
+                )
             result = result['rows']
     else:
         return make_json_response(data={'status': False})
@@ -1663,6 +1641,11 @@ def deposit_parameter_value(trans_id):
                 conn, sql, de_inst.debugger_data['search_path'])
             if not status:
                 return internal_server_error(errormsg=result)
+
+            if result == BUSY:
+                return make_json_response(
+                    data={'status': 'Busy', 'result': []}
+                )
 
             # Check if value deposited successfully or not and depending on
             # the result, return the message information.
@@ -1735,6 +1718,12 @@ def select_frame(trans_id, frame_id):
 
         status, result = execute_dict_search_path(
             conn, sql, de_inst.debugger_data['search_path'])
+
+        if result == BUSY:
+            return make_json_response(
+                data={'status': 'Busy', 'result': []}
+            )
+
         if not status:
             return internal_server_error(errormsg=result)
     else:

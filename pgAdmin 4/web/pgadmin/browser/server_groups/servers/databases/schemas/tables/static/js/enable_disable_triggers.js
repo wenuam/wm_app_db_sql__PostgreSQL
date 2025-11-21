@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -20,7 +20,7 @@ export function enableTriggers(tree, generateUrl, args) {
 function setTriggers(tree, generateUrl, args, params) {
   const treeNode = retrieveTreeNode(args, tree);
 
-  if (!treeNode || treeNode.getData() === null || treeNode.getData() === undefined)
+  if (!treeNode?.getData())
     return false;
 
   axios.put(

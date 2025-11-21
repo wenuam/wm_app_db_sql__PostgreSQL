@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -22,7 +22,9 @@ import ForeignKeySchema from '../../../../../browser/server_groups/servers/datab
 import diffArray from 'diff-arrays-of-objects';
 import TableSchema from '../../../../../browser/server_groups/servers/databases/schemas/tables/static/js/table.ui';
 import ColumnSchema from '../../../../../browser/server_groups/servers/databases/schemas/tables/columns/static/js/column.ui';
-import { Polygon } from '@projectstorm/geometry';
+import UniqueConstraintSchema from '../../../../../browser/server_groups/servers/databases/schemas/tables/constraints/index_constraint/static/js/unique_constraint.ui';
+import PrimaryKeySchema from '../../../../../browser/server_groups/servers/databases/schemas/tables/constraints/index_constraint/static/js/primary_key.ui';
+import { boundingBoxFromPolygons } from '@projectstorm/geometry';
 
 export default class ERDCore {
   constructor() {
@@ -35,8 +37,12 @@ export default class ERDCore {
     this.computeTableCounter();
   }
 
+  createEngine(options) {
+    return createEngine(options);
+  }
+
   initializeEngine() {
-    this.engine = createEngine({
+    this.engine = this.createEngine({
       registerDefaultDeleteItemsAction: false,
       registerDefaultZoomCanvasAction: false,
     });
@@ -45,7 +51,7 @@ export default class ERDCore {
         marginx: 5,
         marginy: 5,
       },
-      includeLinks: true,
+      includeLinks: false,
     });
 
     this.engine.getNodeFactories().registerFactory(new TableNodeFactory());
@@ -177,7 +183,7 @@ export default class ERDCore {
   getModel() {return this.getEngine().getModel();}
 
   getBoundingLinksRect() {
-    return Polygon.boundingBoxFromPolygons(
+    return boundingBoxFromPolygons(
       this.getEngine().getModel().getLinks().map((l)=>l.getBoundingBox()));
   }
 
@@ -333,18 +339,19 @@ export default class ERDCore {
     let tableData = tableNode.getData();
     /* Remove the links if column dropped or primary key removed */
     _.differenceWith(oldTableData.columns, tableData.columns, function(existing, incoming) {
-      if(existing.attnum == incoming.attnum && existing.is_primary_key && !incoming.is_primary_key) {
-        return false;
-      }
       return existing.attnum == incoming.attnum;
     }).forEach((col)=>{
-      let existPort = tableNode.getPort(tableNode.getPortName(col.attnum));
-      if(existPort) {
-        Object.values(existPort.getLinks()).forEach((link)=>{
-          self.removeOneToManyLink(link);
-        });
-        tableNode.removePort(existPort);
-      }
+      this.getLeftRightPorts(tableNode, col.attnum).forEach(port => {
+        if (port) {
+          Object.values(port.getLinks()).forEach(link => {
+            self.removeOneToManyLink(link);
+          });
+          tableNode.removePort(port);
+        }
+      });
+    });
+    Object.values(tableNode.getLinks()).forEach(link=>{
+      link.fireEvent({},'updateLink');
     });
   }
 
@@ -368,7 +375,7 @@ export default class ERDCore {
       fkTableNode.getData().foreign_key?.forEach((theFkRow)=>{
         for(let fkColumn of theFkRow.columns) {
           if(fkColumn.references == tableNode.getID()) {
-            let attnum = _.find(oldTableData.columns, (c)=>c.name==fkColumn.referenced).attnum;
+            let attnum = _.find(oldTableData.columns, (c)=>c.name==fkColumn.referenced)?.attnum;
             fkColumn.referenced = _.find(tableData.columns, (colm)=>colm.attnum==attnum).name;
             fkColumn.references_table_name = tableData.name;
           }
@@ -413,8 +420,8 @@ export default class ERDCore {
       let tableNodesDict = this.getModel().getNodesDict();
       let sourceNode = tableNodesDict[theFk.references];
 
-      let localAttnum = _.find(tableNode.getColumns(), (col)=>col.name==theFk.local_column).attnum;
-      let refAttnum = _.find(sourceNode.getColumns(), (col)=>col.name==theFk.referenced).attnum;
+      let localAttnum = _.find(tableNode.getColumns(), (col)=>col.name==theFk.local_column)?.attnum;
+      let refAttnum = _.find(sourceNode.getColumns(), (col)=>col.name==theFk.referenced)?.attnum;
       const fkLink = Object.values(tableNode.getLinks()).find((link)=>{
         const ldata = link.getData();
         return ldata.local_column_attnum == localAttnum
@@ -478,6 +485,31 @@ export default class ERDCore {
         columns: [col],
       })
     );
+    // Below logic is to add one to one relationship
+    if(onetomanyData.constraint_type === 'primary_key') {
+      let newPk = new PrimaryKeySchema({},{});
+      let pkCol = {};
+      let column = _.find(targetNode.getColumns(), (colm)=>colm.attnum==onetomanyData.local_column_attnum);
+      column.is_primary_key = true;
+      pkCol.column =column.name;
+      tableData.primary_key = tableData.primary_key || [];
+      tableData.primary_key.push(
+        newPk.getNewData({
+          columns: [pkCol]
+        })
+      );
+
+    } else if (onetomanyData.constraint_type === 'unique') {
+      let newUk = new UniqueConstraintSchema({},{});
+      let ukCol = {};
+      ukCol.column = _.find(targetNode.getColumns(), (colm)=>colm.attnum==onetomanyData.local_column_attnum).name;
+      tableData.unique_constraint = tableData.unique_constraint || [];
+      tableData.unique_constraint.push(
+        newUk.getNewData({
+          columns: [ukCol]
+        })
+      );
+    }
     targetNode.setData(tableData);
     let newLink = this.addLink(onetomanyData, 'onetomany');
     this.clearSelection();
@@ -641,12 +673,10 @@ export default class ERDCore {
         });
       }
     });
-
-    setTimeout(this.dagreDistributeNodes.bind(this), 250);
   }
 
-  repaint() {
-    this.getEngine().repaintCanvas();
+  async repaint() {
+    await this.getEngine().repaintCanvas(true);
   }
 
   clearSelection() {
@@ -675,9 +705,15 @@ export default class ERDCore {
       .filter(entity => entity instanceof OneToManyLinkModel);
   }
 
-  dagreDistributeNodes() {
+  async dagreDistributeNodes() {
     this.dagre_engine.redistribute(this.getModel());
-    this.repaint();
+
+    // Swith left/right ports.
+    this.getModel().getNodes().forEach((node)=>{
+      this.optimizePortsPosition(node);
+    });
+
+    await this.repaint();
   }
 
   zoomIn() {

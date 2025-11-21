@@ -1,3 +1,12 @@
+/////////////////////////////////////////////////////////////
+//
+// pgAdmin 4 - PostgreSQL Tools
+//
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
+// This software is released under the PostgreSQL Licence
+//
+//////////////////////////////////////////////////////////////
+
 import React from 'react';
 import { PgMenu, PgMenuDivider, PgMenuItem, PgSubMenu } from './Menu';
 import PropTypes from 'prop-types';
@@ -18,6 +27,7 @@ export default function ContextMenu({menuItems, position, onClose, label='contex
       }}
       hasCheck={hasCheck}
       checked={menuItem.checked}
+      shortcut={menuItem.shortcut} 
     >{menuItem.label}</PgMenuItem>;
   };
 

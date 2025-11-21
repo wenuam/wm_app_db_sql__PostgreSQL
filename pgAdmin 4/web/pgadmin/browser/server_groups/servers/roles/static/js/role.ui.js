@@ -2,7 +2,7 @@
 //
 // pgAdmin 4 - PostgreSQL Tools
 //
-// Copyright (C) 2013 - 2024, The pgAdmin Development Team
+// Copyright (C) 2013 - 2025, The pgAdmin Development Team
 // This software is released under the PostgreSQL Licence
 //
 //////////////////////////////////////////////////////////////
@@ -32,8 +32,8 @@ export default class RoleSchema extends BaseUISchema {
       variables: [],
       rolbypassrls: false,
     });
-    this.getVariableSchema = getVariableSchema;
-    this.getMembershipSchema = getMembershipSchema;
+    this.variableSchema = getVariableSchema();
+    this.membershipSchema = getMembershipSchema();
     this.fieldOptions = {
       role: [],
       ...fieldOptions,
@@ -165,7 +165,9 @@ export default class RoleSchema extends BaseUISchema {
         disabled: obj.readOnly,
         mode: ['edit', 'create'], cell: 'text',
         type: 'collection',
-        schema: new obj.getMembershipSchema(),
+        canDelete: (state) => !obj.readOnly(state),
+        canDeleteRow: true,
+        schema: obj.membershipSchema,
         helpMessage: obj.isReadOnly ? gettext('Select the checkbox for roles to include WITH ADMIN OPTION.') : gettext('Roles shown with a check mark have the WITH ADMIN OPTION set.'),
       },
       {
@@ -183,9 +185,11 @@ export default class RoleSchema extends BaseUISchema {
         id: 'rolmembers', label: gettext('Members'), group: gettext('Membership'),
         mode: ['edit', 'create'], cell: 'text',
         type: 'collection',
-        schema: new obj.getMembershipSchema(),
+        schema: obj.membershipSchema,
         disabled: obj.readOnly,
-        helpMessage: obj.isReadOnly ? gettext('Select the checkbox for roles to include WITH ADMIN OPTION.') : gettext('Roles shown with a check mark have the WITH ADMIN OPTION set.') ,
+        canDelete: (state) => !obj.readOnly(state),
+        canDeleteRow: true,
+        helpMessage: obj.isReadOnly ? gettext('Select the checkbox for roles to include WITH ADMIN OPTION.') : gettext('Roles shown with a check mark have the WITH ADMIN OPTION set.'),
       },
       {
         id: 'rolmembers', label: gettext('Members'), group: gettext('Membership'),
@@ -201,7 +205,7 @@ export default class RoleSchema extends BaseUISchema {
       {
         id: 'variables', label: '', type: 'collection',
         group: gettext('Parameters'),
-        schema: this.getVariableSchema(),
+        schema: this.variableSchema,
         mode: [ 'edit', 'create'], canAdd: true, canDelete: true,
         disabled: obj.readOnly,
       },
