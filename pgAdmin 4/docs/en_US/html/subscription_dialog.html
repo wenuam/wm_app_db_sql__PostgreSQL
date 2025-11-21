@@ -7,11 +7,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Subscription Dialog &#8212; pgAdmin 4 9.8 documentation</title>
+    <title>Subscription Dialog &#8212; pgAdmin 4 9.9 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/style.css?v=d36593c3" />
     
-    <script src="_static/documentation_options.js?v=e97f5ee4"></script>
+    <script src="_static/documentation_options.js?v=4d07dafd"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="sequence_dialog.html" title="Sequence Dialog"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 9.8 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 9.9 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="managing_database_objects.html" accesskey="U">Managing Database Objects</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Subscription Dialog</a></li> 
       </ul>
@@ -131,6 +131,7 @@ appropriate caution should be taken before choosing to use this feature.</p>
 <li><p>Move the <em>Run as owner?</em> switch to <em>true</em> position to specify all replication actions are performed as the subscription owner. If <em>false</em>, replication workers will perform actions on each table as the owner of that table. The default is <em>false</em>. This option is available only on PostgreSQL 16 and above.</p></li>
 <li><p>Use the <em>Password required?</em> to specify whether connections to the publisher made as a result of this subscription must use password authentication. This setting is ignored when the subscription is owned by a superuser. The default is true. Only superusers can set this value to <em>false</em>. This option is available only on PostgreSQL 16 and above.</p></li>
 <li><p>Use the <em>Origin</em> to specify whether the subscription will request the publisher to only send changes that don’t have an origin or send changes regardless of origin. The default is <em>any</em>. This option is available only on PostgreSQL 16 and above.</p></li>
+<li><p>Use the <em>Failover</em> to specify whether the replication slots associated with the subscription are enabled to be synced to the standbys so that logical replication can be resumed from the new primary after failover. The default is false. This option is available only on PostgreSQL 17 and above.</p></li>
 </ul>
 <p>Click the <em>SQL</em> tab to continue.</p>
 <p>Your entries in the <em>Subscription</em> dialog generate a SQL command (see an example below). Use the <em>SQL</em> tab for review; revisit or switch tabs to make any changes to the SQL command.</p>
@@ -232,7 +233,7 @@ the <em>Subscription</em> dialog:</p>
         <li class="right" >
           <a href="sequence_dialog.html" title="Sequence Dialog"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 9.8 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 9.9 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="managing_database_objects.html" >Managing Database Objects</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Subscription Dialog</a></li> 
       </ul>

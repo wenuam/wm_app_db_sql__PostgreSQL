@@ -7,11 +7,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Type Dialog &#8212; pgAdmin 4 9.8 documentation</title>
+    <title>Type Dialog &#8212; pgAdmin 4 9.9 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/style.css?v=d36593c3" />
     
-    <script src="_static/documentation_options.js?v=e97f5ee4"></script>
+    <script src="_static/documentation_options.js?v=4d07dafd"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="trigger_function_dialog.html" title="Trigger Function Dialog"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 9.8 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 9.9 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="managing_database_objects.html" accesskey="U">Managing Database Objects</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Type Dialog</a></li> 
       </ul>
@@ -133,17 +133,17 @@ to select a type_modifier_input_function.</p></li>
 to select a type_modifier_output_function. It is allowed to omit the
 type_modifier_output_function, in which case the default display format is the
 stored typmod integer value enclosed in parentheses.</p></li>
+<li><p>Use the drop-down listbox next to the optional <em>Analyze function</em> field to
+select a function for performing type-specific statistics collection for
+columns of the data type.</p></li>
+<li><p>Use the drop-down listbox next to the optional <em>Subscript function</em> field to
+select a function for allows the data type to be subscripted in SQL commands.</p></li>
 <li><p>Use the optional <em>Internal length</em> to specify a value for internal
 representation.</p></li>
-<li><p>Move the <em>Variable?</em> switch to specify the internal representation is of
-variable length (VARIABLE). The default is a fixed length positive integer.</p></li>
 <li><p>Specify a default value in the optional <em>Default</em> field in cases where a
 column of the data type defaults to something other than the null value.
 Specify the default with the DEFAULT key word. (A default can be overridden
 by an explicit DEFAULT clause attached to a particular column.)</p></li>
-<li><p>Use the drop-down listbox next to the optional <em>Analyze function</em> field to
-select a function for performing type-specific statistics collection for
-columns of the data type.</p></li>
 <li><p>Use the drop-down listbox next to the optional <em>Category type</em> field to help
 control which implicit cast will be applied in ambiguous situations.</p></li>
 <li><p>Move the <em>Preferred?</em> switch to <em>Yes</em> to specify the selected category type is
@@ -183,6 +183,9 @@ in the range’s ordering if the sub-type is collatable.</p></li>
 values to a canonical form.</p></li>
 <li><p>Use the drop-down listbox next to <em>Sub-type diff function</em> to select a
 user-defined subtype_diff function.</p></li>
+<li><p>Specify the optional <em>Multirange type name</em> parameter to specifies the
+name of the corresponding multirange type. If not specified, this name is
+chosen automatically.</p></li>
 </ul>
 <p>If you select <em>Shell</em> in the <em>Type</em> field, the <em>Definition</em> tab displays the
 <em>Shell</em> panel:</p>
@@ -331,7 +334,7 @@ type is an enumerated type with three labels: new, open and closed.</p>
         <li class="right" >
           <a href="trigger_function_dialog.html" title="Trigger Function Dialog"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 9.8 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pgAdmin 4 9.9 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="managing_database_objects.html" >Managing Database Objects</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Type Dialog</a></li> 
       </ul>

@@ -1,5 +1,5 @@
 /**
- * @mui/icons-material v7.3.1
+ * @mui/icons-material v7.3.4
  *
  * @license MIT
  * This source code is licensed under the MIT license found in the
@@ -7,7 +7,7 @@
  */
 
 /**
- * @mui/material v7.3.1
+ * @mui/material v7.3.4
  *
  * @license MIT
  * This source code is licensed under the MIT license found in the
@@ -15,7 +15,7 @@
  */
 
 /**
- * @mui/private-theming v7.3.1
+ * @mui/private-theming v7.3.3
  *
  * @license MIT
  * This source code is licensed under the MIT license found in the
@@ -23,7 +23,7 @@
  */
 
 /**
- * @mui/system v7.3.1
+ * @mui/system v7.3.3
  *
  * @license MIT
  * This source code is licensed under the MIT license found in the
@@ -31,7 +31,7 @@
  */
 
 /**
- * @mui/x-date-pickers v8.10.2
+ * @mui/x-date-pickers v8.12.0
  *
  * @license MIT
  * This source code is licensed under the MIT license found in the

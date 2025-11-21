@@ -158,12 +158,6 @@ export function getConnectionParameters() {
     'vartype': 'enum', 'min_server_version': '18',
     'enumvals': [gettext('3.0'), gettext('3.2'), gettext('latest')]
   }, {
-    'value': 'scram_client_key', 'label': gettext('Scram client key'), 'vartype': 'string',
-    'min_server_version': '18'
-  }, {
-    'value': 'scram_server_key', 'label': gettext('Scram server key'), 'vartype': 'string',
-    'min_server_version': '18'
-  }, {
     'value': 'oauth_issuer', 'label': gettext('OAuth issuer'), 'vartype': 'string',
     'min_server_version': '18'
   }, {
@@ -211,6 +205,7 @@ export default class ServerSchema extends BaseUISchema {
       tunnel_port: 22,
       tunnel_username: undefined,
       tunnel_identity_file: undefined,
+      tunnel_prompt_password: false,
       tunnel_password: undefined,
       tunnel_authentication: false,
       tunnel_keep_alive: 0,
@@ -496,7 +491,22 @@ export default class ServerSchema extends BaseUISchema {
           maxLength: null
         },
         readonly: obj.isConnected,
-      }, {
+      },
+      {
+        id: 'tunnel_prompt_password', label: gettext('Prompt for password?'),
+        type: 'switch', group: gettext('SSH Tunnel'), mode: ['properties', 'edit', 'create'],
+        deps: ['tunnel_authentication', 'use_ssh_tunnel'],
+        depChange: (state)=>{
+          if (!state.tunnel_authentication) {
+            return {tunnel_prompt_password: false};
+          }
+        },
+        disabled: function(state) {
+          return !state.tunnel_authentication || !state.use_ssh_tunnel;
+        },
+        helpMessage: gettext('This setting applies only when using an identity file. An identity file may or may not have a password. If set to true the system will prompt for the password.')
+      },
+      {
         id: 'save_tunnel_password', label: gettext('Save password?'),
         type: 'switch', group: gettext('SSH Tunnel'), mode: ['create'],
         deps: ['connect_now', 'use_ssh_tunnel'],
